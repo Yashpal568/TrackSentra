@@ -31,6 +31,5 @@ const CheckpointSchema: Schema = new Schema(
 
 // Indexes for tenant isolation and uniqueness constraints
 CheckpointSchema.index({ companyId: 1, siteId: 1 });
-CheckpointSchema.index({ qrPayload: 1 });
 
 export const Checkpoint = mongoose.model<ICheckpoint>('Checkpoint', CheckpointSchema);

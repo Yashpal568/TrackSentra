@@ -5,12 +5,16 @@ import { beforeAll, afterAll, afterEach } from 'vitest';
 let mongoServer: MongoMemoryServer;
 
 beforeAll(async () => {
+  console.log('setup.ts: beforeAll started');
   mongoServer = await MongoMemoryServer.create();
+  console.log('setup.ts: MongoMemoryServer created');
   const uri = mongoServer.getUri();
   await mongoose.connect(uri);
-}, 120000); // 120s timeout for downloading binaries
+  console.log('setup.ts: mongoose connected');
+}, 120000);
 
 afterAll(async () => {
+  console.log('setup.ts: afterAll started');
   await mongoose.disconnect();
   if (mongoServer) {
     await mongoServer.stop();

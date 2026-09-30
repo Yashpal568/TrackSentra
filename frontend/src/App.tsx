@@ -9,6 +9,7 @@ import { Sites } from './pages/Sites';
 import { Guards } from './pages/Guards';
 import { Shifts } from './pages/Shifts';
 import { Checkpoints } from './pages/Checkpoints';
+import { Patrols } from './pages/Patrols';
 
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
@@ -33,6 +34,7 @@ function App() {
           <Route path="/checkpoints" element={<Checkpoints />} />
           <Route path="/guards" element={<Guards />} />
           <Route path="/shifts" element={<Shifts />} />
+          <Route path="/patrols" element={<Patrols />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Route>
         

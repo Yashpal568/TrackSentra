@@ -19,6 +19,7 @@ export const Dashboard = () => {
               <Link to="/checkpoints" className="hover:text-blue-400">Checkpoints</Link>
               <Link to="/guards" className="hover:text-blue-400">Guards</Link>
               <Link to="/shifts" className="hover:text-blue-400">Shifts</Link>
+              <Link to="/patrols" className="hover:text-blue-400">Patrols</Link>
               <Link to="/company" className="hover:text-blue-400">Company</Link>
             </div>
           </div>
@@ -63,6 +64,13 @@ export const Dashboard = () => {
             <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center py-8">
               <Building2 className="w-10 h-10 text-indigo-500 mb-4" />
               <h2 className="text-lg font-bold">Company</h2>
+            </Card>
+          </Link>
+
+          <Link to="/patrols">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center py-8">
+              <LayoutDashboard className="w-10 h-10 text-red-500 mb-4" />
+              <h2 className="text-lg font-bold">Patrols</h2>
             </Card>
           </Link>
         </div>

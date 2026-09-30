@@ -18,7 +18,7 @@ const CheckpointScanSchema = new Schema<ICheckpointScan>(
     companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true },
     siteId: { type: Schema.Types.ObjectId, ref: 'Site', required: true },
     sessionId: { type: Schema.Types.ObjectId, ref: 'PatrolSession', required: true },
-    checkpointId: { type: Schema.Types.ObjectId, ref: 'Checkpoint', required: true },
+    checkpointId: { type: Schema.Types.ObjectId, ref: 'Checkpoint', required: function() { return this.status !== 'rejected'; } },
     guardId: { type: Schema.Types.ObjectId, ref: 'Guard', required: true },
     scannedAt: { type: Date, required: true, default: Date.now },
     status: {

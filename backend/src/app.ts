@@ -31,6 +31,7 @@ app.use('/api/sites', siteRoutes);
 app.use('/api/guards', guardRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/checkpoints', checkpointRoutes);
+app.use('/api/patrols', patrolRoutes);
 
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
