@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
 import { PatrolSession } from '../models/PatrolSession';
 import { CheckpointScan } from '../models/CheckpointScan';
-import { Guard } from '../models/Guard';
-import { Site } from '../models/Site';
-import { Checkpoint } from '../models/Checkpoint';
 
 const buildDateFilter = (startDate?: string, endDate?: string) => {
   const filter: any = {};
