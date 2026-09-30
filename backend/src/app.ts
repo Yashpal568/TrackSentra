@@ -12,6 +12,7 @@ import guardRoutes from './routes/guard.routes';
 import shiftRoutes from './routes/shift.routes';
 import checkpointRoutes from './routes/checkpoint.routes';
 import patrolRoutes from './routes/patrol.routes';
+import reportRoutes from './routes/report.routes';
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use('/api/guards', guardRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/checkpoints', checkpointRoutes);
 app.use('/api/patrols', patrolRoutes);
+app.use('/api/reports', reportRoutes);
 
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

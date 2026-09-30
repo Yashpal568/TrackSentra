@@ -12,6 +12,7 @@ import { Checkpoints } from './pages/Checkpoints';
 import { Patrols } from './pages/Patrols';
 import { LiveMonitoring } from './pages/LiveMonitoring';
 import { PatrolLiveDetails } from './pages/PatrolLiveDetails';
+import { Reports } from './pages/Reports';
 
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
@@ -39,6 +40,7 @@ function App() {
           <Route path="/patrols" element={<Patrols />} />
           <Route path="/patrols/:id" element={<PatrolLiveDetails />} />
           <Route path="/live" element={<LiveMonitoring />} />
+          <Route path="/reports" element={<Reports />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Route>
         

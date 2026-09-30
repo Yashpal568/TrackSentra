@@ -2,7 +2,7 @@ import { useAuthStore } from '../store/authStore';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Link } from 'react-router-dom';
-import { Building2, MapPin, LayoutDashboard, Users, CalendarClock, QrCode, Radio } from 'lucide-react';
+import { Building2, MapPin, LayoutDashboard, Users, CalendarClock, QrCode, Radio, BarChart3 } from 'lucide-react';
 
 export const Dashboard = () => {
   const { user, logout } = useAuthStore();
@@ -21,6 +21,7 @@ export const Dashboard = () => {
               <Link to="/shifts" className="hover:text-blue-400">Shifts</Link>
               <Link to="/patrols" className="hover:text-blue-400">Patrols</Link>
               <Link to="/live" className="text-blue-400 font-medium flex items-center gap-1"><Radio size={16} /> Live</Link>
+              <Link to="/reports" className="hover:text-blue-400">Reports</Link>
               <Link to="/company" className="hover:text-blue-400">Company</Link>
             </div>
           </div>
@@ -80,6 +81,13 @@ export const Dashboard = () => {
               <div className="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
               <Radio className="w-10 h-10 text-blue-500 mb-4" />
               <h2 className="text-lg font-bold">Live Monitoring</h2>
+            </Card>
+          </Link>
+
+          <Link to="/reports">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center py-8">
+              <BarChart3 className="w-10 h-10 text-purple-500 mb-4" />
+              <h2 className="text-lg font-bold">Reports</h2>
             </Card>
           </Link>
         </div>
