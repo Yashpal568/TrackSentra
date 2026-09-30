@@ -21,3 +21,7 @@ The approved UI/UX package belongs in `docs/14_UI_UX/`.
 4. Run development servers: `npm run dev`
 5. Run tests: `npm run test`
 6. Build project: `npm run build`
+
+## Deployment & Production
+TrackSentra is configured with production-grade security, logging, rate-limiting, and MongoDB connection pooling.
+For detailed operational guidance, deployment instructions, and disaster recovery procedures, please consult the [DEPLOYMENT.md](DEPLOYMENT.md) guide.

@@ -3,8 +3,10 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
+import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
 import { globalLimiter } from './middleware/rateLimiter';
+
 import authRoutes from './routes/auth.routes';
 import companyRoutes from './routes/company.routes';
 import siteRoutes from './routes/site.routes';
@@ -23,6 +25,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(helmet());
+app.use(hpp()); // Prevent HTTP Parameter Pollution
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(cookieParser());
