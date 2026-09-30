@@ -14,6 +14,9 @@ router.use(authenticate);
 // View routes (Any logged in user can view routes for their company/site)
 router.get('/routes', patrolController.getPatrolRoutes);
 
+// Live Monitoring SSE stream
+router.get('/live/events', patrolController.livePatrolEvents);
+
 // Manage routes (COMPANY_ADMIN, SITE_MANAGER)
 router.post('/routes', requireRole([UserRole.COMPANY_ADMIN, UserRole.SITE_MANAGER]), validateRequest(createPatrolRouteSchema), patrolController.createPatrolRoute);
 router.put('/routes/:id', requireRole([UserRole.COMPANY_ADMIN, UserRole.SITE_MANAGER]), validateRequest(updatePatrolRouteSchema), patrolController.updatePatrolRoute);

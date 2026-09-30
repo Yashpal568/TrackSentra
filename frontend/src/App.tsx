@@ -10,6 +10,8 @@ import { Guards } from './pages/Guards';
 import { Shifts } from './pages/Shifts';
 import { Checkpoints } from './pages/Checkpoints';
 import { Patrols } from './pages/Patrols';
+import { LiveMonitoring } from './pages/LiveMonitoring';
+import { PatrolLiveDetails } from './pages/PatrolLiveDetails';
 
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
@@ -35,6 +37,8 @@ function App() {
           <Route path="/guards" element={<Guards />} />
           <Route path="/shifts" element={<Shifts />} />
           <Route path="/patrols" element={<Patrols />} />
+          <Route path="/patrols/:id" element={<PatrolLiveDetails />} />
+          <Route path="/live" element={<LiveMonitoring />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Route>
         

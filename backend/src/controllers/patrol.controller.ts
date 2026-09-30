@@ -6,6 +6,36 @@ import { Checkpoint } from '../models/Checkpoint';
 import { Guard } from '../models/Guard';
 import { AuditLog } from '../models/AuditLog';
 import { Site } from '../models/Site';
+import { EventEmitter } from 'events';
+
+export const patrolEventEmitter = new EventEmitter();
+
+export const livePatrolEvents = async (req: Request, res: Response): Promise<void> => {
+  const user = (req as any).user;
+  if (user.role === 'GUARD') {
+    res.status(403).json({ error: { message: 'Forbidden' } });
+    return;
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  res.write(`data: ${JSON.stringify({ type: 'CONNECTED' })}\n\n`);
+
+  const onUpdate = (eventData: any) => {
+    if (eventData.companyId.toString() === user.companyId.toString()) {
+      res.write(`data: ${JSON.stringify(eventData)}\n\n`);
+    }
+  };
+
+  patrolEventEmitter.on('patrolUpdate', onUpdate);
+
+  req.on('close', () => {
+    patrolEventEmitter.removeListener('patrolUpdate', onUpdate);
+  });
+};
 
 function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 6371e3; // Earth radius in meters
@@ -196,6 +226,12 @@ export const startPatrolSession = async (req: Request, res: Response): Promise<v
   });
 
   res.status(201).json(session);
+
+  patrolEventEmitter.emit('patrolUpdate', {
+    companyId: session.companyId,
+    type: 'SESSION_STARTED',
+    session: session
+  });
 };
 
 export const scanCheckpoint = async (req: Request, res: Response): Promise<void> => {
@@ -235,6 +271,12 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
       failureReason: 'Invalid QR payload',
     });
     res.status(400).json({ error: { message: 'Invalid QR code' } });
+    
+    patrolEventEmitter.emit('patrolUpdate', {
+      companyId: user.companyId,
+      type: 'SCAN_RECORDED',
+      scan: { status: 'rejected', failureReason: 'Invalid QR payload', sessionId: session._id, guardId: guard._id }
+    });
     return;
   }
 
@@ -389,6 +431,21 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
   }
 
   res.status(201).json({ scan, sessionStatus: session.status });
+
+  patrolEventEmitter.emit('patrolUpdate', {
+    companyId: user.companyId,
+    type: 'SCAN_RECORDED',
+    scan: scan,
+    sessionStatus: session.status
+  });
+  
+  if (session.status === 'completed') {
+    patrolEventEmitter.emit('patrolUpdate', {
+      companyId: user.companyId,
+      type: 'SESSION_COMPLETED',
+      session: session
+    });
+  }
 };
 
 export const completePatrolSession = async (req: Request, res: Response): Promise<void> => {
@@ -426,6 +483,12 @@ export const completePatrolSession = async (req: Request, res: Response): Promis
   });
 
   res.json(session);
+
+  patrolEventEmitter.emit('patrolUpdate', {
+    companyId: user.companyId,
+    type: 'SESSION_COMPLETED',
+    session: session
+  });
 };
 
 export const getSessionScans = async (req: Request, res: Response): Promise<void> => {
