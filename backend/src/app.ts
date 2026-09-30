@@ -13,6 +13,7 @@ import shiftRoutes from './routes/shift.routes';
 import checkpointRoutes from './routes/checkpoint.routes';
 import patrolRoutes from './routes/patrol.routes';
 import reportRoutes from './routes/report.routes';
+import incidentRoutes from './routes/incident.routes';
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/shifts', shiftRoutes);
 app.use('/api/checkpoints', checkpointRoutes);
 app.use('/api/patrols', patrolRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/incidents', incidentRoutes);
 
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

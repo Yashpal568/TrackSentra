@@ -13,6 +13,8 @@ import { Patrols } from './pages/Patrols';
 import { LiveMonitoring } from './pages/LiveMonitoring';
 import { PatrolLiveDetails } from './pages/PatrolLiveDetails';
 import { Reports } from './pages/Reports';
+import { Incidents } from './pages/Incidents';
+import { GlobalAlerts } from './components/GlobalAlerts';
 
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
@@ -41,11 +43,13 @@ function App() {
           <Route path="/patrols/:id" element={<PatrolLiveDetails />} />
           <Route path="/live" element={<LiveMonitoring />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/incidents" element={<Incidents />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <GlobalAlerts />
     </BrowserRouter>
   );
 }
