@@ -78,29 +78,68 @@ export const updateCompany = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    const updates = req.body;
+    const { name, timezone, address, contactEmail, contactPhone, settings } = req.body;
     
-    // Only SUPER_ADMIN can change status (suspend/archive)
-    if (updates.status && user.role !== UserRole.SUPER_ADMIN) {
-      delete updates.status;
-    }
-
-    const company = await Company.findByIdAndUpdate(companyId, updates, { new: true });
-    
+    const company = await Company.findById(companyId);
     if (!company) {
       res.status(404).json({ error: { message: 'Company not found' } });
       return;
     }
 
+    const oldValues = {
+      name: company.name,
+      timezone: company.timezone,
+      address: company.address,
+      contactEmail: company.contactEmail,
+      contactPhone: company.contactPhone,
+      settings: company.settings,
+    };
+
+    if (name) company.name = name;
+    if (timezone) company.timezone = timezone;
+    if (address !== undefined) company.address = address;
+    if (contactEmail !== undefined) company.contactEmail = contactEmail;
+    if (contactPhone !== undefined) company.contactPhone = contactPhone;
+    
+    if (settings) {
+      if (settings.patrol) {
+        if (settings.patrol.requireGps !== undefined) company.settings.patrol.requireGps = settings.patrol.requireGps;
+        if (settings.patrol.gpsAccuracyThreshold !== undefined) company.settings.patrol.gpsAccuracyThreshold = settings.patrol.gpsAccuracyThreshold;
+      }
+      if (settings.security) {
+        if (settings.security.sessionTimeoutMinutes !== undefined) company.settings.security.sessionTimeoutMinutes = settings.security.sessionTimeoutMinutes;
+      }
+    }
+
+    // Only SUPER_ADMIN can change status (suspend/archive)
+    if (req.body.status && user.role === UserRole.SUPER_ADMIN) {
+      company.status = req.body.status;
+    }
+
+    await company.save();
+
     await AuditLog.create({
       companyId: company._id,
       userId: user._id,
-      action: 'UPDATE_COMPANY',
+      action: 'UPDATE_COMPANY_SETTINGS',
       resource: 'Company',
+      details: {
+        oldValues,
+        newValues: {
+          name: company.name,
+          timezone: company.timezone,
+          address: company.address,
+          contactEmail: company.contactEmail,
+          contactPhone: company.contactPhone,
+          settings: company.settings,
+        }
+      },
+      ipAddress: req.ip || req.socket.remoteAddress,
+      userAgent: req.headers['user-agent']
     });
 
     res.json({ company });
-  } catch (error) {
-    res.status(500).json({ error: { message: 'Failed to update company' } });
+  } catch (error: any) {
+    res.status(500).json({ error: { message: error.message } });
   }
 };

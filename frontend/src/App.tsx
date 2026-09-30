@@ -14,6 +14,7 @@ import { LiveMonitoring } from './pages/LiveMonitoring';
 import { PatrolLiveDetails } from './pages/PatrolLiveDetails';
 import { Reports } from './pages/Reports';
 import { Incidents } from './pages/Incidents';
+import { AuditLogs } from './pages/AuditLogs';
 import { GlobalAlerts } from './components/GlobalAlerts';
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
           <Route path="/live" element={<LiveMonitoring />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/incidents" element={<Incidents />} />
+          <Route path="/audit" element={<AuditLogs />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Route>
         

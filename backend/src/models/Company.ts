@@ -5,6 +5,17 @@ export interface ICompany extends Document {
   status: 'active' | 'suspended' | 'archived';
   timezone: string;
   address?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  settings: {
+    patrol: {
+      requireGps: boolean;
+      gpsAccuracyThreshold: number;
+    };
+    security: {
+      sessionTimeoutMinutes: number;
+    };
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -15,6 +26,17 @@ const CompanySchema: Schema = new Schema(
     status: { type: String, enum: ['active', 'suspended', 'archived'], default: 'active' },
     timezone: { type: String, default: 'UTC' },
     address: { type: String, trim: true },
+    contactEmail: { type: String, trim: true },
+    contactPhone: { type: String, trim: true },
+    settings: {
+      patrol: {
+        requireGps: { type: Boolean, default: true },
+        gpsAccuracyThreshold: { type: Number, default: 50 },
+      },
+      security: {
+        sessionTimeoutMinutes: { type: Number, default: 60 },
+      },
+    },
   },
   { timestamps: true }
 );
