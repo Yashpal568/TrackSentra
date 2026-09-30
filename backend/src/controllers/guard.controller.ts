@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { User, UserRole } from '../models/User';
 import { Guard } from '../models/Guard';
 import { AuditLog } from '../models/AuditLog';
+import { checkResourceLimit } from '../utils/entitlements';
 import bcrypt from 'bcryptjs';
 
 export const createGuard = async (req: Request, res: Response): Promise<void> => {
@@ -13,6 +14,14 @@ export const createGuard = async (req: Request, res: Response): Promise<void> =>
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       res.status(400).json({ error: { message: 'Email already exists' } });
+      return;
+    }
+
+    // Entitlement Check
+    const currentGuardCount = await Guard.countDocuments({ companyId: user.companyId });
+    const limitCheck = await checkResourceLimit(user.companyId, 'guards', currentGuardCount);
+    if (!limitCheck.allowed) {
+      res.status(403).json({ error: { message: limitCheck.reason } });
       return;
     }
 

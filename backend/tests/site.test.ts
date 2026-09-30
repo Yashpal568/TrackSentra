@@ -4,6 +4,7 @@ import app from '../src/app';
 import { User, UserRole } from '../src/models/User';
 import { Company } from '../src/models/Company';
 import { Site } from '../src/models/Site';
+import { Subscription, SubscriptionStatus } from '../src/models/Subscription';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 
@@ -11,6 +12,21 @@ describe('Site Management API', () => {
   const setupData = async () => {
     const companyA = await Company.create({ name: 'Alpha' });
     const companyB = await Company.create({ name: 'Beta' });
+
+    // Mock active subscriptions
+    const subConfig = {
+      planId: '000000000000000000000000',
+      status: SubscriptionStatus.ACTIVE,
+      planSnapshot: {
+        name: 'Test Plan',
+        price: 0,
+        currency: 'USD',
+        billingInterval: 'monthly',
+        limits: { maxGuards: 100, maxSites: 100 }
+      }
+    };
+    await Subscription.create({ companyId: companyA._id, ...subConfig });
+    await Subscription.create({ companyId: companyB._id, ...subConfig });
 
     const passwordHash = await bcrypt.hash('Password123!', 10);
     

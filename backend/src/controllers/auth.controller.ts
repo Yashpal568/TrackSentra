@@ -5,6 +5,10 @@ import { User, IUser } from '../models/User';
 import { RefreshToken } from '../models/RefreshToken';
 import { AuditLog } from '../models/AuditLog';
 
+import { Company } from '../models/Company';
+import { Plan } from '../models/Plan';
+import { Subscription, SubscriptionStatus } from '../models/Subscription';
+
 const generateTokens = (user: IUser) => {
   const accessToken = jwt.sign(
     { userId: user._id, companyId: user.companyId, role: user.role },
@@ -19,6 +23,96 @@ const generateTokens = (user: IUser) => {
   );
 
   return { accessToken, refreshToken };
+};
+
+export const register = async (req: Request, res: Response): Promise<void> => {
+  const { companyName, firstName, lastName, email, password, planId } = req.body;
+  const ipAddress = req.ip || req.socket.remoteAddress;
+
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      res.status(400).json({ error: { message: 'Email already in use' } });
+      return;
+    }
+
+    const session = await User.startSession();
+    session.startTransaction();
+
+    try {
+      const company = new Company({ name: companyName });
+      await company.save({ session });
+      
+      const passwordHash = await bcrypt.hash(password, 10);
+      
+      const user = new User({
+        companyId: company._id,
+        firstName,
+        lastName,
+        email,
+        passwordHash,
+        role: 'COMPANY_ADMIN',
+      });
+      await user.save({ session });
+
+      if (planId) {
+        const plan = await Plan.findById(planId).session(session);
+        if (plan && plan.visibility === 'public') {
+          const subscription = new Subscription({
+            companyId: company._id,
+            planId: plan._id,
+            status: SubscriptionStatus.PENDING_PAYMENT,
+            planSnapshot: {
+              name: plan.name,
+              price: plan.price,
+              currency: plan.currency,
+              billingInterval: plan.billingInterval,
+              limits: plan.limits
+            }
+          });
+          await subscription.save({ session });
+        }
+      }
+
+      const audit = new AuditLog({
+        companyId: company._id,
+        userId: user._id,
+        action: 'CUSTOMER_REGISTRATION',
+        resource: 'Authentication',
+        ipAddress,
+      });
+      await audit.save({ session });
+
+      await session.commitTransaction();
+
+      const { accessToken, refreshToken } = generateTokens(user);
+
+      await RefreshToken.create({
+        userId: user._id,
+        token: refreshToken,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      });
+
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 15 * 60 * 1000,
+      });
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/api/auth/refresh', maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+
+      const userObj = user.toObject();
+      delete (userObj as any).passwordHash;
+      res.status(201).json({ message: 'Registration successful', user: userObj, accessToken });
+    } catch (err: any) {
+      await session.abortTransaction();
+      res.status(400).json({ error: { message: err.message } });
+    } finally {
+      session.endSession();
+    }
+  } catch (error) {
+    res.status(500).json({ error: { message: 'Internal server error' } });
+  }
 };
 
 export const login = async (req: Request, res: Response): Promise<void> => {

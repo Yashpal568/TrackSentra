@@ -25,6 +25,15 @@ export const Dashboard = () => {
               <Link to="/reports" className="hover:text-blue-400">Reports</Link>
               <Link to="/audit" className="hover:text-blue-400 font-medium flex items-center gap-1"><Shield size={16} /> Audit</Link>
               <Link to="/company" className="hover:text-blue-400">Company</Link>
+              {user?.role === 'SUPER_ADMIN' && (
+                <>
+                  <Link to="/admin/plans" className="text-yellow-400 hover:text-yellow-300">Plans</Link>
+                  <Link to="/admin/payments" className="text-yellow-400 hover:text-yellow-300">Payments</Link>
+                </>
+              )}
+              {user?.role === 'COMPANY_ADMIN' && (
+                <Link to="/subscription" className="text-green-400 hover:text-green-300">Billing</Link>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -106,6 +115,32 @@ export const Dashboard = () => {
               <h2 className="text-lg font-bold">Audit Logs</h2>
             </Card>
           </Link>
+
+          {user?.role === 'COMPANY_ADMIN' && (
+            <Link to="/subscription">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center py-8 border-t-4 border-t-green-500">
+                <Building2 className="w-10 h-10 text-green-500 mb-4" />
+                <h2 className="text-lg font-bold">Billing</h2>
+              </Card>
+            </Link>
+          )}
+
+          {user?.role === 'SUPER_ADMIN' && (
+            <>
+              <Link to="/admin/plans">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center py-8 border-t-4 border-t-yellow-500">
+                  <LayoutDashboard className="w-10 h-10 text-yellow-500 mb-4" />
+                  <h2 className="text-lg font-bold">Admin Plans</h2>
+                </Card>
+              </Link>
+              <Link to="/admin/payments">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center py-8 border-t-4 border-t-yellow-500">
+                  <Shield className="w-10 h-10 text-yellow-500 mb-4" />
+                  <h2 className="text-lg font-bold">Verify Payments</h2>
+                </Card>
+              </Link>
+            </>
+          )}
         </div>
       </main>
     </div>

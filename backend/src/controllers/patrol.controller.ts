@@ -98,7 +98,7 @@ export const createPatrolRoute = async (req: Request, res: Response): Promise<vo
     userId: user._id,
     action: 'CREATE',
     resource: 'PatrolRoute',
-    resourceId: route._id,
+    details: { resourceId: route._id },
     ipAddress: req.ip || req.socket.remoteAddress,
   });
 
@@ -143,7 +143,7 @@ export const updatePatrolRoute = async (req: Request, res: Response): Promise<vo
     userId: user._id,
     action: 'UPDATE',
     resource: 'PatrolRoute',
-    resourceId: route._id,
+    details: { resourceId: route._id },
     ipAddress: req.ip || req.socket.remoteAddress,
   });
 
@@ -221,7 +221,7 @@ export const startPatrolSession = async (req: Request, res: Response): Promise<v
     userId: user._id,
     action: 'CREATE',
     resource: 'PatrolSession',
-    resourceId: session._id,
+    details: { resourceId: session._id },
     ipAddress: req.ip || req.socket.remoteAddress,
   });
 
@@ -265,7 +265,6 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
       companyId: user.companyId,
       siteId: session.siteId,
       sessionId: session._id,
-      checkpointId: null, // Unknown checkpoint
       guardId: guard._id,
       status: 'rejected',
       failureReason: 'Invalid QR payload',
@@ -478,7 +477,7 @@ export const completePatrolSession = async (req: Request, res: Response): Promis
     userId: user._id,
     action: 'UPDATE',
     resource: 'PatrolSession',
-    resourceId: session._id,
+    details: { resourceId: session._id },
     ipAddress: req.ip || req.socket.remoteAddress,
   });
 

@@ -19,6 +19,12 @@ const Reports = lazy(() => import('./pages/Reports').then(module => ({ default: 
 const Incidents = lazy(() => import('./pages/Incidents').then(module => ({ default: module.Incidents })));
 const AuditLogs = lazy(() => import('./pages/AuditLogs').then(module => ({ default: module.AuditLogs })));
 
+const Pricing = lazy(() => import('./pages/Pricing').then(module => ({ default: module.Pricing })));
+const Register = lazy(() => import('./pages/Register').then(module => ({ default: module.Register })));
+const Subscription = lazy(() => import('./pages/Subscription').then(module => ({ default: module.Subscription })));
+const AdminPlans = lazy(() => import('./pages/AdminPlans').then(module => ({ default: module.AdminPlans })));
+const AdminPayments = lazy(() => import('./pages/AdminPayments').then(module => ({ default: module.AdminPayments })));
+
 const SuspenseFallback = () => <div className="flex min-h-screen items-center justify-center">Loading component...</div>;
 
 function App() {
@@ -36,6 +42,8 @@ function App() {
     <BrowserRouter>
       <Suspense fallback={<SuspenseFallback />}>
         <Routes>
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           
           <Route element={<ProtectedRoute />}>
@@ -51,6 +59,9 @@ function App() {
             <Route path="/reports" element={<Reports />} />
             <Route path="/incidents" element={<Incidents />} />
             <Route path="/audit" element={<AuditLogs />} />
+            <Route path="/subscription" element={<Subscription />} />
+            <Route path="/admin/plans" element={<AdminPlans />} />
+            <Route path="/admin/payments" element={<AdminPayments />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>
           

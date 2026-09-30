@@ -17,6 +17,7 @@ import patrolRoutes from './routes/patrol.routes';
 import reportRoutes from './routes/report.routes';
 import incidentRoutes from './routes/incident.routes';
 import auditRoutes from './routes/audit.routes';
+import subscriptionRoutes from './routes/subscription.routes';
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.use('/api/patrols', patrolRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/incidents', incidentRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

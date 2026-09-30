@@ -1,11 +1,20 @@
 import { Request, Response } from 'express';
 import { Site } from '../models/Site';
 import { AuditLog } from '../models/AuditLog';
+import { checkResourceLimit } from '../utils/entitlements';
 
 export const createSite = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;
     const { name, address, timezone } = req.body;
+
+    // Entitlement Check
+    const currentSiteCount = await Site.countDocuments({ companyId: user.companyId });
+    const limitCheck = await checkResourceLimit(user.companyId, 'sites', currentSiteCount);
+    if (!limitCheck.allowed) {
+      res.status(403).json({ error: { message: limitCheck.reason } });
+      return;
+    }
 
     const site = await Site.create({
       companyId: user.companyId, // Force tenant boundary
