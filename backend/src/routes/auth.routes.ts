@@ -13,6 +13,9 @@ router.post('/logout', authController.logout);
 router.post('/refresh', authController.refresh);
 router.post('/forgot-password', authLimiter, validateRequest(forgotPasswordSchema), authController.forgotPassword);
 router.post('/reset-password', authLimiter, validateRequest(resetPasswordSchema), authController.resetPassword);
+router.post('/verify-email', authLimiter, authController.verifyEmail);
+router.post('/resend-verification', authLimiter, authController.resendVerification);
+router.post('/activate-guard', authLimiter, authController.activateGuard);
 
 router.get('/me', authenticate, authController.getMe);
 

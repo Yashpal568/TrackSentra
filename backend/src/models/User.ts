@@ -16,6 +16,7 @@ export interface IUser extends Document {
   passwordHash: string;
   role: UserRole;
   status: 'active' | 'inactive' | 'suspended';
+  isEmailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +30,7 @@ const UserSchema: Schema = new Schema(
     passwordHash: { type: String, required: true },
     role: { type: String, enum: Object.values(UserRole), required: true },
     status: { type: String, enum: ['active', 'inactive', 'suspended'], default: 'active' },
+    isEmailVerified: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

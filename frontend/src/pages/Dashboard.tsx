@@ -2,7 +2,8 @@ import { useAuthStore } from '../store/authStore';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Link } from 'react-router-dom';
-import { Building2, MapPin, LayoutDashboard, Users, CalendarClock, QrCode, Radio, BarChart3, AlertTriangle, Shield } from 'lucide-react';
+import { Building2, MapPin, LayoutDashboard, Users, CalendarClock, QrCode, Radio, BarChart3, AlertTriangle, Shield, HelpCircle, MessageSquare } from 'lucide-react';
+import { OnboardingChecklist } from '../components/OnboardingChecklist';
 
 export const Dashboard = () => {
   const { user, logout } = useAuthStore();
@@ -32,8 +33,12 @@ export const Dashboard = () => {
                 </>
               )}
               {user?.role === 'COMPANY_ADMIN' && (
-                <Link to="/subscription" className="text-green-400 hover:text-green-300">Billing</Link>
+                <>
+                  <Link to="/subscription" className="text-green-400 hover:text-green-300">Billing</Link>
+                  <Link to="/tickets" className="hover:text-blue-400">Support</Link>
+                </>
               )}
+              <Link to="/help" className="hover:text-blue-400 font-medium flex items-center gap-1"><HelpCircle size={16} /> Help</Link>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -44,6 +49,7 @@ export const Dashboard = () => {
       </nav>
 
       <main className="max-w-6xl mx-auto p-8 space-y-6">
+        {user?.role === 'COMPANY_ADMIN' && <OnboardingChecklist />}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <Link to="/sites">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center py-8">
@@ -137,6 +143,39 @@ export const Dashboard = () => {
                 <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center py-8 border-t-4 border-t-yellow-500">
                   <Shield className="w-10 h-10 text-yellow-500 mb-4" />
                   <h2 className="text-lg font-bold">Verify Payments</h2>
+                </Card>
+              </Link>
+            </>
+          )}
+
+          <Link to="/help">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center py-8 border-t-4 border-t-blue-400">
+              <HelpCircle className="w-10 h-10 text-blue-400 mb-4" />
+              <h2 className="text-lg font-bold">Help Center</h2>
+            </Card>
+          </Link>
+
+          {user?.role === 'COMPANY_ADMIN' && (
+            <Link to="/tickets">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center py-8 border-t-4 border-t-purple-500">
+                <MessageSquare className="w-10 h-10 text-purple-500 mb-4" />
+                <h2 className="text-lg font-bold">Support Tickets</h2>
+              </Card>
+            </Link>
+          )}
+
+          {user?.role === 'SUPER_ADMIN' && (
+            <>
+              <Link to="/admin/tickets">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center py-8 border-t-4 border-t-red-500">
+                  <MessageSquare className="w-10 h-10 text-red-500 mb-4" />
+                  <h2 className="text-lg font-bold">Admin Tickets</h2>
+                </Card>
+              </Link>
+              <Link to="/admin/help">
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer flex flex-col items-center justify-center py-8 border-t-4 border-t-red-500">
+                  <HelpCircle className="w-10 h-10 text-red-500 mb-4" />
+                  <h2 className="text-lg font-bold">Manage Help</h2>
                 </Card>
               </Link>
             </>

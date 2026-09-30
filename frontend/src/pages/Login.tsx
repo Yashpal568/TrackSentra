@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -25,7 +25,7 @@ export const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+    <div className="flex min-h-[80vh] items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <div className="flex flex-col items-center mb-6">
           <div className="rounded-full bg-blue-100 p-3 mb-4">
@@ -55,7 +55,12 @@ export const Login = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-gray-700">Password</label>
+              <Link to="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">
+                Forgot password?
+              </Link>
+            </div>
             <input
               type="password"
               required

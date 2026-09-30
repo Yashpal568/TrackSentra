@@ -6,7 +6,7 @@ export interface IGuard extends Document {
   employeeId?: string;
   phone?: string;
   assignedSites: mongoose.Types.ObjectId[];
-  status: 'active' | 'inactive' | 'archived';
+  status: 'invited' | 'active' | 'inactive' | 'archived';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,7 +18,7 @@ const GuardSchema: Schema = new Schema(
     employeeId: { type: String, trim: true },
     phone: { type: String, trim: true },
     assignedSites: [{ type: Schema.Types.ObjectId, ref: 'Site' }],
-    status: { type: String, enum: ['active', 'inactive', 'archived'], default: 'active' },
+    status: { type: String, enum: ['invited', 'active', 'inactive', 'archived'], default: 'invited' },
   },
   { timestamps: true }
 );

@@ -56,7 +56,6 @@ describe('Guard Management API', () => {
         firstName: 'John', 
         lastName: 'Doe', 
         email: 'john.guard@alpha.com', 
-        password: 'SecurePassword1!',
         employeeId: 'G-001'
       });
 
@@ -75,7 +74,7 @@ describe('Guard Management API', () => {
 
     // Create guard
     const createRes = await request(app).post('/api/guards').set('Cookie', cookies).send({ 
-      firstName: 'Jane', lastName: 'Doe', email: 'jane@alpha.com', password: 'SecurePassword1!'
+      firstName: 'Jane', lastName: 'Doe', email: 'jane@alpha.com'
     });
     
     const guardId = createRes.body.guard._id;

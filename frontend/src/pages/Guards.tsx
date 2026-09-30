@@ -12,7 +12,7 @@ export const Guards = () => {
   
   const [isCreating, setIsCreating] = useState(false);
   const [formData, setFormData] = useState({ 
-    firstName: '', lastName: '', email: '', password: '', employeeId: '', phone: '' 
+    firstName: '', lastName: '', email: '', employeeId: '', phone: '' 
   });
 
   useEffect(() => {
@@ -36,9 +36,9 @@ export const Guards = () => {
       const res = await api.post('/guards', formData);
       setGuards([res.data.guard, ...guards]);
       setIsCreating(false);
-      setFormData({ firstName: '', lastName: '', email: '', password: '', employeeId: '', phone: '' });
-    } catch (err) {
-      setError('Failed to create guard.');
+      setFormData({ firstName: '', lastName: '', email: '', employeeId: '', phone: '' });
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Failed to create guard.');
     }
   };
 
@@ -69,13 +69,10 @@ export const Guards = () => {
               <label className="block text-sm font-medium">Last Name</label>
               <input type="text" required value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="mt-1 block w-full rounded border px-3 py-2" />
             </div>
-            <div className="col-span-1">
+            <div className="col-span-2 md:col-span-1">
               <label className="block text-sm font-medium">Email</label>
               <input type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="mt-1 block w-full rounded border px-3 py-2" />
-            </div>
-            <div className="col-span-1">
-              <label className="block text-sm font-medium">Temporary Password</label>
-              <input type="password" required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="mt-1 block w-full rounded border px-3 py-2" />
+              <p className="text-xs text-gray-500 mt-1">An activation link will be sent to this email.</p>
             </div>
             <div className="col-span-1">
               <label className="block text-sm font-medium">Employee ID</label>
@@ -104,7 +101,7 @@ export const Guards = () => {
                 <p className="text-sm text-gray-500 mt-1">{guard.userId?.email}</p>
                 {guard.employeeId && <p className="text-sm text-gray-500">ID: {guard.employeeId}</p>}
                 <div className="mt-4 flex items-center gap-2">
-                  <span className={`px-2 py-1 text-xs rounded-full ${guard.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  <span className={`px-2 py-1 text-xs uppercase font-semibold rounded-full ${guard.status === 'active' ? 'bg-green-100 text-green-800' : guard.status === 'invited' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
                     {guard.status}
                   </span>
                 </div>

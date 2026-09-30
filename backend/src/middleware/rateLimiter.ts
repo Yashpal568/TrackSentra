@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 // Global rate limiting
 export const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  max: 3000, // Limit each IP to 3000 requests per `window` to prevent blocking legitimate SPAs
   message: { error: { message: 'Too many requests, please try again later.' } },
   standardHeaders: true, 
   legacyHeaders: false, 

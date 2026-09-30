@@ -4,6 +4,9 @@ import jwt from 'jsonwebtoken';
 import { User, IUser } from '../models/User';
 import { RefreshToken } from '../models/RefreshToken';
 import { AuditLog } from '../models/AuditLog';
+import crypto from 'crypto';
+import { VerificationToken, TokenType } from '../models/VerificationToken';
+import { sendEmail } from '../utils/email';
 
 import { Company } from '../models/Company';
 import { Plan } from '../models/Plan';
@@ -84,6 +87,25 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       await audit.save({ session });
 
       await session.commitTransaction();
+
+      await session.commitTransaction();
+
+      // M17: Email Verification
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const tokenHash = await bcrypt.hash(rawToken, 10);
+      await VerificationToken.create({
+        userId: user._id,
+        tokenHash,
+        type: TokenType.VERIFY_EMAIL,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      });
+      
+      const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${rawToken}&email=${encodeURIComponent(user.email)}`;
+      await sendEmail(
+        user.email,
+        'Verify your TrackSentra Account',
+        `Please verify your email by clicking the following link:\n\n${verifyUrl}`
+      );
 
       const { accessToken, refreshToken } = generateTokens(user);
 
@@ -271,11 +293,214 @@ export const getMe = async (req: Request, res: Response): Promise<void> => {
   res.json({ user: (req as any).user });
 };
 
-// Mock forgot/reset for M02
+// M17 Workflows
+export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
+  const { email, token } = req.body;
+  if (!email || !token) {
+    res.status(400).json({ error: { message: 'Email and token required' } });
+    return;
+  }
+  
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(400).json({ error: { message: 'Invalid or expired token' } });
+      return;
+    }
+
+    const tokenDoc = await VerificationToken.findOne({
+      userId: user._id,
+      type: TokenType.VERIFY_EMAIL,
+      usedAt: { $exists: false },
+      expiresAt: { $gt: new Date() }
+    });
+
+    if (!tokenDoc) {
+      res.status(400).json({ error: { message: 'Invalid or expired token' } });
+      return;
+    }
+
+    const isValid = await bcrypt.compare(token, tokenDoc.tokenHash);
+    if (!isValid) {
+      res.status(400).json({ error: { message: 'Invalid or expired token' } });
+      return;
+    }
+
+    tokenDoc.usedAt = new Date();
+    await tokenDoc.save();
+
+    user.isEmailVerified = true;
+    await user.save();
+
+    res.json({ message: 'Email verified successfully' });
+  } catch (error) {
+    res.status(500).json({ error: { message: 'Internal server error' } });
+  }
+};
+
+export const resendVerification = async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body;
+  // Always return generic response
+  res.json({ message: 'If an account exists, a verification email has been sent.' });
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user || user.isEmailVerified) return;
+
+    // Rate limit: check if a token was created recently
+    const recentToken = await VerificationToken.findOne({
+      userId: user._id,
+      type: TokenType.VERIFY_EMAIL,
+      createdAt: { $gt: new Date(Date.now() - 60 * 1000) } // 1 minute
+    });
+    if (recentToken) return;
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = await bcrypt.hash(rawToken, 10);
+    await VerificationToken.create({
+      userId: user._id,
+      tokenHash,
+      type: TokenType.VERIFY_EMAIL,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    });
+
+    const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${rawToken}&email=${encodeURIComponent(user.email)}`;
+    await sendEmail(
+      user.email,
+      'Verify your TrackSentra Account',
+      `Please verify your email by clicking the following link:\n\n${verifyUrl}`
+    );
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body;
   res.json({ message: 'If the email exists, a reset link will be sent.' });
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return;
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = await bcrypt.hash(rawToken, 10);
+    
+    await VerificationToken.create({
+      userId: user._id,
+      tokenHash,
+      type: TokenType.RESET_PASSWORD,
+      expiresAt: new Date(Date.now() + 1 * 60 * 60 * 1000) // 1 hour
+    });
+
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${rawToken}&email=${encodeURIComponent(user.email)}`;
+    await sendEmail(
+      user.email,
+      'Reset your TrackSentra Password',
+      `You requested a password reset. Click the link to set a new password:\n\n${resetUrl}\n\nIf you did not request this, please ignore this email.`
+    );
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 export const resetPassword = async (req: Request, res: Response): Promise<void> => {
-  res.json({ message: 'Password reset successful' });
+  const { email, token, newPassword } = req.body;
+  if (!email || !token || !newPassword) {
+    res.status(400).json({ error: { message: 'Email, token, and new password are required' } });
+    return;
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(400).json({ error: { message: 'Invalid or expired token' } });
+      return;
+    }
+
+    const tokenDoc = await VerificationToken.findOne({
+      userId: user._id,
+      type: TokenType.RESET_PASSWORD,
+      usedAt: { $exists: false },
+      expiresAt: { $gt: new Date() }
+    });
+
+    if (!tokenDoc) {
+      res.status(400).json({ error: { message: 'Invalid or expired token' } });
+      return;
+    }
+
+    const isValid = await bcrypt.compare(token, tokenDoc.tokenHash);
+    if (!isValid) {
+      res.status(400).json({ error: { message: 'Invalid or expired token' } });
+      return;
+    }
+
+    tokenDoc.usedAt = new Date();
+    await tokenDoc.save();
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    // Invalidate all existing sessions
+    await RefreshToken.updateMany({ userId: user._id }, { revokedAt: new Date() });
+
+    res.json({ message: 'Password reset successful. Please log in.' });
+  } catch (error) {
+    res.status(500).json({ error: { message: 'Internal server error' } });
+  }
+};
+
+export const activateGuard = async (req: Request, res: Response): Promise<void> => {
+  const { email, token, password } = req.body;
+  if (!email || !token || !password) {
+    res.status(400).json({ error: { message: 'Email, token, and password are required' } });
+    return;
+  }
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      res.status(400).json({ error: { message: 'Invalid or expired token' } });
+      return;
+    }
+
+    const tokenDoc = await VerificationToken.findOne({
+      userId: user._id,
+      type: TokenType.GUARD_ACTIVATION,
+      usedAt: { $exists: false },
+      expiresAt: { $gt: new Date() }
+    });
+
+    if (!tokenDoc) {
+      res.status(400).json({ error: { message: 'Invalid or expired token' } });
+      return;
+    }
+
+    const isValid = await bcrypt.compare(token, tokenDoc.tokenHash);
+    if (!isValid) {
+      res.status(400).json({ error: { message: 'Invalid or expired token' } });
+      return;
+    }
+
+    tokenDoc.usedAt = new Date();
+    await tokenDoc.save();
+
+    user.passwordHash = await bcrypt.hash(password, 10);
+    user.status = 'active'; // Activate user
+    user.isEmailVerified = true;
+    await user.save();
+
+    // Activate guard record
+    const { Guard } = require('../models/Guard');
+    const guard = await Guard.findOne({ userId: user._id });
+    if (guard) {
+      guard.status = 'active';
+      await guard.save();
+    }
+
+    res.json({ message: 'Account activated successfully. You can now log in.' });
+  } catch (error) {
+    res.status(500).json({ error: { message: 'Internal server error' } });
+  }
 };

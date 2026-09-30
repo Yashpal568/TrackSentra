@@ -245,10 +245,15 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
     return;
   }
 
-  // Ensure it's the guard who started it
+  // Ensure it's the guard who started it and they are active
   const guard = await Guard.findOne({ userId: user._id, companyId: user.companyId });
   if (!guard || session.guardId.toString() !== guard._id.toString()) {
     res.status(403).json({ error: { message: 'Not authorized to scan for this session' } });
+    return;
+  }
+  
+  if (guard.status !== 'active') {
+    res.status(403).json({ error: { message: 'Guard account is not active' } });
     return;
   }
 

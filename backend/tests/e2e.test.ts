@@ -4,6 +4,7 @@ import app from '../src/app';
 import bcrypt from 'bcryptjs';
 import { User, UserRole } from '../src/models/User';
 import { PaymentStatus } from '../src/models/PaymentSubmission';
+import { Guard } from '../src/models/Guard';
 
 describe('TrackSentra E2E Workflow', () => {
   let superAdminToken: string;
@@ -119,10 +120,16 @@ describe('TrackSentra E2E Workflow', () => {
       firstName: 'Bob',
       lastName: 'Guard',
       email: 'bob@acme.com',
-      password: 'password123',
       employeeId: 'G-100'
     });
+    
     guardId = guardRes.body.guard._id;
+    
+    // Simulate guard activation (setting password and active status directly)
+    const guardUserObj = await User.findOne({ email: 'bob@acme.com' });
+    const guardPasswordHash = await bcrypt.hash('password123', 10);
+    await User.updateOne({ _id: guardUserObj?._id }, { passwordHash: guardPasswordHash, status: 'active', isEmailVerified: true });
+    await Guard.updateOne({ userId: guardUserObj?._id }, { status: 'active' });
 
     const loginRes2 = await request(app).post('/api/auth/login').send({
       email: 'bob@acme.com',

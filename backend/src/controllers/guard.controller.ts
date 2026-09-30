@@ -3,17 +3,27 @@ import { User, UserRole } from '../models/User';
 import { Guard } from '../models/Guard';
 import { AuditLog } from '../models/AuditLog';
 import { checkResourceLimit } from '../utils/entitlements';
+import { VerificationToken, TokenType } from '../models/VerificationToken';
+import { sendEmail } from '../utils/email';
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
 export const createGuard = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;
-    const { firstName, lastName, email, password, employeeId, phone, assignedSites } = req.body;
+    const { firstName, lastName, email, employeeId, phone, assignedSites } = req.body;
 
     // Check if email is already in use
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       res.status(400).json({ error: { message: 'Email already exists' } });
+      return;
+    }
+
+    // Check if employeeId is unique within the company
+    const existingGuard = await Guard.findOne({ companyId: user.companyId, employeeId });
+    if (existingGuard) {
+      res.status(400).json({ error: { message: 'Employee ID already exists in your company' } });
       return;
     }
 
@@ -25,7 +35,9 @@ export const createGuard = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    // Generate a random high-entropy dummy password so the account cannot be accessed
+    const dummyPassword = crypto.randomBytes(32).toString('hex');
+    const passwordHash = await bcrypt.hash(dummyPassword, 10);
 
     const newGuardUser = await User.create({
       companyId: user.companyId,
@@ -34,6 +46,7 @@ export const createGuard = async (req: Request, res: Response): Promise<void> =>
       email,
       passwordHash,
       role: UserRole.GUARD,
+      status: 'inactive' // Wait for activation
     });
 
     const guard = await Guard.create({
@@ -42,7 +55,27 @@ export const createGuard = async (req: Request, res: Response): Promise<void> =>
       employeeId,
       phone,
       assignedSites: assignedSites || [],
+      status: 'invited'
     });
+
+    // Generate activation token
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = await bcrypt.hash(rawToken, 10);
+
+    await VerificationToken.create({
+      userId: newGuardUser._id,
+      tokenHash,
+      type: TokenType.GUARD_ACTIVATION,
+      expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000) // 48 hours
+    });
+
+    // Send email
+    const activationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/activate-guard?token=${rawToken}&email=${encodeURIComponent(email)}`;
+    await sendEmail(
+      email,
+      'Welcome to TrackSentra - Activate your Guard Account',
+      `You have been invited as a Guard. Please click the link below to set your password and activate your account:\n\n${activationLink}\n\nThis link will expire in 48 hours.`
+    );
 
     await AuditLog.create({
       companyId: user.companyId,
@@ -54,6 +87,7 @@ export const createGuard = async (req: Request, res: Response): Promise<void> =>
 
     res.status(201).json({ guard, user: { _id: newGuardUser._id, email: newGuardUser.email } });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: { message: 'Failed to create guard' } });
   }
 };

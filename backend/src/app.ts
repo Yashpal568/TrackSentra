@@ -18,7 +18,9 @@ import reportRoutes from './routes/report.routes';
 import incidentRoutes from './routes/incident.routes';
 import auditRoutes from './routes/audit.routes';
 import subscriptionRoutes from './routes/subscription.routes';
-
+import onboardingRoutes from './routes/onboarding.routes';
+import ticketRoutes from './routes/ticket.routes';
+import helpCenterRoutes from './routes/helpCenter.routes';
 const app = express();
 
 app.use(cors({
@@ -43,7 +45,9 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/incidents', incidentRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
-
+app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/help-center', helpCenterRoutes);
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });

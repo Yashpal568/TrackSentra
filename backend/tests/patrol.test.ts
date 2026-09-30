@@ -157,5 +157,21 @@ describe('Patrol Engine API', () => {
       qrPayload: cp1.qrPayload
     });
     expect(lateScanRes.status).toBe(400);
+
+    // Test suspended guard
+    const guardUser = await User.findOne({ email: guardEmail });
+    await Guard.updateOne({ userId: guardUser?._id }, { status: 'suspended' });
+    
+    // Admin creates new route
+    const route2Res = await request(app).post('/api/patrols/routes').set('Cookie', adminCookies).send({
+      siteId, name: 'Main Route 2', checkpoints: [cp1._id.toString(), cp2._id.toString()], expectedDurationMinutes: 30,
+    });
+    const routeId2 = route2Res.body._id;
+
+    // Guard starts session
+    const start2Res = await request(app).post('/api/patrols/sessions').set('Cookie', guardCookies).send({
+      siteId, routeId: routeId2
+    });
+    expect(start2Res.status).toBe(403); // because guard is suspended, cannot start patrol
   }, 30000);
 });

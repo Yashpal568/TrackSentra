@@ -15,6 +15,9 @@ export interface ICompany extends Document {
     security: {
       sessionTimeoutMinutes: number;
     };
+    onboarding: {
+      dismissed: boolean;
+    };
   };
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +38,9 @@ const CompanySchema: Schema = new Schema(
       },
       security: {
         sessionTimeoutMinutes: { type: Number, default: 60 },
+      },
+      onboarding: {
+        dismissed: { type: Boolean, default: false },
       },
     },
   },
