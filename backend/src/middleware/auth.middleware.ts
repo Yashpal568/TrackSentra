@@ -19,6 +19,12 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
+    // Demo user write protection
+    if (user.isDemoUser && req.method !== 'GET' && !req.originalUrl.includes('/auth/demo') && !req.originalUrl.includes('/auth/logout')) {
+      res.status(403).json({ error: { message: 'Write operations are disabled in demo mode.' } });
+      return;
+    }
+
     // Attach user to request
     (req as any).user = user;
     next();
@@ -27,3 +33,5 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     return;
   }
 };
+
+

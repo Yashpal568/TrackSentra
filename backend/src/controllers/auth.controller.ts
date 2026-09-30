@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { User, IUser } from '../models/User';
+import { User, IUser, UserRole } from '../models/User';
 import { RefreshToken } from '../models/RefreshToken';
 import { AuditLog } from '../models/AuditLog';
 import crypto from 'crypto';
@@ -205,6 +205,60 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error('Login error', error);
     res.status(500).json({ error: { message: 'Internal server error' } });
+  }
+};
+
+export const demoLogin = async (req: Request, res: Response): Promise<void> => {
+  const ipAddress = req.ip || req.socket.remoteAddress;
+  try {
+    let demoUser = await User.findOne({ email: 'demo@tracksentra.com', isDemoUser: true });
+    
+    // Seed demo environment on the fly if it doesn't exist
+    if (!demoUser) {
+      const company = await Company.create({ name: 'TrackSentra Demo Corp' });
+      const passwordHash = await bcrypt.hash('demo123!', 10);
+      demoUser = await User.create({
+        companyId: company._id,
+        firstName: 'Demo',
+        lastName: 'Admin',
+        email: 'demo@tracksentra.com',
+        passwordHash,
+        role: UserRole.COMPANY_ADMIN,
+        isDemoUser: true,
+        status: 'active',
+        isEmailVerified: true
+      });
+      
+      // We can run an external seeder asynchronously here if we want more data
+      try {
+        const { exec } = require('child_process');
+        exec(`npx ts-node src/scripts/seedDemoData.ts ${company._id.toString()}`);
+      } catch (e) {
+        console.error('Failed to trigger demo seeder', e);
+      }
+    }
+
+    const { accessToken, refreshToken } = generateTokens(demoUser);
+
+    await RefreshToken.create({
+      userId: demoUser._id,
+      token: refreshToken,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 15 * 60 * 1000,
+    });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/api/auth/refresh', maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    const userObj = demoUser.toObject();
+    delete (userObj as any).passwordHash;
+
+    res.json({ message: 'Welcome to the Demo', user: userObj, accessToken });
+  } catch (error) {
+    res.status(500).json({ error: { message: 'Failed to start demo' } });
   }
 };
 

@@ -15,6 +15,7 @@ router.use(authenticate);
 router.get('/plans', subController.getAllPlans);
 router.post('/plans', subController.createPlan);
 router.put('/plans/:id', subController.updatePlan);
+router.delete('/plans/:id', subController.deletePlan);
 router.put('/settings', subController.updateSystemSettings);
 
 // Customer endpoints

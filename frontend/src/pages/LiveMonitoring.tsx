@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/authStore';
 import { api } from '../lib/axios';
 import { Card } from '../components/ui/Card';
 import { Link } from 'react-router-dom';
-import { LayoutDashboard, Radio, Clock } from 'lucide-react';
+import { Radio, Clock, AlertTriangle, Shield, MapPin, Activity, User, ChevronRight } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
 export const LiveMonitoring = () => {
@@ -26,8 +26,6 @@ export const LiveMonitoring = () => {
         if (data.type === 'CONNECTED') {
           setConnectionStatus('Live');
         } else if (data.type === 'SESSION_STARTED' || data.type === 'SESSION_COMPLETED' || data.type === 'SCAN_RECORDED') {
-          // Simplest approach: just refetch the sessions list when an event occurs
-          // For a more advanced approach, we would update the state directly
           fetchActiveSessions();
         }
       } catch (e) {
@@ -57,109 +55,133 @@ export const LiveMonitoring = () => {
   };
 
   if (user?.role === 'GUARD') {
-    return <div className="p-8">Unauthorized</div>;
+    return (
+      <div className="flex flex-col justify-center items-center h-64 p-8 text-center animate-in fade-in duration-500">
+        <Shield size={48} className="text-slate-300 mb-4" />
+        <h2 className="text-xl font-bold text-slate-800">Access Restricted</h2>
+        <p className="text-slate-500 max-w-md mt-2">Live monitoring is restricted to control room operators, supervisors, and administrators.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-slate-900 text-white p-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-6">
-            <h1 className="text-xl font-bold flex items-center gap-2"><LayoutDashboard /> TrackSentra</h1>
-            <div className="flex gap-4">
-              <Link to="/dashboard" className="hover:text-blue-400">Dashboard</Link>
-              <Link to="/sites" className="hover:text-blue-400">Sites</Link>
-              <Link to="/checkpoints" className="hover:text-blue-400">Checkpoints</Link>
-              <Link to="/guards" className="hover:text-blue-400">Guards</Link>
-              <Link to="/shifts" className="hover:text-blue-400">Shifts</Link>
-              <Link to="/patrols" className="hover:text-blue-400">Patrols</Link>
-              <Link to="/live" className="text-blue-400 font-medium flex items-center gap-1"><Radio size={16} /> Live</Link>
-              <Link to="/company" className="hover:text-blue-400">Company</Link>
-            </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+            <Radio className="text-blue-600" /> Live Monitoring
+          </h1>
+          <p className="text-slate-500 text-sm mt-1">Real-time overview of active security patrols across all facilities.</p>
+        </div>
+        <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+          <div className="relative flex h-3 w-3">
+            {connectionStatus === 'Live' && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>}
+            <span className={`relative inline-flex rounded-full h-3 w-3 ${connectionStatus === 'Live' ? 'bg-green-500' : 'bg-red-500'}`}></span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-slate-300">{user?.email}</span>
-            <Button variant="secondary" onClick={() => window.location.href = '/login'}>Sign out</Button>
+          <span className={`text-sm font-bold ${connectionStatus === 'Live' ? 'text-green-700' : 'text-red-700'}`}>{connectionStatus}</span>
+        </div>
+      </div>
+
+      {error && (
+        <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-lg flex items-center gap-3">
+          <AlertTriangle size={20} /> {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="flex flex-col items-center gap-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="text-slate-500 font-medium animate-pulse">Initializing Live View...</p>
           </div>
         </div>
-      </nav>
-
-      <main className="p-8 max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Live Monitoring</h1>
-          <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${connectionStatus === 'Live' ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
-            <span className="text-sm text-gray-600 font-medium">{connectionStatus}</span>
+      ) : sessions.length === 0 ? (
+        <Card className="text-center py-16 px-6 border-dashed border-2 border-slate-200 bg-slate-50">
+          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100 relative">
+            <Activity className="w-8 h-8 text-slate-400" />
+            <div className="absolute top-0 right-0 w-3 h-3 bg-slate-300 rounded-full border-2 border-white"></div>
           </div>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
-            <p className="text-red-700">{error}</p>
-          </div>
-        )}
-
-        {loading ? (
-          <div>Loading active patrols...</div>
-        ) : sessions.length === 0 ? (
-          <Card className="p-12 flex flex-col items-center justify-center text-gray-500">
-            <Clock className="w-12 h-12 mb-4 text-gray-400" />
-            <h3 className="text-lg font-medium">No Active Patrols</h3>
-            <p>There are currently no patrols in progress.</p>
-          </Card>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2">
-            {sessions.map(session => (
-              <Card key={session._id} className="p-6 border-t-4 border-t-blue-500 shadow-md hover:shadow-lg transition-shadow">
+          <h3 className="text-lg font-bold text-slate-900 mb-2">No Active Patrols</h3>
+          <p className="text-slate-500 max-w-md mx-auto">There are currently no security patrols in progress. The feed will automatically update when a patrol begins.</p>
+        </Card>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {sessions.map(session => (
+            <Card key={session._id} className="flex flex-col border-t-4 border-t-blue-500 shadow-md hover:shadow-lg transition-shadow bg-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50 blur-2xl pointer-events-none"></div>
+              
+              <div className="p-6 pb-4 flex-1 relative z-10">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-bold">{session.routeId?.name}</h3>
-                    <p className="text-gray-600 font-medium">{session.siteId?.name}</p>
+                    <h3 className="text-xl font-bold text-slate-900">{session.routeId?.name}</h3>
+                    <div className="flex items-center text-slate-500 text-sm mt-1 font-medium">
+                      <MapPin size={14} className="mr-1" /> {session.siteId?.name}
+                    </div>
                   </div>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full animate-pulse">
-                    ACTIVE
+                  <span className="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider rounded border border-blue-200 flex items-center gap-1.5 shadow-sm">
+                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span> ACTIVE
                   </span>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
-                  <div>
-                    <p className="text-gray-500">Guard ID</p>
-                    <p className="font-medium">{session.guardId?.employeeId || 'Unknown'}</p>
+                <div className="grid grid-cols-2 gap-4 my-6 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded bg-white border border-slate-200 flex items-center justify-center text-slate-500 shrink-0">
+                      <User size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Guard / ID</p>
+                      <p className="font-semibold text-slate-800 text-sm line-clamp-1" title={session.guardId?.employeeId}>{session.guardId?.employeeId || 'Unknown ID'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-gray-500">Started At</p>
-                    <p className="font-medium">{new Date(session.startTime).toLocaleTimeString()}</p>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded bg-white border border-slate-200 flex items-center justify-center text-slate-500 shrink-0">
+                      <Clock size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Started At</p>
+                      <p className="font-semibold text-slate-800 text-sm">{new Date(session.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="border-t pt-4">
-                  <h4 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">Checkpoint Progress</h4>
-                  <div className="space-y-2">
-                    {session.routeId?.checkpoints?.map((cp: any, idx: number) => {
-                      // We would need to fetch scans for each session to show exact progress.
-                      // For a true real-time dashboard, we should fetch scans for these active sessions.
+                <div className="mb-2">
+                  <h4 className="text-[11px] font-bold text-slate-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                    <Activity size={12} /> Live Checkpoint Feed
+                  </h4>
+                  <div className="space-y-1.5">
+                    {session.routeId?.checkpoints?.slice(0, 4).map((cp: any, idx: number) => {
                       return (
-                        <div key={cp._id || idx} className="flex items-center text-sm p-2 rounded bg-gray-50">
-                          <div className="w-6 h-6 rounded bg-gray-200 flex items-center justify-center text-xs mr-3 font-bold text-gray-600">
+                        <div key={cp._id || idx} className="flex items-center text-sm p-2 rounded-md bg-white border border-slate-100 shadow-sm hover:border-blue-200 transition-colors group">
+                          <div className="w-5 h-5 rounded bg-slate-100 flex items-center justify-center text-[10px] mr-3 font-bold text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
                             {idx + 1}
                           </div>
-                          <span className="font-medium flex-1">{cp.name}</span>
+                          <span className="font-medium flex-1 text-slate-700 truncate">{cp.name}</span>
                         </div>
                       );
                     })}
-                  </div>
-                  
-                  <div className="mt-4 flex justify-end">
-                    <Link to={`/patrols/${session._id}`}>
-                      <Button variant="secondary" className="text-sm px-3 py-1 h-8">View Live Details</Button>
-                    </Link>
+                    {(session.routeId?.checkpoints?.length || 0) > 4 && (
+                      <div className="text-xs text-slate-400 font-medium pl-10 pt-1 italic">
+                        + {(session.routeId?.checkpoints?.length || 0) - 4} more checkpoints in route...
+                      </div>
+                    )}
                   </div>
                 </div>
-              </Card>
-            ))}
-          </div>
-        )}
-      </main>
+              </div>
+              
+              <div className="p-4 bg-slate-50 border-t border-slate-100 mt-auto flex justify-end">
+                <Link to={`/patrols/${session._id}`} className="w-full">
+                  <Button variant="secondary" className="w-full bg-white hover:bg-slate-100 flex justify-between items-center group">
+                    <span>View Telemetry & Details</span>
+                    <ChevronRight size={16} className="text-slate-400 group-hover:text-blue-500 transition-colors" />
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

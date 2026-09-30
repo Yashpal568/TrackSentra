@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/axios';
-import { Shield } from 'lucide-react';
+import { CheckCircle2, Building2, Users } from 'lucide-react';
+import { Card } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 
 interface Plan {
   _id: string;
@@ -17,15 +19,21 @@ interface Plan {
 export function Pricing() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    setIsVisible(true);
     const fetchPlans = async () => {
       try {
+        setLoading(true);
+        setError('');
         const { data } = await api.get('/subscriptions/plans/public');
         setPlans(data.plans);
-      } catch (error) {
-        console.error('Failed to fetch plans');
+      } catch (err) {
+        console.error('Failed to fetch plans', err);
+        setError('Failed to fetch plans. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -33,45 +41,118 @@ export function Pricing() {
     fetchPlans();
   }, []);
 
-  if (loading) return <div className="p-8 text-center">Loading plans...</div>;
-
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="text-center">
-        <Shield className="mx-auto h-12 w-12 text-blue-600" />
-        <h2 className="mt-2 text-3xl font-extrabold text-gray-900 sm:text-4xl">Pricing Plans</h2>
-        <p className="mt-4 text-xl text-gray-600">Select a plan to start securing your sites.</p>
-      </div>
-
-      <div className="mt-16 flex flex-wrap justify-center gap-8">
-        {plans.map(plan => (
-          <div key={plan._id} className="w-full max-w-sm rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-            <h3 className="text-2xl font-bold text-gray-900">{plan.name}</h3>
-            <p className="mt-2 text-gray-500">{plan.description}</p>
-            <div className="mt-6">
-              <span className="text-4xl font-extrabold text-gray-900">${(plan.price / 100).toFixed(2)}</span>
-              <span className="text-base font-medium text-gray-500">/{plan.billingInterval}</span>
-            </div>
-            <ul className="mt-6 space-y-4">
-              <li className="flex">
-                <span className="text-gray-500">Up to {plan.limits.maxGuards} Guards</span>
-              </li>
-              <li className="flex">
-                <span className="text-gray-500">Up to {plan.limits.maxSites} Sites</span>
-              </li>
-              {plan.features.map((feature, i) => (
-                <li key={i} className="flex text-gray-500">{feature}</li>
-              ))}
-            </ul>
-            <button
-              onClick={() => navigate(`/register?planId=${plan._id}`)}
-              className="mt-8 block w-full rounded-md bg-blue-600 px-4 py-2 text-center text-sm font-semibold text-white hover:bg-blue-500"
-            >
-              Choose Plan
-            </button>
+    <div className="bg-[#050806] min-h-screen font-sans selection:bg-emerald-500/30 pb-24">
+      {/* Pricing Header */}
+      <section className="bg-[#050806] text-[#F0FDF4] pt-24 pb-48 px-4 sm:px-6 lg:px-8 relative overflow-hidden border-b border-[#1D2B22] text-center">
+        {/* Dynamic Background */}
+        <div className="absolute inset-0 bg-[url('/images/hero-bg-pattern.svg')] opacity-5"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-emerald-600/20 blur-[120px] pointer-events-none rounded-full"></div>
+        
+        <div className={`max-w-3xl mx-auto relative z-10 transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0B110E] border border-[#1D2B22] text-emerald-400 text-sm font-bold uppercase tracking-wider mb-6 shadow-sm">
+            Simple & Transparent
           </div>
-        ))}
-      </div>
+          <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight leading-tight">
+            Security pricing that <br/>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-300">scales with you.</span>
+          </h1>
+          <p className="text-xl text-[#718078] leading-relaxed font-light max-w-2xl mx-auto">
+            Choose the plan that fits your security operation. No hidden fees. Upgrade or downgrade at any time.
+          </p>
+        </div>
+      </section>
+
+      {/* Pricing Cards */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-20">
+        {loading ? (
+          <div className="flex justify-center items-center h-64 bg-[#0B110E] rounded-3xl shadow-2xl border border-[#1D2B22]">
+            <div className="flex flex-col items-center gap-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+              <p className="text-[#A1B5A8] font-medium">Loading subscription tiers...</p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="flex justify-center items-center h-64 bg-[#0B110E] rounded-3xl shadow-2xl border border-[#1D2B22]">
+            <div className="flex flex-col items-center gap-4">
+              <p className="text-[#A1B5A8] font-medium">{error}</p>
+              <Button onClick={() => window.location.reload()} variant="secondary">Retry</Button>
+            </div>
+          </div>
+        ) : plans.length === 0 ? (
+          <div className="flex justify-center items-center h-64 bg-[#0B110E] rounded-3xl shadow-2xl border border-[#1D2B22]">
+            <div className="flex flex-col items-center gap-4">
+              <p className="text-[#A1B5A8] font-medium">No subscription plans are currently available. Please check back later.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap justify-center items-end gap-8">
+            {plans.map((plan, index) => {
+              const isPopular = index === 1; // Highlight the middle plan usually
+              return (
+                <div key={plan._id} className={`w-full max-w-md transition-all duration-700 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}`} style={{ transitionDelay: `${index * 150}ms` }}>
+                  <Card className={`rounded-3xl bg-[#0B110E] flex flex-col p-8 transition-all duration-300 ${isPopular ? 'border-2 border-emerald-500 shadow-2xl shadow-emerald-500/10 scale-100 md:scale-105 z-10 relative' : 'border border-[#1D2B22] shadow-xl hover:shadow-2xl hover:-translate-y-1'}`}>
+                    {isPopular && (
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-[#F0FDF4] px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-lg">
+                        Most Popular
+                      </div>
+                    )}
+                    
+                    <div className="mb-8 text-center">
+                      <h3 className="text-2xl font-bold tracking-tight text-[#F0FDF4] mb-2">{plan.name}</h3>
+                      <p className="text-sm text-[#A1B5A8] min-h-[40px] px-4">{plan.description}</p>
+                    </div>
+                    
+                    <div className="text-center mb-8 pb-8 border-b border-[#1D2B22]">
+                      <div className="flex items-baseline justify-center">
+                        <span className="text-6xl font-black tracking-tight text-[#F0FDF4]">${(plan.price / 100).toFixed(0)}</span>
+                        <span className="text-base font-bold text-[#A1B5A8] ml-2">/{plan.billingInterval}</span>
+                      </div>
+                    </div>
+                    
+                    <ul className="space-y-4 flex-1 mb-8">
+                      <li className="flex items-center text-sm font-bold text-[#F0FDF4] bg-[#050806] p-3 rounded-lg border border-[#1D2B22]">
+                        <Users className="w-5 h-5 mr-3 text-emerald-600" />
+                        Up to {plan.limits.maxGuards} Active Guards
+                      </li>
+                      <li className="flex items-center text-sm font-bold text-[#F0FDF4] bg-[#050806] p-3 rounded-lg border border-[#1D2B22]">
+                        <Building2 className="w-5 h-5 mr-3 text-emerald-600" />
+                        Up to {plan.limits.maxSites} Managed Sites
+                      </li>
+                      <div className="h-4"></div>
+                      <li className="text-xs font-bold text-[#718078] uppercase tracking-wider pl-1 mb-2">Included Features</li>
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="flex items-start text-sm text-[#A1B5A8] font-medium">
+                          <CheckCircle2 className="w-5 h-5 mr-3 text-green-500 shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <button
+                      onClick={() => navigate(`/register?planId=${plan._id}`)}
+                      className={`inline-flex items-center justify-center whitespace-nowrap rounded-xl text-base font-bold transition-all h-14 px-8 w-full mt-auto shadow-sm ${isPopular ? 'bg-emerald-600 text-[#F0FDF4] hover:bg-emerald-500 shadow-lg shadow-emerald-500/25' : 'bg-[#0B110E] text-[#F0FDF4] hover:bg-[#101713]'}`}
+                    >
+                      Choose {plan.name}
+                    </button>
+                  </Card>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Enterprise CTA */}
+      <section className="max-w-4xl mx-auto mt-24 px-6 text-center">
+        <h3 className="text-2xl font-bold text-[#F0FDF4] mb-4">Need an Enterprise solution?</h3>
+        <p className="text-[#A1B5A8] mb-8 max-w-2xl mx-auto">
+          For large agencies requiring unlimited limits, custom SLA, dedicated support, and advanced integration APIs.
+        </p>
+        <Button variant="secondary" onClick={() => navigate('/contact')} className="h-12 px-8 text-base bg-[#0B110E] border-2 border-[#1D2B22] text-[#F0FDF4] hover:border-[#1D2B22] font-bold">
+          Contact Sales Team
+        </Button>
+      </section>
     </div>
   );
 }

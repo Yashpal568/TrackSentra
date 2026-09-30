@@ -98,6 +98,30 @@ export const updatePlan = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
+export const deletePlan = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user;
+    if (user.role !== UserRole.SUPER_ADMIN) {
+      res.status(403).json({ error: { message: 'Forbidden' } });
+      return;
+    }
+
+    const plan = await Plan.findByIdAndDelete(req.params.id);
+    if (!plan) { res.status(404).json({ error: { message: 'Plan not found' } }); return; }
+
+    await AuditLog.create({
+      userId: user._id,
+      action: 'DELETE_PLAN',
+      resource: 'Plan',
+      details: { planId: plan._id }
+    });
+
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(400).json({ error: { message: error.message } });
+  }
+};
+
 // --------------------------------------------------------------------------
 // SYSTEM SETTINGS (MANUAL PAYMENT INFO)
 // --------------------------------------------------------------------------

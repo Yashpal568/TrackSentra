@@ -7,6 +7,7 @@ interface User {
   firstName: string;
   lastName: string;
   role: string;
+  isDemoUser?: boolean;
 }
 
 interface AuthState {
@@ -14,6 +15,7 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
+  demoLogin: () => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
@@ -32,6 +34,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     } catch (error: any) {
       set({ 
         error: error.response?.data?.error?.message || 'Login failed',
+        isLoading: false 
+      });
+      throw error;
+    }
+  },
+
+  demoLogin: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await api.post('/auth/demo');
+      set({ user: response.data.user, isLoading: false });
+    } catch (error: any) {
+      set({ 
+        error: error.response?.data?.error?.message || 'Demo login failed',
         isLoading: false 
       });
       throw error;

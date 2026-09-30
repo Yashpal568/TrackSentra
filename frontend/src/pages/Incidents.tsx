@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../lib/axios';
 import { Card } from '../components/ui/Card';
-import { LayoutDashboard, AlertTriangle, Plus, FileText } from 'lucide-react';
+import { AlertTriangle, Plus, Activity, MapPin, Clock, Search, ChevronRight, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
 export const Incidents = () => {
@@ -11,6 +11,7 @@ export const Incidents = () => {
   const [sites, setSites] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Form state
   const [title, setTitle] = useState('');
@@ -59,8 +60,6 @@ export const Incidents = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // If guard, they might not have a site selector if not loaded, but let's just pass the first site or if it's tied to their shift.
-      // For simplicity, requiring siteId
       if (!siteId && user?.role !== 'GUARD') {
         alert('Please select a site');
         return;
@@ -76,12 +75,9 @@ export const Incidents = () => {
       if (user?.role !== 'GUARD') {
         payload.siteId = siteId;
       } else {
-        // Find a way to get the guard's current site. If not available, we assume the backend handles it or we mock it.
-        // For now, if siteId is empty, use a placeholder or prompt the user.
-        payload.siteId = siteId || undefined; // Wait, schema requires siteId.
+        payload.siteId = siteId || undefined; 
       }
 
-      // If siteId is still empty, let's just fetch it if it's a guard.
       if (!payload.siteId) {
         const sitesRes = await api.get('/sites');
         if (sitesRes.data.length > 0) {
@@ -113,7 +109,8 @@ export const Incidents = () => {
         status: newStatus,
         resolutionDetails: resolutionDetails || undefined
       });
-      setSelectedIncident(null);
+      const res = await api.get(`/incidents/${selectedIncident._id}`);
+      setSelectedIncident(res.data);
       setNewStatus('');
       setResolutionDetails('');
       fetchIncidents();
@@ -128,7 +125,6 @@ export const Incidents = () => {
     try {
       await api.post(`/incidents/${selectedIncident._id}/notes`, { note: newNote });
       setNewNote('');
-      // Refresh the selected incident notes
       const res = await api.get(`/incidents/${selectedIncident._id}`);
       setSelectedIncident(res.data);
       fetchIncidents();
@@ -137,257 +133,317 @@ export const Incidents = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <LayoutDashboard className="text-blue-600" />
-            <h1 className="text-xl font-bold text-gray-900">Incident Management</h1>
-          </div>
-          <Button onClick={() => setShowForm(!showForm)} className="flex items-center gap-2">
-            {showForm ? 'Cancel' : <><Plus size={16} /> Report Incident</>}
-          </Button>
-        </div>
-      </header>
+  const filteredIncidents = incidents.filter(inc => 
+    inc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    inc.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {showForm && (
-          <Card className="p-6 mb-8">
-            <h2 className="text-lg font-bold mb-4">Report New Incident</h2>
-            <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Title</label>
-                <input required value={title} onChange={(e) => setTitle(e.target.value)} type="text" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" />
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-6xl mx-auto">
+      
+      {/* Header */}
+      {!selectedIncident && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+              <AlertTriangle className="text-orange-500" /> Incident Management
+            </h1>
+            <p className="text-slate-500 text-sm mt-1">Log, investigate, and resolve security events and facility incidents.</p>
+          </div>
+          <div className="flex gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="Search incidents..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 bg-white w-full sm:w-64"
+              />
+            </div>
+            <Button onClick={() => setShowForm(!showForm)} className={`flex items-center gap-2 whitespace-nowrap ${showForm ? 'bg-slate-200 text-slate-800 hover:bg-slate-300' : 'bg-orange-600 hover:bg-orange-700'}`}>
+              {showForm ? 'Cancel Report' : <><Plus size={18} /> Report Incident</>}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {showForm && !selectedIncident && (
+        <Card className="border-t-4 border-t-orange-500 shadow-lg mb-8">
+          <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
+            <h2 className="text-lg font-bold text-slate-800">Submit New Incident Report</h2>
+          </div>
+          <form onSubmit={handleSubmit} className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Incident Title <span className="text-red-500">*</span></label>
+                <input required value={title} onChange={(e) => setTitle(e.target.value)} type="text" className="w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border" placeholder="Brief summary of the incident" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Detailed Description <span className="text-red-500">*</span></label>
+                <textarea required value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className="w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border" placeholder="Provide as much detail as possible about what occurred, individuals involved, and immediate actions taken." />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
-                <textarea required value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border" />
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Category</label>
+                <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border bg-white">
+                  <option value="Security">Security Breach / Suspicious Activity</option>
+                  <option value="Maintenance">Maintenance / Facility Damage</option>
+                  <option value="Medical">Medical Emergency</option>
+                  <option value="Other">Other Operational Issue</option>
+                </select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Category</label>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                    <option value="Security">Security</option>
-                    <option value="Maintenance">Maintenance</option>
-                    <option value="Medical">Medical</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Severity</label>
-                  <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                    <option value="Critical">Critical</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Severity Level</label>
+                <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border bg-white">
+                  <option value="Low">Low - Minor issue, no immediate threat</option>
+                  <option value="Medium">Medium - Requires attention, moderate impact</option>
+                  <option value="High">High - Significant issue, requires urgent response</option>
+                  <option value="Critical">Critical - Immediate threat to life or property</option>
+                </select>
               </div>
               {user?.role !== 'GUARD' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Site</label>
-                  <select value={siteId} onChange={(e) => setSiteId(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Location / Site <span className="text-red-500">*</span></label>
+                  <select value={siteId} onChange={(e) => setSiteId(e.target.value)} className="w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border bg-white">
                     <option value="">Select a site</option>
                     {sites.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
                   </select>
                 </div>
               )}
-              <Button type="submit">Submit Report</Button>
-            </form>
-          </Card>
-        )}
+            </div>
+            <div className="flex gap-3 mt-8 pt-6 border-t border-slate-100">
+              <Button type="submit" className="bg-orange-600 hover:bg-orange-700">Submit Report</Button>
+              <Button type="button" variant="secondary" onClick={() => setShowForm(false)}>Cancel</Button>
+            </div>
+          </form>
+        </Card>
+      )}
 
-        {selectedIncident ? (
-          <div className="space-y-6">
-            <Button variant="secondary" onClick={() => setSelectedIncident(null)}>Back to List</Button>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2 space-y-6">
-                <Card className="p-6">
-                  <div className="flex justify-between items-start mb-4">
+      {selectedIncident ? (
+        <div className="space-y-6 animate-in slide-in-from-right-8 duration-300">
+          <div className="flex items-center justify-between">
+            <button 
+              onClick={() => setSelectedIncident(null)}
+              className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-medium text-sm"
+            >
+              <ChevronRight size={16} className="rotate-180" /> Back to Incident List
+            </button>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${
+              selectedIncident.status === 'Closed' ? 'bg-slate-100 text-slate-600 border-slate-200' :
+              selectedIncident.status === 'Resolved' ? 'bg-green-100 text-green-700 border-green-200' :
+              'bg-blue-100 text-blue-700 border-blue-200'
+            }`}>
+              {selectedIncident.status}
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="overflow-hidden border-t-4 border-t-slate-800">
+                <div className="p-6">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6">
                     <div>
-                      <h2 className="text-2xl font-bold">{selectedIncident.title}</h2>
-                      <p className="text-gray-500 text-sm">Reported on {new Date(selectedIncident.createdAt).toLocaleString()} by {selectedIncident.reporterId?.firstName} {selectedIncident.reporterId?.lastName}</p>
+                      <h2 className="text-2xl font-bold text-slate-900 leading-tight">{selectedIncident.title}</h2>
+                      <div className="flex flex-wrap items-center gap-3 text-slate-500 text-sm mt-2">
+                        <span className="flex items-center gap-1.5"><Clock size={14}/> {new Date(selectedIncident.createdAt).toLocaleString()}</span>
+                        <span className="flex items-center gap-1.5"><MapPin size={14}/> {selectedIncident.siteId?.name || 'Unknown Location'}</span>
+                      </div>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      selectedIncident.severity === 'Critical' ? 'bg-red-100 text-red-800' :
-                      selectedIncident.severity === 'High' ? 'bg-orange-100 text-orange-800' :
-                      selectedIncident.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
+                    <span className={`px-4 py-1.5 rounded-full text-sm font-bold shadow-sm shrink-0 border ${
+                      selectedIncident.severity === 'Critical' ? 'bg-red-50 text-red-700 border-red-200' :
+                      selectedIncident.severity === 'High' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                      selectedIncident.severity === 'Medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                      'bg-green-50 text-green-700 border-green-200'
                     }`}>
-                      {selectedIncident.severity}
+                      {selectedIncident.severity.toUpperCase()} PRIORITY
                     </span>
                   </div>
-                  <p className="text-gray-700 mb-6">{selectedIncident.description}</p>
+                  
+                  <div className="bg-slate-50 p-5 rounded-lg border border-slate-100 mb-6">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Description</h3>
+                    <p className="text-slate-800 whitespace-pre-wrap">{selectedIncident.description}</p>
+                  </div>
                   
                   {selectedIncident.resolutionDetails && (
-                    <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                      <h3 className="font-bold text-sm text-gray-900 mb-2">Resolution Details</h3>
-                      <p className="text-gray-700">{selectedIncident.resolutionDetails}</p>
+                    <div className="bg-green-50 p-5 rounded-lg border border-green-100">
+                      <h3 className="text-xs font-bold text-green-600 uppercase tracking-wider mb-2 flex items-center gap-2"><CheckCircle2 size={14}/> Resolution Details</h3>
+                      <p className="text-green-900 whitespace-pre-wrap">{selectedIncident.resolutionDetails}</p>
                     </div>
                   )}
-                </Card>
+                </div>
+                
+                <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-between text-sm">
+                  <span className="text-slate-500">Reported By:</span>
+                  <span className="font-semibold text-slate-800">{selectedIncident.reporterId?.firstName} {selectedIncident.reporterId?.lastName}</span>
+                </div>
+              </Card>
 
-                <Card className="p-6">
-                  <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><FileText size={20}/> Investigation Notes</h3>
-                  <div className="space-y-4 mb-6">
-                    {selectedIncident.investigationNotes?.length === 0 && <p className="text-gray-500 text-sm">No notes yet.</p>}
-                    {selectedIncident.investigationNotes?.map((note: any, idx: number) => (
-                      <div key={idx} className="bg-gray-50 p-3 rounded-md border border-gray-200">
-                        <p className="text-sm text-gray-800">{note.note}</p>
-                        <p className="text-xs text-gray-500 mt-2">- {note.createdBy?.firstName} {note.createdBy?.lastName} at {new Date(note.createdAt).toLocaleString()}</p>
+              <Card className="p-6">
+                <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><MessageSquare size={18} className="text-blue-500"/> Investigation Logs</h3>
+                
+                <div className="space-y-4 mb-6 relative">
+                  {selectedIncident.investigationNotes?.length === 0 && (
+                    <p className="text-slate-500 text-sm italic text-center py-4">No investigation notes have been added yet.</p>
+                  )}
+                  {selectedIncident.investigationNotes?.map((note: any, idx: number) => (
+                    <div key={idx} className="flex gap-4">
+                      <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600 text-xs shrink-0 mt-1">
+                        {note.createdBy?.firstName?.charAt(0)}{note.createdBy?.lastName?.charAt(0)}
                       </div>
-                    ))}
-                  </div>
-
-                  {user?.role !== 'GUARD' && (
-                    <div className="flex gap-2">
-                      <input 
-                        type="text" 
-                        value={newNote}
-                        onChange={(e) => setNewNote(e.target.value)}
-                        placeholder="Add an investigation note..."
-                        className="flex-1 rounded-md border-gray-300 shadow-sm p-2 border"
-                      />
-                      <Button onClick={handleAddNote}>Add Note</Button>
+                      <div className="flex-1 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                        <p className="text-sm text-slate-800">{note.note}</p>
+                        <p className="text-xs text-slate-400 mt-2 font-medium">{new Date(note.createdAt).toLocaleString()}</p>
+                      </div>
                     </div>
-                  )}
-                </Card>
-              </div>
-
-              <div className="space-y-6">
-                <Card className="p-6">
-                  <h3 className="text-lg font-bold mb-4">Details</h3>
-                  <dl className="space-y-3 text-sm">
-                    <div>
-                      <dt className="text-gray-500">Status</dt>
-                      <dd className="font-medium text-gray-900">{selectedIncident.status}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-gray-500">Category</dt>
-                      <dd className="font-medium text-gray-900">{selectedIncident.category}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-gray-500">Site</dt>
-                      <dd className="font-medium text-gray-900">{selectedIncident.siteId?.name}</dd>
-                    </div>
-                  </dl>
-                </Card>
+                  ))}
+                </div>
 
                 {user?.role !== 'GUARD' && selectedIncident.status !== 'Closed' && (
-                  <Card className="p-6">
-                    <h3 className="text-lg font-bold mb-4">Update Status</h3>
-                    <select 
-                      value={newStatus || selectedIncident.status}
-                      onChange={(e) => setNewStatus(e.target.value)}
-                      className="w-full rounded-md border-gray-300 shadow-sm p-2 border mb-4"
-                    >
-                      <option value="Open">Open</option>
-                      <option value="Acknowledged">Acknowledged</option>
-                      <option value="Under Investigation">Under Investigation</option>
-                      <option value="Resolved">Resolved</option>
-                      <option value="Closed">Closed</option>
-                    </select>
+                  <div className="flex gap-3 pt-4 border-t border-slate-100">
+                    <input 
+                      type="text" 
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                      placeholder="Add an update or note to the investigation..."
+                      className="flex-1 rounded-md border-slate-300 shadow-sm px-4 py-2 border text-sm"
+                    />
+                    <Button onClick={handleAddNote} disabled={!newNote}>Post Log</Button>
+                  </div>
+                )}
+              </Card>
+            </div>
 
-                    {(newStatus === 'Resolved' || newStatus === 'Closed') && (
+            <div className="space-y-6">
+              <Card className="p-6">
+                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-4">Metadata</h3>
+                <dl className="space-y-4 text-sm">
+                  <div className="pb-4 border-b border-slate-100">
+                    <dt className="text-slate-500 mb-1">Current Status</dt>
+                    <dd className="font-bold text-slate-900">{selectedIncident.status}</dd>
+                  </div>
+                  <div className="pb-4 border-b border-slate-100">
+                    <dt className="text-slate-500 mb-1">Classification</dt>
+                    <dd className="font-bold text-slate-900">{selectedIncident.category}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-slate-500 mb-1">Facility ID</dt>
+                    <dd className="font-bold text-slate-900">{selectedIncident.siteId?._id || 'N/A'}</dd>
+                  </div>
+                </dl>
+              </Card>
+
+              {user?.role !== 'GUARD' && selectedIncident.status !== 'Closed' && (
+                <Card className="p-6 border-2 border-slate-200 bg-slate-50">
+                  <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2"><Activity size={16} className="text-blue-500"/> Update Status</h3>
+                  <select 
+                    value={newStatus || selectedIncident.status}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    className="w-full rounded-md border-slate-300 shadow-sm p-2.5 border mb-4 text-sm font-medium bg-white"
+                  >
+                    <option value="Open">Open</option>
+                    <option value="Acknowledged">Acknowledged</option>
+                    <option value="Under Investigation">Under Investigation</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Closed">Closed</option>
+                  </select>
+
+                  {(newStatus === 'Resolved' || newStatus === 'Closed') && (
+                    <div className="mb-4 animate-in fade-in slide-in-from-top-2">
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Resolution Details <span className="text-red-500">*</span></label>
                       <textarea 
                         required
                         value={resolutionDetails}
                         onChange={(e) => setResolutionDetails(e.target.value)}
-                        placeholder="Resolution details required..."
-                        rows={3}
-                        className="w-full rounded-md border-gray-300 shadow-sm p-2 border mb-4"
+                        placeholder="Explain how this incident was resolved..."
+                        rows={4}
+                        className="w-full rounded-md border-slate-300 shadow-sm p-3 border text-sm"
                       />
-                    )}
+                    </div>
+                  )}
 
-                    <Button onClick={handleUpdateStatus} className="w-full">Update Incident</Button>
-                  </Card>
-                )}
-              </div>
+                  <Button onClick={handleUpdateStatus} className="w-full shadow-sm">Save Changes</Button>
+                </Card>
+              )}
             </div>
           </div>
-        ) : (
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+        </div>
+      ) : (
+        <Card className="overflow-hidden shadow-sm border border-slate-200">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <th className="px-6 py-4">Incident Summary</th>
+                  <th className="px-6 py-4 text-center">Severity</th>
+                  <th className="px-6 py-4 text-center">Status</th>
+                  <th className="px-6 py-4">Facility / Location</th>
+                  <th className="px-6 py-4">Date Logged</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm">
+                {loading ? (
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Incident</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Severity</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Site</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500 font-medium">
+                      <div className="flex justify-center items-center gap-3">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-slate-400"></div>
+                        Loading incidents...
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-4 text-center text-gray-500">Loading...</td>
+                ) : filteredIncidents.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center">
+                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 mb-3">
+                        <AlertTriangle className="text-slate-400" size={24} />
+                      </div>
+                      <p className="text-slate-500 font-medium">No incidents match your criteria.</p>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredIncidents.map((incident) => (
+                    <tr key={incident._id} className="hover:bg-slate-50/50 transition-colors cursor-pointer group" onClick={async () => {
+                      const res = await api.get(`/incidents/${incident._id}`);
+                      setSelectedIncident(res.data);
+                    }}>
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{incident.title}</div>
+                        <div className="text-slate-500 text-xs mt-0.5">{incident.category}</div>
+                      </td>
+                      <td className="px-6 py-4 text-center whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${
+                          incident.severity === 'Critical' ? 'bg-red-100 text-red-800' :
+                          incident.severity === 'High' ? 'bg-orange-100 text-orange-800' :
+                          incident.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-green-100 text-green-800'
+                        }`}>
+                          {incident.severity}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
+                          {incident.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-600 font-medium">
+                        {incident.siteId?.name || 'Unknown'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-500">
+                        {new Date(incident.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <span className="text-blue-600 group-hover:text-blue-800 font-medium text-sm flex items-center justify-end gap-1">
+                          View <ChevronRight size={14} />
+                        </span>
+                      </td>
                     </tr>
-                  ) : incidents.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-6 py-4 text-center text-gray-500">No incidents found</td>
-                    </tr>
-                  ) : (
-                    incidents.map((incident) => (
-                      <tr key={incident._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center">
-                            <AlertTriangle className={`w-5 h-5 mr-3 ${
-                              incident.severity === 'Critical' ? 'text-red-500' :
-                              incident.severity === 'High' ? 'text-orange-500' :
-                              incident.severity === 'Medium' ? 'text-yellow-500' :
-                              'text-green-500'
-                            }`} />
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{incident.title}</div>
-                              <div className="text-sm text-gray-500">{incident.category}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            incident.severity === 'Critical' ? 'bg-red-100 text-red-800' :
-                            incident.severity === 'High' ? 'bg-orange-100 text-orange-800' :
-                            incident.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-green-100 text-green-800'
-                          }`}>
-                            {incident.severity}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                            {incident.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {incident.siteId?.name || 'Unknown'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(incident.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button 
-                            onClick={async () => {
-                              const res = await api.get(`/incidents/${incident._id}`);
-                              setSelectedIncident(res.data);
-                            }}
-                            className="text-blue-600 hover:text-blue-900 font-medium"
-                          >
-                            View
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        )}
-      </main>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
     </div>
   );
 };

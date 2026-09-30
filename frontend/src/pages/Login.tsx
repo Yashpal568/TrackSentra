@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
 import { Shield } from 'lucide-react';
 
 export const Login = () => {
@@ -25,61 +24,140 @@ export const Login = () => {
   };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <div className="flex flex-col items-center mb-6">
-          <div className="rounded-full bg-blue-100 p-3 mb-4">
-            <Shield className="h-8 w-8 text-blue-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">Sign in to TrackSentra</h1>
-          <p className="text-sm text-gray-500 mt-2">Security Patrol Management SaaS</p>
+    <div className="flex min-h-screen bg-[#050806] font-sans selection:bg-emerald-500/30">
+      {/* Left panel - Decorative */}
+      <div className="hidden lg:flex w-1/2 bg-[#050806] text-[#F0FDF4] relative overflow-hidden flex-col justify-between p-12">
+        <div className="absolute inset-0 bg-[url('/images/hero-bg-pattern.svg')] opacity-5"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-emerald-600/20 to-cyan-600/5 blur-[100px] pointer-events-none"></div>
+        
+        <div className="relative z-10">
+          <Link to="/" className="text-2xl font-extrabold flex items-center gap-2 text-[#F0FDF4] hover:text-emerald-400 transition-colors inline-flex">
+            <div className="bg-emerald-600 p-1.5 rounded-lg shadow-lg shadow-emerald-500/20">
+              <Shield className="text-[#F0FDF4] w-6 h-6" />
+            </div>
+            TrackSentra
+          </Link>
         </div>
 
-        {error && (
-          <div className="mb-4 rounded bg-red-50 p-3 text-sm text-red-600">
-            {error}
+        <div className="relative z-10 max-w-lg mt-auto mb-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0B110E] border border-[#1D2B22] text-emerald-400 text-xs font-bold uppercase tracking-wider mb-6">
+            Welcome Back
           </div>
-        )}
+          <h2 className="text-4xl font-extrabold mb-6 leading-tight tracking-tight">
+            Secure your <br/> operations command.
+          </h2>
+          <p className="text-lg text-[#718078] leading-relaxed font-light">
+            Log in to manage your active patrols, respond to incidents, and access real-time SOC telemetry.
+          </p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email Address</label>
-            <input
-              type="email"
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
-            />
+        <div className="relative z-10 text-[#A1B5A8] text-sm flex items-center gap-4">
+          <Shield size={16} /> Enterprise-grade security and encryption.
+        </div>
+      </div>
+
+      {/* Right panel - Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 relative">
+        <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-8 duration-500">
+          
+          <div className="lg:hidden mb-8 text-center">
+             <Link to="/" className="text-2xl font-extrabold flex items-center justify-center gap-2 text-[#F0FDF4] mb-2">
+              <div className="bg-emerald-600 p-1.5 rounded-lg shadow-lg shadow-emerald-500/20">
+                <Shield className="text-[#F0FDF4] w-6 h-6" />
+              </div>
+              TrackSentra
+            </Link>
+            <p className="text-[#A1B5A8]">Log in to your account</p>
           </div>
 
-          <div>
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">Password</label>
-              <Link to="/forgot-password" className="text-sm font-medium text-blue-600 hover:text-blue-500">
-                Forgot password?
-              </Link>
+          <div className="mb-10 hidden lg:block">
+            <h1 className="text-3xl font-extrabold text-[#F0FDF4] tracking-tight">Sign in</h1>
+            <p className="text-[#A1B5A8] mt-2">Enter your credentials to access your dashboard.</p>
+          </div>
+
+          {error && (
+            <div className="mb-6 rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700 font-medium flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-red-500 shrink-0"></div>
+              {error}
             </div>
-            <input
-              type="password"
-              required
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
-            />
-          </div>
+          )}
 
-          <Button 
-            type="submit" 
-            className="w-full justify-center" 
-            disabled={isLoading}
-          >
-            {isLoading ? 'Signing in...' : 'Sign in'}
-          </Button>
-        </form>
-      </Card>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-bold text-[#1D2B22]">Email Address</label>
+              <input
+                type="email"
+                required
+                className="w-full bg-[#0B110E] border border-[#1D2B22] text-[#F0FDF4] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow-sm"
+                placeholder="admin@security.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-bold text-[#1D2B22]">Password</label>
+                <Link to="/forgot-password" className="text-sm font-bold text-emerald-600 hover:text-emerald-400 transition-colors">
+                  Forgot password?
+                </Link>
+              </div>
+              <input
+                type="password"
+                required
+                className="w-full bg-[#0B110E] border border-[#1D2B22] text-[#F0FDF4] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow-sm"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+
+            <Button 
+              type="submit" 
+              className="w-full h-12 text-base font-bold bg-emerald-600 hover:bg-emerald-500 text-[#F0FDF4] shadow-lg shadow-emerald-500/25 border-0 transition-all" 
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Authenticating...
+                </span>
+              ) : 'Sign in to Dashboard'}
+            </Button>
+            
+            <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-[#1D2B22]"></div>
+              <span className="flex-shrink-0 mx-4 text-[#718078] text-sm">Or</span>
+              <div className="flex-grow border-t border-[#1D2B22]"></div>
+            </div>
+
+            <Button 
+              type="button" 
+              onClick={async () => {
+                try {
+                  await useAuthStore.getState().demoLogin();
+                  navigate(from, { replace: true });
+                } catch (e) {
+                  // Error handled in store
+                }
+              }}
+              className="w-full h-12 text-base font-bold bg-[#101713] border border-[#1D2B22] hover:bg-[#1D2B22] text-[#F0FDF4] transition-all" 
+              disabled={isLoading}
+            >
+              Try Live Demo
+            </Button>
+          </form>
+
+          <p className="mt-8 text-center text-sm text-[#A1B5A8]">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-bold text-emerald-600 hover:text-emerald-400 transition-colors">
+              Start your free trial
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

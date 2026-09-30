@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { api } from '../lib/axios';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
+import { Shield, KeyRound, ArrowLeft, CheckCircle2 } from 'lucide-react';
 
 export const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -24,47 +25,80 @@ export const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md border border-gray-100">
-        <div>
-          <h2 className="text-center text-3xl font-extrabold text-gray-900">Forgot Password</h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+    <div className="min-h-screen bg-[#050806] font-sans selection:bg-emerald-500/30 flex items-center justify-center p-4 py-24 relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-emerald-600/5 blur-[120px] pointer-events-none rounded-full"></div>
+      
+      <div className="w-full max-w-md bg-[#0B110E] rounded-3xl shadow-xl border border-[#1D2B22] overflow-hidden relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="bg-[#050806] p-8 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('/images/hero-bg-pattern.svg')] opacity-10"></div>
+          <div className="w-16 h-16 bg-emerald-600/20 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-6 relative z-10 border border-emerald-500/30 shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+            <KeyRound size={28} />
+          </div>
+          <h2 className="text-2xl font-extrabold text-[#F0FDF4] relative z-10 tracking-tight">Forgot Password</h2>
+          <p className="mt-2 text-sm text-[#718078] relative z-10">
             Enter your email to receive a password reset link.
           </p>
         </div>
 
-        {status ? (
-          <div className="bg-blue-50 text-blue-800 p-4 rounded-md text-sm text-center">
-            {status}
-          </div>
-        ) : (
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="sr-only">Email address</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+        <div className="p-8 sm:p-10">
+          {status ? (
+            <div className="text-center animate-in fade-in duration-300">
+              <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-[#F0FDF4] mb-2">Check your inbox</h3>
+              <p className="text-[#A1B5A8] text-sm mb-8 px-4">
+                {status}
+              </p>
+              <Link to="/login">
+                <Button className="w-full bg-[#0B110E] hover:bg-[#101713] text-[#F0FDF4] font-bold border-0">
+                  Return to Login
+                </Button>
+              </Link>
             </div>
+          ) : (
+            <form className="space-y-6" onSubmit={handleSubmit}>
+              <div className="space-y-2">
+                <label htmlFor="email" className="block text-sm font-bold text-[#1D2B22]">Email Address</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="w-full bg-[#050806] border border-[#1D2B22] text-[#F0FDF4] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow-sm"
+                  placeholder="name@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
 
-            <div>
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'Sending...' : 'Send Reset Link'}
+              <Button 
+                type="submit" 
+                disabled={loading} 
+                className="w-full h-12 text-base bg-emerald-600 hover:bg-emerald-500 text-[#F0FDF4] font-bold border-0 shadow-lg shadow-emerald-500/25 transition-all"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Sending...
+                  </span>
+                ) : 'Send Reset Link'}
               </Button>
-            </div>
-          </form>
-        )}
-        <div className="text-center mt-4">
-          <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500 text-sm">
-            Back to login
-          </Link>
+              
+              <div className="text-center mt-6">
+                <Link to="/login" className="inline-flex items-center gap-2 font-bold text-[#A1B5A8] hover:text-[#F0FDF4] text-sm transition-colors">
+                  <ArrowLeft size={16} /> Back to login
+                </Link>
+              </div>
+            </form>
+          )}
         </div>
+      </div>
+      
+      <div className="absolute bottom-8 text-center w-full flex justify-center items-center gap-2 text-[#718078] text-sm">
+        <Shield size={16} /> Secure Password Recovery
       </div>
     </div>
   );
