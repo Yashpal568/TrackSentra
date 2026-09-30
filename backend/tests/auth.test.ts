@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs';
 describe('Auth API', () => {
   const createMockUser = async () => {
     const company = await Company.create({ name: 'Acme Corp' });
-    const passwordHash = await bcrypt.hash('Password123!', 10);
+    const passwordHash = await bcrypt.hash('Password123!', 1);
     const user = await User.create({
       companyId: company._id,
       firstName: 'John',

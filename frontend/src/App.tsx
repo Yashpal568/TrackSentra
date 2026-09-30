@@ -1,9 +1,14 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
+import { CompanyProfile } from './pages/CompanyProfile';
+import { Sites } from './pages/Sites';
+import { Guards } from './pages/Guards';
+import { Shifts } from './pages/Shifts';
+import { Checkpoints } from './pages/Checkpoints';
 
 function App() {
   const { checkAuth, isLoading } = useAuthStore();
@@ -23,6 +28,11 @@ function App() {
         
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/company" element={<CompanyProfile />} />
+          <Route path="/sites" element={<Sites />} />
+          <Route path="/checkpoints" element={<Checkpoints />} />
+          <Route path="/guards" element={<Guards />} />
+          <Route path="/shifts" element={<Shifts />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Route>
         

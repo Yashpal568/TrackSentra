@@ -25,11 +25,11 @@ const RefreshTokenSchema: Schema = new Schema(
 );
 
 RefreshTokenSchema.virtual('isExpired').get(function () {
-  return Date.now() >= this.expiresAt.getTime();
+  return Date.now() >= (this as any).expiresAt.getTime();
 });
 
 RefreshTokenSchema.virtual('isActive').get(function () {
-  return !this.revokedAt && !this.isExpired;
+  return !(this as any).revokedAt && !(this as any).isExpired;
 });
 
 export const RefreshToken = mongoose.model<IRefreshToken>('RefreshToken', RefreshTokenSchema);

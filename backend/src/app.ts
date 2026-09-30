@@ -6,6 +6,12 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { globalLimiter } from './middleware/rateLimiter';
 import authRoutes from './routes/auth.routes';
+import companyRoutes from './routes/company.routes';
+import siteRoutes from './routes/site.routes';
+import guardRoutes from './routes/guard.routes';
+import shiftRoutes from './routes/shift.routes';
+import checkpointRoutes from './routes/checkpoint.routes';
+import patrolRoutes from './routes/patrol.routes';
 
 const app = express();
 
@@ -20,6 +26,11 @@ app.use(cookieParser());
 app.use(globalLimiter);
 
 app.use('/api/auth', authRoutes);
+app.use('/api/companies', companyRoutes);
+app.use('/api/sites', siteRoutes);
+app.use('/api/guards', guardRoutes);
+app.use('/api/shifts', shiftRoutes);
+app.use('/api/checkpoints', checkpointRoutes);
 
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

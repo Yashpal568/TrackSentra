@@ -83,7 +83,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     });
 
     const userObj = user.toObject();
-    delete userObj.passwordHash;
+    delete (userObj as any).passwordHash;
 
     res.json({ message: 'Login successful', user: userObj, accessToken });
   } catch (error) {

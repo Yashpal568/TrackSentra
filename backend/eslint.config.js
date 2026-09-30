@@ -17,7 +17,7 @@ module.exports = [
     rules: {
       ...eslintPluginTs.configs.recommended.rules,
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }]
+      '@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_', 'caughtErrors': 'none' }]
     },
   },
 ];
