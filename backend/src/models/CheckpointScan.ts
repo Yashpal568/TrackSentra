@@ -9,6 +9,11 @@ export interface ICheckpointScan extends Document {
   scannedAt: Date;
   status: 'valid' | 'out_of_sequence' | 'duplicate' | 'rejected';
   failureReason?: string;
+  latitude?: number;
+  longitude?: number;
+  accuracy?: number;
+  distanceToCheckpoint?: number;
+  locationVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +32,11 @@ const CheckpointScanSchema = new Schema<ICheckpointScan>(
       required: true,
     },
     failureReason: { type: String },
+    latitude: { type: Number },
+    longitude: { type: Number },
+    accuracy: { type: Number },
+    distanceToCheckpoint: { type: Number },
+    locationVerified: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

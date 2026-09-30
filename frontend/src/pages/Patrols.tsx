@@ -83,13 +83,44 @@ export const Patrols = () => {
     }
   };
 
+  const [locationStatus, setLocationStatus] = useState('');
+
   const handleScan = async (data: string) => {
     setScanning(false);
     if (!activeSession) return;
+    
+    setLocationStatus('Getting GPS location...');
+    setError('');
 
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported by your browser.');
+      setLocationStatus('');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        setLocationStatus('');
+        await submitScan(data, position.coords.latitude, position.coords.longitude, position.coords.accuracy);
+      },
+      (geoError) => {
+        setLocationStatus('');
+        setError(`Location required: Please enable GPS (${geoError.message})`);
+        // We could theoretically still submit without GPS to let the server reject it and log the failure
+        submitScan(data);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  const submitScan = async (qrPayload: string, latitude?: number, longitude?: number, accuracy?: number) => {
+    if (!activeSession) return;
     try {
       const res = await api.post(`/patrols/sessions/${activeSession._id}/scans`, {
-        qrPayload: data,
+        qrPayload,
+        latitude,
+        longitude,
+        accuracy
       });
       setMessage(`Scan successful: ${res.data.scan.status}`);
       if (res.data.sessionStatus === 'completed') {
@@ -139,6 +170,12 @@ export const Patrols = () => {
         {message && (
           <div className="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
             <p className="text-green-700">{message}</p>
+          </div>
+        )}
+
+        {locationStatus && (
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 animate-pulse">
+            <p className="text-blue-700 font-medium">{locationStatus}</p>
           </div>
         )}
 

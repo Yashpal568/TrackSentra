@@ -7,6 +7,18 @@ import { Guard } from '../models/Guard';
 import { AuditLog } from '../models/AuditLog';
 import { Site } from '../models/Site';
 
+function getDistanceInMeters(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371e3; // Earth radius in meters
+  const toRad = (val: number) => (val * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 export const getPatrolRoutes = async (req: Request, res: Response): Promise<void> => {
   const user = (req as any).user;
   const filter: any = { companyId: user.companyId, status: { $ne: 'archived' } };
@@ -189,7 +201,7 @@ export const startPatrolSession = async (req: Request, res: Response): Promise<v
 export const scanCheckpoint = async (req: Request, res: Response): Promise<void> => {
   const user = (req as any).user;
   const { id } = req.params; // PatrolSession ID
-  const { qrPayload } = req.body;
+  const { qrPayload, latitude, longitude, accuracy } = req.body;
 
   const session = await PatrolSession.findOne({ _id: id, companyId: user.companyId }).populate('routeId');
   if (!session) {
@@ -259,6 +271,71 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
     return;
   }
 
+  // GPS Validation
+  let distanceToCheckpoint: number | undefined;
+  let locationVerified = false;
+
+  if (checkpoint.latitude !== undefined && checkpoint.longitude !== undefined) {
+    if (latitude === undefined || longitude === undefined) {
+      await CheckpointScan.create({
+        companyId: user.companyId,
+        siteId: session.siteId,
+        sessionId: session._id,
+        checkpointId: checkpoint._id,
+        guardId: guard._id,
+        status: 'rejected',
+        failureReason: 'GPS location required for this checkpoint',
+        latitude,
+        longitude,
+        accuracy,
+        locationVerified: false,
+      });
+      res.status(400).json({ error: { message: 'GPS location required' } });
+      return;
+    }
+
+    if (accuracy && accuracy > 100) {
+      await CheckpointScan.create({
+        companyId: user.companyId,
+        siteId: session.siteId,
+        sessionId: session._id,
+        checkpointId: checkpoint._id,
+        guardId: guard._id,
+        status: 'rejected',
+        failureReason: 'GPS accuracy too low',
+        latitude,
+        longitude,
+        accuracy,
+        locationVerified: false,
+      });
+      res.status(400).json({ error: { message: 'GPS accuracy too low' } });
+      return;
+    }
+
+    distanceToCheckpoint = getDistanceInMeters(latitude, longitude, checkpoint.latitude, checkpoint.longitude);
+    const radius = checkpoint.radius || 50;
+
+    if (distanceToCheckpoint > radius) {
+      await CheckpointScan.create({
+        companyId: user.companyId,
+        siteId: session.siteId,
+        sessionId: session._id,
+        checkpointId: checkpoint._id,
+        guardId: guard._id,
+        status: 'rejected',
+        failureReason: 'Out of checkpoint radius',
+        latitude,
+        longitude,
+        accuracy,
+        distanceToCheckpoint,
+        locationVerified: false,
+      });
+      res.status(400).json({ error: { message: `Out of range. Distance: ${Math.round(distanceToCheckpoint)}m, Required: ${radius}m` } });
+      return;
+    }
+    locationVerified = true;
+  }
+
   // Check sequence
   const route = session.routeId as any; // populated
   const routeCheckpoints: string[] = route.checkpoints.map((c: any) => c.toString());
@@ -272,6 +349,11 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
       guardId: guard._id,
       status: 'rejected',
       failureReason: 'Checkpoint is not part of this patrol route',
+      latitude,
+      longitude,
+      accuracy,
+      distanceToCheckpoint,
+      locationVerified,
     });
     res.status(400).json({ error: { message: 'Checkpoint not part of the route' } });
     return;
@@ -291,6 +373,11 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
     checkpointId: checkpoint._id,
     guardId: guard._id,
     status: scanStatus,
+    latitude,
+    longitude,
+    accuracy,
+    distanceToCheckpoint,
+    locationVerified,
   });
 
   // Automatically complete session if this was the last checkpoint (regardless of order, if all are scanned)

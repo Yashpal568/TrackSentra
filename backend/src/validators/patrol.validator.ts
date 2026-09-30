@@ -30,5 +30,8 @@ export const startPatrolSessionSchema = z.object({
 export const scanCheckpointSchema = z.object({
   body: z.object({
     qrPayload: z.string().min(1, 'QR payload is required'),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    accuracy: z.number().positive().optional(),
   }),
 });

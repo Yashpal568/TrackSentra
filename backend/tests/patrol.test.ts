@@ -38,8 +38,8 @@ describe('Patrol Engine API', () => {
 
     await Guard.create({ companyId, userId: guardId, employeeId: `EMP-P1-${ts}`, status: 'active' });
 
-    const cp1 = await Checkpoint.create({ companyId, siteId, name: 'CP 1', location: 'Gate A', qrPayload: `qr-${ts}-1` });
-    const cp2 = await Checkpoint.create({ companyId, siteId, name: 'CP 2', location: 'Gate B', qrPayload: `qr-${ts}-2` });
+    const cp1 = await Checkpoint.create({ companyId, siteId, name: 'CP 1', location: 'Gate A', qrPayload: `qr-${ts}-1`, latitude: 40.7128, longitude: -74.0060, radius: 50 });
+    const cp2 = await Checkpoint.create({ companyId, siteId, name: 'CP 2', location: 'Gate B', qrPayload: `qr-${ts}-2`, latitude: 40.7129, longitude: -74.0061, radius: 50 });
 
     return { companyId, siteId, cp1, cp2, adminEmail: `patrol.admin.${ts}@test.com`, guardEmail: `patrol.guard.${ts}@test.com` };
   };
@@ -110,7 +110,10 @@ describe('Patrol Engine API', () => {
 
     // Scan CP1 (valid)
     const scan1Res = await request(app).post(`/api/patrols/sessions/${sessionId}/scans`).set('Cookie', guardCookies).send({
-      qrPayload: cp1.qrPayload
+      qrPayload: cp1.qrPayload,
+      latitude: 40.71281, // Very close
+      longitude: -74.00601,
+      accuracy: 10,
     });
     expect(scan1Res.status).toBe(201);
     expect(scan1Res.body.scan.status).toBe('valid');
@@ -128,9 +131,22 @@ describe('Patrol Engine API', () => {
     });
     expect(scanInvRes.status).toBe(400);
 
+    // Out of range GPS scan
+    const scanOorRes = await request(app).post(`/api/patrols/sessions/${sessionId}/scans`).set('Cookie', guardCookies).send({
+      qrPayload: cp2.qrPayload,
+      latitude: 40.7500, // Too far away
+      longitude: -74.0000,
+      accuracy: 10,
+    });
+    expect(scanOorRes.status).toBe(400);
+    expect(scanOorRes.body.error.message).toMatch(/Out of range/);
+
     // Scan CP2 (completes session)
     const scan2Res = await request(app).post(`/api/patrols/sessions/${sessionId}/scans`).set('Cookie', guardCookies).send({
-      qrPayload: cp2.qrPayload
+      qrPayload: cp2.qrPayload,
+      latitude: 40.71291,
+      longitude: -74.00611,
+      accuracy: 10,
     });
     expect(scan2Res.status).toBe(201);
     expect(scan2Res.body.scan.status).toBe('valid');
