@@ -27,17 +27,12 @@ export const Login = () => {
     <div className="flex min-h-screen bg-[#050806] font-sans selection:bg-emerald-500/30">
       {/* Left panel - Decorative */}
       <div className="hidden lg:flex w-1/2 bg-[#050806] text-[#F0FDF4] relative overflow-hidden flex-col justify-between p-12">
-        <div className="absolute inset-0 bg-[url('/images/hero-bg-pattern.svg')] opacity-5"></div>
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-emerald-600/20 to-cyan-600/5 blur-[100px] pointer-events-none"></div>
+        {/* Background Image with Dark Emerald Overlay */}
+        <div className="absolute inset-0 bg-[url('/images/login-bg.jpg')] bg-cover bg-center opacity-40"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-[#050806]/90 via-[#050806]/80 to-emerald-900/40"></div>
+        <div className="absolute inset-0 bg-[url('/images/hero-bg-pattern.svg')] opacity-10 mix-blend-overlay"></div>
         
-        <div className="relative z-10">
-          <Link to="/" className="text-2xl font-extrabold flex items-center gap-2 text-[#F0FDF4] hover:text-emerald-400 transition-colors inline-flex">
-            <div className="bg-emerald-600 p-1.5 rounded-lg shadow-lg shadow-emerald-500/20">
-              <Shield className="text-[#F0FDF4] w-6 h-6" />
-            </div>
-            TrackSentra
-          </Link>
-        </div>
+
 
         <div className="relative z-10 max-w-lg mt-auto mb-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0B110E] border border-[#1D2B22] text-emerald-400 text-xs font-bold uppercase tracking-wider mb-6">

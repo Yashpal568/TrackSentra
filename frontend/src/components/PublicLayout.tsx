@@ -35,6 +35,7 @@ export const PublicLayout = () => {
           </Link>
           
           <div className="hidden md:flex gap-8 items-center">
+            <Link to="/how-it-works" className="text-[#718078] hover:text-[#F0FDF4] text-sm font-semibold transition-colors">How it Works</Link>
             <Link to="/features" className="text-[#718078] hover:text-[#F0FDF4] text-sm font-semibold transition-colors">Features</Link>
             <Link to="/pricing" className="text-[#718078] hover:text-[#F0FDF4] text-sm font-semibold transition-colors">Pricing</Link>
             <Link to="/faq" className="text-[#718078] hover:text-[#F0FDF4] text-sm font-semibold transition-colors">FAQ</Link>
@@ -62,6 +63,7 @@ export const PublicLayout = () => {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden absolute top-full left-0 w-full bg-[#0B110E] border-b border-[#1D2B22] shadow-xl py-4 px-4 flex flex-col gap-4 animate-in slide-in-from-top-4 duration-200">
+            <Link to="/how-it-works" className="text-[#718078] hover:text-[#F0FDF4] text-base font-semibold py-2">How it Works</Link>
             <Link to="/features" className="text-[#718078] hover:text-[#F0FDF4] text-base font-semibold py-2">Features</Link>
             <Link to="/pricing" className="text-[#718078] hover:text-[#F0FDF4] text-base font-semibold py-2">Pricing</Link>
             <Link to="/faq" className="text-[#718078] hover:text-[#F0FDF4] text-base font-semibold py-2">FAQ</Link>
@@ -107,6 +109,7 @@ export const PublicLayout = () => {
           <div className="md:col-span-4 lg:col-span-2">
             <h4 className="text-[#F0FDF4] font-bold mb-6 tracking-wide text-sm uppercase">Product</h4>
             <ul className="space-y-4 text-sm font-medium">
+              <li><Link to="/how-it-works" className="hover:text-emerald-400 transition-colors">How it Works</Link></li>
               <li><Link to="/features" className="hover:text-emerald-400 transition-colors">Features</Link></li>
               <li><Link to="/pricing" className="hover:text-emerald-400 transition-colors">Pricing</Link></li>
               <li><Link to="/faq" className="hover:text-emerald-400 transition-colors">FAQ</Link></li>

@@ -241,8 +241,11 @@ export const LandingPage = () => {
                     <div className="h-4 bg-[#101713] rounded w-3/4"></div>
                     <div className="h-4 bg-[#101713] rounded w-full"></div>
                     <div className="h-4 bg-[#101713] rounded w-5/6"></div>
-                    <div className="h-32 bg-[#101713] rounded-lg mt-4 border border-[#1D2B22] flex items-center justify-center text-[#A1B5A8]">
-                      [ Attached Photo Evidence ]
+                    <div className="h-48 bg-black rounded-lg mt-4 border border-[#1D2B22] relative overflow-hidden group">
+                      <div className="absolute inset-0 bg-[url('/images/evidence.jpg')] bg-cover bg-center transition-transform duration-700 group-hover:scale-110"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-3">
+                        <span className="text-xs font-bold text-white bg-black/50 px-2 py-1 rounded backdrop-blur-sm border border-white/10">Attached: gate_breach_cam04.jpg</span>
+                      </div>
                     </div>
                     <Button className="w-full bg-emerald-600 hover:bg-emerald-500 mt-4 border-0">Dispatch Response Team</Button>
                   </div>
@@ -334,21 +337,22 @@ export const LandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-emerald-600 text-[#F0FDF4] relative overflow-hidden">
+      <section className="py-24 bg-[#0B110E] border-t border-[#1D2B22] text-[#F0FDF4] relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/images/hero-bg-pattern.svg')] opacity-10 mix-blend-overlay"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-emerald-600/10 blur-[120px] pointer-events-none rounded-[100%]"></div>
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
           <h2 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight text-[#F0FDF4]">Ready to modernize your patrols?</h2>
-          <p className="text-xl text-emerald-900/40 mb-10 max-w-2xl mx-auto font-light">
+          <p className="text-xl text-[#A1B5A8] mb-10 max-w-2xl mx-auto font-light">
             Join elite security operations teams using TrackSentra to monitor, analyze, and optimize their daily deployments.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link to="/register">
-              <Button className="w-full sm:w-auto h-14 px-10 text-lg bg-[#0B110E] text-emerald-600 hover:bg-[#050806] shadow-xl font-bold border-0 transition-transform hover:scale-105">
+              <Button className="w-full sm:w-auto h-14 px-10 text-lg bg-emerald-600 text-[#F0FDF4] hover:bg-emerald-500 shadow-xl shadow-emerald-600/20 font-bold border-0 transition-transform hover:scale-105">
                 Start Your Free Trial
               </Button>
             </Link>
             <Link to="/contact">
-              <Button variant="secondary" className="w-full sm:w-auto h-14 px-10 text-lg bg-emerald-400/50 text-[#F0FDF4] border border-emerald-400 hover:bg-emerald-400 shadow-xl font-bold backdrop-blur-sm">
+              <Button variant="secondary" className="w-full sm:w-auto h-14 px-10 text-lg bg-[#101713] text-[#F0FDF4] border border-[#1D2B22] hover:bg-[#1D2B22] shadow-xl font-bold backdrop-blur-sm">
                 Contact Sales
               </Button>
             </Link>
