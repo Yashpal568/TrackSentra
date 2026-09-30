@@ -37,8 +37,25 @@ export const Patrols = () => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
+  const [locationStatus, setLocationStatus] = useState('');
+  const [offlineQueue, setOfflineQueue] = useState<any[]>([]);
+
   useEffect(() => {
     fetchData();
+    
+    // Load offline queue
+    const saved = localStorage.getItem('trackSentra_offlineQueue');
+    if (saved) {
+      try {
+        setOfflineQueue(JSON.parse(saved));
+      } catch (e) {}
+    }
+
+    const handleOnline = () => {
+      syncOfflineQueue();
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
   }, []);
 
   const fetchData = async () => {
@@ -83,7 +100,41 @@ export const Patrols = () => {
     }
   };
 
-  const [locationStatus, setLocationStatus] = useState('');
+  const syncOfflineQueue = async () => {
+    const saved = localStorage.getItem('trackSentra_offlineQueue');
+    if (!saved) return;
+    try {
+      const queue = JSON.parse(saved);
+      if (queue.length === 0) return;
+      
+      const newQueue = [...queue];
+      for (let i = 0; i < queue.length; i++) {
+        const item = queue[i];
+        try {
+          await api.post(`/patrols/sessions/${item.sessionId}/scans`, {
+            qrPayload: item.qrPayload,
+            latitude: item.latitude,
+            longitude: item.longitude,
+            accuracy: item.accuracy
+          });
+          // remove from queue on success
+          newQueue.splice(i, 1);
+          i--;
+        } catch (err: any) {
+          // If it's a 4xx error (like duplicate), it's safe to remove it
+          if (err.response && err.response.status >= 400 && err.response.status < 500) {
+             newQueue.splice(i, 1);
+             i--;
+          }
+          // If it's a network error, it stays in the queue
+        }
+      }
+      
+      setOfflineQueue(newQueue);
+      localStorage.setItem('trackSentra_offlineQueue', JSON.stringify(newQueue));
+      fetchData();
+    } catch (e) {}
+  };
 
   const handleScan = async (data: string) => {
     setScanning(false);
@@ -106,7 +157,6 @@ export const Patrols = () => {
       (geoError) => {
         setLocationStatus('');
         setError(`Location required: Please enable GPS (${geoError.message})`);
-        // We could theoretically still submit without GPS to let the server reject it and log the failure
         submitScan(data);
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -116,6 +166,10 @@ export const Patrols = () => {
   const submitScan = async (qrPayload: string, latitude?: number, longitude?: number, accuracy?: number) => {
     if (!activeSession) return;
     try {
+      if (!navigator.onLine) {
+        throw new Error('Network offline');
+      }
+
       const res = await api.post(`/patrols/sessions/${activeSession._id}/scans`, {
         qrPayload,
         latitude,
@@ -128,7 +182,23 @@ export const Patrols = () => {
       }
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to record scan');
+      if (!navigator.onLine || err.message === 'Network Error' || err.message === 'Network offline') {
+        // Queue it
+        const newItem = {
+          sessionId: activeSession._id,
+          qrPayload,
+          latitude,
+          longitude,
+          accuracy,
+          timestamp: new Date().toISOString()
+        };
+        const newQueue = [...offlineQueue, newItem];
+        setOfflineQueue(newQueue);
+        localStorage.setItem('trackSentra_offlineQueue', JSON.stringify(newQueue));
+        setMessage('Network offline. Scan saved to queue and will sync automatically.');
+      } else {
+        setError(err.response?.data?.error?.message || 'Failed to record scan');
+      }
       fetchData();
     }
   };
