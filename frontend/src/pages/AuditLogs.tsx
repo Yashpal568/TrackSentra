@@ -55,16 +55,16 @@ export const AuditLogs = () => {
   };
 
   if (user?.role === 'GUARD') {
-    return <div className="p-8 text-center text-gray-500">You do not have permission to view audit logs.</div>;
+    return <div className="p-8 text-center text-text-secondary">You do not have permission to view audit logs.</div>;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow">
+    <div className="min-h-screen bg-surface-hover">
+      <header className="bg-surface-card shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Shield className="text-blue-600" />
-            <h1 className="text-xl font-bold text-gray-900">System Audit Logs</h1>
+            <Shield className="text-emerald-primary" />
+            <h1 className="text-xl font-bold text-text-main">System Audit Logs</h1>
           </div>
           <Button onClick={handleExport} className="flex items-center gap-2">
             <Download size={16} /> Export CSV
@@ -106,43 +106,43 @@ export const AuditLogs = () => {
             <Card className="overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-surface-hover">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actor</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resource</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Details</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase">Timestamp</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase">Actor</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase">Action</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase">Resource</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-text-secondary uppercase">Details</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-surface-card divide-y divide-gray-200">
                     {loading ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">Loading logs...</td>
+                        <td colSpan={5} className="px-6 py-4 text-center text-sm text-text-secondary">Loading logs...</td>
                       </tr>
                     ) : logs.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No audit logs found.</td>
+                        <td colSpan={5} className="px-6 py-4 text-center text-sm text-text-secondary">No audit logs found.</td>
                       </tr>
                     ) : (
                       logs.map((log) => (
-                        <tr key={log._id} className={`hover:bg-gray-50 cursor-pointer ${selectedLog?._id === log._id ? 'bg-blue-50' : ''}`} onClick={() => setSelectedLog(log)}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <tr key={log._id} className={`hover:bg-surface-hover cursor-pointer ${selectedLog?._id === log._id ? 'bg-blue-50' : ''}`} onClick={() => setSelectedLog(log)}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                             {new Date(log.createdAt).toLocaleString()}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-text-main">
                             {log.userId ? `${log.userId.firstName} ${log.userId.lastName}` : 'System'}
-                            {log.userId && <span className="block text-xs text-gray-500">{log.userId.email}</span>}
+                            {log.userId && <span className="block text-xs text-text-secondary">{log.userId.email}</span>}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
                             <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                               {log.action}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
                             {log.resource}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-blue-600">
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-emerald-primary">
                             View
                           </td>
                         </tr>
@@ -151,7 +151,7 @@ export const AuditLogs = () => {
                   </tbody>
                 </table>
               </div>
-              <div className="px-6 py-3 bg-gray-50 border-t flex items-center justify-between">
+              <div className="px-6 py-3 bg-surface-hover border-t flex items-center justify-between">
                 <span className="text-sm text-gray-700">Page {page} of {totalPages || 1}</span>
                 <div className="flex gap-2">
                   <Button variant="secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>Previous</Button>
@@ -167,40 +167,40 @@ export const AuditLogs = () => {
               {selectedLog ? (
                 <div className="space-y-4">
                   <div>
-                    <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Event ID</span>
-                    <span className="text-sm font-mono text-gray-900">{selectedLog._id}</span>
+                    <span className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Event ID</span>
+                    <span className="text-sm font-mono text-text-main">{selectedLog._id}</span>
                   </div>
                   <div>
-                    <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Timestamp</span>
-                    <span className="text-sm text-gray-900">{new Date(selectedLog.createdAt).toISOString()}</span>
+                    <span className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Timestamp</span>
+                    <span className="text-sm text-text-main">{new Date(selectedLog.createdAt).toISOString()}</span>
                   </div>
                   <div>
-                    <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Actor</span>
-                    <span className="text-sm text-gray-900">{selectedLog.userId ? `${selectedLog.userId.firstName} ${selectedLog.userId.lastName} (${selectedLog.userId.role})` : 'System'}</span>
+                    <span className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Actor</span>
+                    <span className="text-sm text-text-main">{selectedLog.userId ? `${selectedLog.userId.firstName} ${selectedLog.userId.lastName} (${selectedLog.userId.role})` : 'System'}</span>
                   </div>
                   <div>
-                    <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">IP Address</span>
-                    <span className="text-sm font-mono text-gray-900">{selectedLog.ipAddress || 'Unknown'}</span>
+                    <span className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">IP Address</span>
+                    <span className="text-sm font-mono text-text-main">{selectedLog.ipAddress || 'Unknown'}</span>
                   </div>
                   <div>
-                    <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Action</span>
-                    <span className="text-sm text-gray-900">{selectedLog.action}</span>
+                    <span className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Action</span>
+                    <span className="text-sm text-text-main">{selectedLog.action}</span>
                   </div>
                   <div>
-                    <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Resource</span>
-                    <span className="text-sm text-gray-900">{selectedLog.resource}</span>
+                    <span className="block text-xs font-semibold text-text-secondary uppercase tracking-wider">Resource</span>
+                    <span className="text-sm text-text-main">{selectedLog.resource}</span>
                   </div>
                   {selectedLog.details && (
                     <div>
-                      <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Metadata</span>
-                      <pre className="bg-slate-900 text-green-400 p-3 rounded-md text-xs overflow-x-auto whitespace-pre-wrap">
+                      <span className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Metadata</span>
+                      <pre className="bg-background text-green-400 p-3 rounded-md text-xs overflow-x-auto whitespace-pre-wrap">
                         {JSON.stringify(selectedLog.details, null, 2)}
                       </pre>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-center text-gray-500 py-12">
+                <div className="text-center text-text-secondary py-12">
                   Select an audit log from the table to view its details here.
                 </div>
               )}

@@ -80,14 +80,14 @@ export function AdminPlans() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-900">Manage Subscription Plans</h1>
+        <h1 className="text-2xl font-semibold text-text-main">Manage Subscription Plans</h1>
         <Button onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Cancel' : '+ Create New Plan'}
         </Button>
       </div>
 
       {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-surface-card p-6 rounded-lg shadow-sm border border-border-subtle">
           <h2 className="text-lg font-semibold mb-4">Create New Plan</h2>
           <form onSubmit={createPlan} className="grid grid-cols-2 gap-4">
             <div>
@@ -129,37 +129,37 @@ export function AdminPlans() {
               <input required type="text" className="w-full border p-2 rounded" value={formData.features} onChange={e => setFormData({...formData, features: e.target.value})} placeholder="e.g. QR Checkpoints, Live Maps, Basic Analytics" />
             </div>
             <div className="col-span-2 flex justify-end mt-4">
-              <Button type="submit" className="bg-blue-600 text-white">Save Plan</Button>
+              <Button type="submit" className="bg-emerald-primary text-white">Save Plan</Button>
             </div>
           </form>
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-surface-card rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-surface-hover">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plan Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Limits</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Plan Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Price</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Limits</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-text-secondary uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-surface-card divide-y divide-gray-200">
             {plans.map(plan => (
               <tr key={plan._id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{plan.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${(plan.price / 100).toFixed(2)} / {plan.billingInterval}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{plan.limits.maxGuards} Guards, {plan.limits.maxSites} Sites</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${plan.visibility === 'public' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-text-main">{plan.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">${(plan.price / 100).toFixed(2)} / {plan.billingInterval}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">{plan.limits.maxGuards} Guards, {plan.limits.maxSites} Sites</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary">
+                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${plan.visibility === 'public' ? 'bg-emerald-primary/20 text-emerald-primary' : 'bg-surface-hover text-text-main'}`}>
                      {plan.visibility}
                    </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   {plan.visibility === 'hidden' ? (
-                    <button onClick={() => publishPlan(plan._id, 'public')} className="text-green-600 hover:text-green-900 mr-4">Publish</button>
+                    <button onClick={() => publishPlan(plan._id, 'public')} className="text-emerald-primary hover:text-green-900 mr-4">Publish</button>
                   ) : (
                     <button onClick={() => publishPlan(plan._id, 'hidden')} className="text-yellow-600 hover:text-yellow-900 mr-4">Hide</button>
                   )}

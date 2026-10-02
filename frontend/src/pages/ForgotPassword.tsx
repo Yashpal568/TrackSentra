@@ -25,18 +25,18 @@ export const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050806] font-sans selection:bg-emerald-500/30 flex items-center justify-center p-4 py-24 relative overflow-hidden">
+    <div className="min-h-screen bg-[var(--color-background)] font-sans selection:bg-emerald-500/30 flex items-center justify-center p-4 py-24 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-emerald-600/5 blur-[120px] pointer-events-none rounded-full"></div>
       
-      <div className="w-full max-w-md bg-[#0B110E] rounded-3xl shadow-xl border border-[#1D2B22] overflow-hidden relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="bg-[#050806] p-8 text-center relative overflow-hidden">
+      <div className="w-full max-w-md bg-[var(--color-surface-sidebar)] rounded-3xl shadow-xl border border-[var(--color-border-subtle)] overflow-hidden relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="bg-[var(--color-background)] p-8 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('/images/hero-bg-pattern.svg')] opacity-10"></div>
           <div className="w-16 h-16 bg-emerald-600/20 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-6 relative z-10 border border-emerald-500/30 shadow-[0_0_15px_rgba(37,99,235,0.3)]">
             <KeyRound size={28} />
           </div>
-          <h2 className="text-2xl font-extrabold text-[#F0FDF4] relative z-10 tracking-tight">Forgot Password</h2>
-          <p className="mt-2 text-sm text-[#718078] relative z-10">
+          <h2 className="text-2xl font-extrabold text-[var(--color-text-main)] relative z-10 tracking-tight">Forgot Password</h2>
+          <p className="mt-2 text-sm text-[var(--color-text-muted)] relative z-10">
             Enter your email to receive a password reset link.
           </p>
         </div>
@@ -44,15 +44,15 @@ export const ForgotPassword = () => {
         <div className="p-8 sm:p-10">
           {status ? (
             <div className="text-center animate-in fade-in duration-300">
-              <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-emerald-primary/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 size={32} />
               </div>
-              <h3 className="text-lg font-bold text-[#F0FDF4] mb-2">Check your inbox</h3>
-              <p className="text-[#A1B5A8] text-sm mb-8 px-4">
+              <h3 className="text-lg font-bold text-[var(--color-text-main)] mb-2">Check your inbox</h3>
+              <p className="text-[var(--color-text-secondary)] text-sm mb-8 px-4">
                 {status}
               </p>
               <Link to="/login">
-                <Button className="w-full bg-[#0B110E] hover:bg-[#101713] text-[#F0FDF4] font-bold border-0">
+                <Button className="w-full bg-[var(--color-surface-sidebar)] hover:bg-[var(--color-surface-main)] text-[var(--color-text-main)] font-bold border-0">
                   Return to Login
                 </Button>
               </Link>
@@ -60,13 +60,13 @@ export const ForgotPassword = () => {
           ) : (
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-bold text-[#1D2B22]">Email Address</label>
+                <label htmlFor="email" className="block text-sm font-bold text-text-main">Email Address</label>
                 <input
                   id="email"
                   name="email"
                   type="email"
                   required
-                  className="w-full bg-[#050806] border border-[#1D2B22] text-[#F0FDF4] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow-sm"
+                  className="w-full bg-[var(--color-background)] border border-[var(--color-border-subtle)] text-[var(--color-text-main)] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow-sm"
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -77,7 +77,7 @@ export const ForgotPassword = () => {
               <Button 
                 type="submit" 
                 disabled={loading} 
-                className="w-full h-12 text-base bg-emerald-600 hover:bg-emerald-500 text-[#F0FDF4] font-bold border-0 shadow-lg shadow-emerald-500/25 transition-all"
+                className="w-full h-12 text-base bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-main)] font-bold border-0 shadow-lg shadow-emerald-500/25 transition-all"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -88,7 +88,7 @@ export const ForgotPassword = () => {
               </Button>
               
               <div className="text-center mt-6">
-                <Link to="/login" className="inline-flex items-center gap-2 font-bold text-[#A1B5A8] hover:text-[#F0FDF4] text-sm transition-colors">
+                <Link to="/login" className="inline-flex items-center gap-2 font-bold text-[var(--color-text-secondary)] hover:text-[var(--color-text-main)] text-sm transition-colors">
                   <ArrowLeft size={16} /> Back to login
                 </Link>
               </div>
@@ -97,7 +97,7 @@ export const ForgotPassword = () => {
         </div>
       </div>
       
-      <div className="absolute bottom-8 text-center w-full flex justify-center items-center gap-2 text-[#718078] text-sm">
+      <div className="absolute bottom-8 text-center w-full flex justify-center items-center gap-2 text-[var(--color-text-muted)] text-sm">
         <Shield size={16} /> Secure Password Recovery
       </div>
     </div>

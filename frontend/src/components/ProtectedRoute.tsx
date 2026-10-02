@@ -8,10 +8,10 @@ export const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: string[] }) =>
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+      <div className="flex min-h-screen items-center justify-center bg-surface-main">
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-500 font-medium">Loading application...</p>
+          <p className="text-text-secondary font-medium">Loading application...</p>
         </div>
       </div>
     );

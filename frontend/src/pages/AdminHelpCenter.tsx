@@ -20,7 +20,7 @@ export const AdminHelpCenter = () => {
 
   const fetchArticles = async () => {
     try {
-      const { data } = await api.get('/api/help-center/admin/articles');
+      const { data } = await api.get('/help-center/admin/articles');
       setArticles(data);
     } catch (err) {
       console.error(err);
@@ -37,9 +37,9 @@ export const AdminHelpCenter = () => {
     e.preventDefault();
     try {
       if (form._id) {
-        await api.put(`/api/help-center/admin/articles/${form._id}`, form);
+        await api.put(`/help-center/admin/articles/${form._id}`, form);
       } else {
-        await api.post('/api/help-center/admin/articles', form);
+        await api.post('/help-center/admin/articles', form);
       }
       setShowModal(false);
       setForm({ _id: '', title: '', slug: '', category: 'General', content: '', isPublished: false });
@@ -53,7 +53,7 @@ export const AdminHelpCenter = () => {
   const handleEdit = async (article: Article) => {
     try {
       // Fetch full article for content
-      const { data } = await api.get(`/api/help-center/articles/${article.slug}`);
+      const { data } = await api.get(`/help-center/articles/${article.slug}`);
       setForm({
         _id: article._id,
         title: data.title,
@@ -74,7 +74,7 @@ export const AdminHelpCenter = () => {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this article?')) return;
     try {
-      await api.delete(`/api/help-center/admin/articles/${id}`);
+      await api.delete(`/help-center/admin/articles/${id}`);
       fetchArticles();
     } catch (e) {
       console.error(e);
@@ -100,8 +100,8 @@ export const AdminHelpCenter = () => {
           {articles.map(article => (
             <Card key={article._id} className="p-4 flex justify-between items-center">
               <div>
-                <h3 className="font-bold text-gray-900">{article.title}</h3>
-                <p className="text-sm text-gray-500">{article.category} • /{article.slug} • {article.isPublished ? <span className="text-green-600">Published</span> : <span className="text-yellow-600">Draft</span>}</p>
+                <h3 className="font-bold text-text-main">{article.title}</h3>
+                <p className="text-sm text-text-secondary">{article.category} • /{article.slug} • {article.isPublished ? <span className="text-emerald-primary">Published</span> : <span className="text-yellow-600">Draft</span>}</p>
               </div>
               <div className="flex gap-2">
                 <Button variant="secondary" onClick={() => handleEdit(article)}><Edit2 size={16} /></Button>
@@ -114,7 +114,7 @@ export const AdminHelpCenter = () => {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-xl">
+          <div className="bg-surface-card rounded-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-xl">
             <h2 className="text-xl font-bold mb-4">{form._id ? 'Edit Article' : 'New Article'}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">

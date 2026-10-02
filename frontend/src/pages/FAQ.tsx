@@ -54,21 +54,21 @@ export const FAQ = () => {
   ];
 
   return (
-    <div className="bg-[#050806] min-h-screen font-sans selection:bg-emerald-500/30 pb-32">
+    <div className="bg-[var(--color-background)] min-h-screen font-sans selection:bg-emerald-500/30 pb-32">
       {/* FAQ Header */}
-      <section className="bg-[#050806] text-[#F0FDF4] pt-24 pb-48 px-4 sm:px-6 lg:px-8 relative overflow-hidden border-b border-[#1D2B22] text-center">
+      <section className="bg-[var(--color-background)] text-[var(--color-text-main)] pt-24 pb-48 px-4 sm:px-6 lg:px-8 relative overflow-hidden border-b border-[var(--color-border-subtle)] text-center">
         <div className="absolute inset-0 bg-[url('/images/hero-bg-pattern.svg')] opacity-5"></div>
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-emerald-600/20 blur-[120px] pointer-events-none rounded-full"></div>
         
         <div className={`max-w-3xl mx-auto relative z-10 transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-          <div className="w-16 h-16 bg-[#0B110E] border border-[#1D2B22] shadow-[0_0_30px_rgba(59,130,246,0.3)] text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-8">
+          <div className="w-16 h-16 bg-[var(--color-surface-sidebar)] border border-[var(--color-border-subtle)] shadow-[0_0_30px_rgba(59,130,246,0.3)] text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-8">
             <HelpCircle size={32} />
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight leading-tight">
             Frequently Asked <br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-300">Questions</span>
           </h1>
-          <p className="text-xl text-[#718078] leading-relaxed font-light max-w-2xl mx-auto">
+          <p className="text-xl text-[var(--color-text-muted)] leading-relaxed font-light max-w-2xl mx-auto">
             Everything you need to know about the product, operations, and billing.
           </p>
         </div>
@@ -79,7 +79,7 @@ export const FAQ = () => {
         <div className="space-y-12">
           {faqs.map((category, catIdx) => (
             <div key={catIdx} className={`transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}`} style={{ transitionDelay: `${catIdx * 200}ms` }}>
-              <h2 className="text-xl font-bold text-[#F0FDF4] mb-6 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-[var(--color-text-main)] mb-6 flex items-center gap-2">
                 {category.category}
               </h2>
               <div className="space-y-4">
@@ -90,24 +90,24 @@ export const FAQ = () => {
                   return (
                     <Card 
                       key={idx} 
-                      className={`overflow-hidden transition-all duration-300 border ${isOpen ? 'border-emerald-500 shadow-md bg-[#0B110E]' : 'border-[#1D2B22] bg-[#0B110E] hover:border-[#1D2B22] hover:shadow-sm'}`}
+                      className={`overflow-hidden transition-all duration-300 border ${isOpen ? 'border-emerald-500 shadow-md bg-[var(--color-surface-sidebar)]' : 'border-[var(--color-border-subtle)] bg-[var(--color-surface-sidebar)] hover:border-[var(--color-border-subtle)] hover:shadow-sm'}`}
                     >
                       <button
                         onClick={() => setOpenIndex(isOpen ? null : globalIdx)}
                         className="w-full text-left p-6 md:p-8 flex justify-between items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
                         aria-expanded={isOpen}
                       >
-                        <h3 className={`text-lg font-bold pr-8 transition-colors ${isOpen ? 'text-emerald-600' : 'text-[#F0FDF4]'}`}>
+                        <h3 className={`text-lg font-bold pr-8 transition-colors ${isOpen ? 'text-emerald-600' : 'text-[var(--color-text-main)]'}`}>
                           {faq.question}
                         </h3>
-                        <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isOpen ? 'bg-emerald-900/40 text-emerald-600' : 'bg-[#1D2B22] text-[#A1B5A8]'}`}>
+                        <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isOpen ? 'bg-emerald-900/40 text-emerald-600' : 'bg-[var(--color-border-subtle)] text-[var(--color-text-secondary)]'}`}>
                           {isOpen ? <Minus size={18} /> : <Plus size={18} />}
                         </div>
                       </button>
                       <div 
                         className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
                       >
-                        <p className="px-6 md:px-8 pb-6 md:pb-8 text-[#A1B5A8] leading-relaxed">
+                        <p className="px-6 md:px-8 pb-6 md:pb-8 text-[var(--color-text-secondary)] leading-relaxed">
                           {faq.answer}
                         </p>
                       </div>
@@ -120,12 +120,12 @@ export const FAQ = () => {
         </div>
 
         {/* Still have questions CTA */}
-        <div className={`mt-24 bg-[#0B110E] rounded-3xl p-8 md:p-12 border border-[#1D2B22] shadow-xl text-center transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}`} style={{ transitionDelay: '600ms' }}>
-          <div className="w-16 h-16 bg-[#050806] border border-[#1D2B22] text-[#A1B5A8] rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className={`mt-24 bg-[var(--color-surface-sidebar)] rounded-3xl p-8 md:p-12 border border-[var(--color-border-subtle)] shadow-xl text-center transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}`} style={{ transitionDelay: '600ms' }}>
+          <div className="w-16 h-16 bg-[var(--color-background)] border border-[var(--color-border-subtle)] text-[var(--color-text-secondary)] rounded-full flex items-center justify-center mx-auto mb-6">
             <MessageSquare size={28} />
           </div>
-          <h3 className="text-2xl font-bold text-[#F0FDF4] mb-4">Still have questions?</h3>
-          <p className="text-[#A1B5A8] max-w-xl mx-auto mb-8">
+          <h3 className="text-2xl font-bold text-[var(--color-text-main)] mb-4">Still have questions?</h3>
+          <p className="text-[var(--color-text-secondary)] max-w-xl mx-auto mb-8">
             Can't find the answer you're looking for? Please chat to our friendly team.
           </p>
           <Link to="/contact">

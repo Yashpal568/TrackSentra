@@ -8,6 +8,10 @@ interface User {
   lastName: string;
   role: string;
   isDemoUser?: boolean;
+  subscription?: {
+    status: string;
+    planId: string;
+  };
 }
 
 interface AuthState {

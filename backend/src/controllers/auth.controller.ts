@@ -125,6 +125,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
       const userObj = user.toObject();
       delete (userObj as any).passwordHash;
+      if (planId) {
+        (userObj as any).subscription = { status: SubscriptionStatus.PENDING_PAYMENT, planId };
+      }
       res.status(201).json({ message: 'Registration successful', user: userObj, accessToken });
     } catch (err: any) {
       await session.abortTransaction();
@@ -200,6 +203,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     const userObj = user.toObject();
     delete (userObj as any).passwordHash;
+    const sub = await Subscription.findOne({ companyId: user.companyId });
+    if (sub) (userObj as any).subscription = { status: sub.status, planId: sub.planId };
 
     res.json({ message: 'Login successful', user: userObj, accessToken });
   } catch (error) {
@@ -255,6 +260,8 @@ export const demoLogin = async (req: Request, res: Response): Promise<void> => {
 
     const userObj = demoUser.toObject();
     delete (userObj as any).passwordHash;
+    const sub = await Subscription.findOne({ companyId: demoUser.companyId });
+    if (sub) (userObj as any).subscription = { status: sub.status, planId: sub.planId };
 
     res.json({ message: 'Welcome to the Demo', user: userObj, accessToken });
   } catch (error) {
@@ -344,7 +351,10 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const getMe = async (req: Request, res: Response): Promise<void> => {
-  res.json({ user: (req as any).user });
+  const userObj = (req as any).user.toObject();
+  const sub = await Subscription.findOne({ companyId: userObj.companyId });
+  if (sub) userObj.subscription = { status: sub.status, planId: sub.planId };
+  res.json({ user: userObj });
 };
 
 // M17 Workflows

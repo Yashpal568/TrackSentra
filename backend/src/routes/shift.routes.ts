@@ -3,12 +3,14 @@ import * as shiftController from '../controllers/shift.controller';
 import { validateRequest } from '../middleware/validation.middleware';
 import { createShiftSchema, updateShiftSchema } from '../validators/shift.validator';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireActiveSubscription } from '../middleware/subscription.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { UserRole } from '../models/User';
 
 const router = Router();
 
 router.use(authenticate);
+router.use(requireActiveSubscription);
 
 // View shifts
 router.get('/', shiftController.getShifts);

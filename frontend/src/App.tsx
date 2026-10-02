@@ -4,6 +4,7 @@ import { useAuthStore } from './store/authStore';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { GlobalAlerts } from './components/GlobalAlerts';
 import { PublicLayout } from './components/PublicLayout';
+import { RequireSubscription } from './components/RequireSubscription';
 
 // Lazy load pages for code splitting
 const LandingPage = lazy(() => import('./pages/LandingPage').then(module => ({ default: module.LandingPage })));
@@ -81,15 +82,17 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/company" element={<CompanyProfile />} />
-            <Route path="/sites" element={<Sites />} />
-            <Route path="/checkpoints" element={<Checkpoints />} />
-            <Route path="/guards" element={<Guards />} />
-            <Route path="/shifts" element={<Shifts />} />
-            <Route path="/patrols" element={<Patrols />} />
-            <Route path="/patrols/:id" element={<PatrolLiveDetails />} />
-            <Route path="/live" element={<LiveMonitoring />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/incidents" element={<Incidents />} />
+            <Route element={<RequireSubscription />}>
+              <Route path="/sites" element={<Sites />} />
+              <Route path="/checkpoints" element={<Checkpoints />} />
+              <Route path="/guards" element={<Guards />} />
+              <Route path="/shifts" element={<Shifts />} />
+              <Route path="/patrols" element={<Patrols />} />
+              <Route path="/patrols/:id" element={<PatrolLiveDetails />} />
+              <Route path="/live" element={<LiveMonitoring />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/incidents" element={<Incidents />} />
+            </Route>
             <Route path="/audit" element={<AuditLogs />} />
             <Route path="/subscription" element={<Subscription />} />
             <Route path="/tickets" element={<SupportTickets />} />

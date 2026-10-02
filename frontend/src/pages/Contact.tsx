@@ -23,20 +23,20 @@ export const Contact = () => {
   };
 
   return (
-    <div className="bg-[#050806] min-h-screen font-sans selection:bg-emerald-500/30">
+    <div className="bg-[var(--color-background)] min-h-screen font-sans selection:bg-emerald-500/30">
       {/* Contact Hero */}
-      <section className="bg-[#050806] text-[#F0FDF4] pt-24 pb-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden border-b border-[#1D2B22] text-center">
+      <section className="bg-[var(--color-background)] text-[var(--color-text-main)] pt-24 pb-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden border-b border-[var(--color-border-subtle)] text-center">
         <div className="absolute inset-0 bg-[url('/images/hero-bg-pattern.svg')] opacity-5"></div>
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-emerald-600/20 blur-[120px] pointer-events-none rounded-full"></div>
         
         <div className={`max-w-3xl mx-auto relative z-10 transition-all duration-1000 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-          <div className="w-16 h-16 bg-[#0B110E] border border-[#1D2B22] shadow-[0_0_30px_rgba(59,130,246,0.3)] text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-8">
+          <div className="w-16 h-16 bg-[var(--color-surface-sidebar)] border border-[var(--color-border-subtle)] shadow-[0_0_30px_rgba(59,130,246,0.3)] text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-8">
             <Building2 size={32} />
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight leading-tight">
             Contact <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-emerald-300">Sales</span>
           </h1>
-          <p className="text-xl text-[#718078] leading-relaxed font-light max-w-2xl mx-auto">
+          <p className="text-xl text-[var(--color-text-muted)] leading-relaxed font-light max-w-2xl mx-auto">
             Ready to modernize your security operations? Our team is here to help you get started with TrackSentra.
           </p>
         </div>
@@ -48,8 +48,8 @@ export const Contact = () => {
           
           {/* Contact Information */}
           <div className={`lg:col-span-2 space-y-8 transition-all duration-1000 transform ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-12 opacity-0'} delay-200`}>
-            <Card className="p-8 border-[#1D2B22] shadow-xl bg-[#0B110E] rounded-3xl h-full">
-              <h3 className="text-2xl font-bold text-[#F0FDF4] mb-8">Get in touch</h3>
+            <Card className="p-8 border-[var(--color-border-subtle)] shadow-xl bg-[var(--color-surface-sidebar)] rounded-3xl h-full">
+              <h3 className="text-2xl font-bold text-[var(--color-text-main)] mb-8">Get in touch</h3>
               
               <div className="space-y-8">
                 <div className="flex items-start gap-4">
@@ -57,8 +57,8 @@ export const Contact = () => {
                     <Mail className="text-emerald-600 w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-[#F0FDF4] text-lg">Sales Inquiries</h4>
-                    <p className="text-[#A1B5A8] mb-1">Our sales team is here to help.</p>
+                    <h4 className="font-bold text-[var(--color-text-main)] text-lg">Sales Inquiries</h4>
+                    <p className="text-[var(--color-text-secondary)] mb-1">Our sales team is here to help.</p>
                     <a href="mailto:sales@tracksentra.com" className="text-emerald-600 font-semibold hover:text-emerald-400 transition-colors">sales@tracksentra.com</a>
                   </div>
                 </div>
@@ -68,8 +68,8 @@ export const Contact = () => {
                     <Phone className="text-emerald-600 w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-[#F0FDF4] text-lg">Call Us</h4>
-                    <p className="text-[#A1B5A8] mb-1">Mon-Fri from 9am to 6pm EST.</p>
+                    <h4 className="font-bold text-[var(--color-text-main)] text-lg">Call Us</h4>
+                    <p className="text-[var(--color-text-secondary)] mb-1">Mon-Fri from 9am to 6pm EST.</p>
                     <a href="tel:+18005550199" className="text-emerald-600 font-semibold hover:text-emerald-400 transition-colors">+1 (800) 555-0199</a>
                   </div>
                 </div>
@@ -79,8 +79,8 @@ export const Contact = () => {
                     <MapPin className="text-emerald-600 w-6 h-6" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-[#F0FDF4] text-lg">Global Headquarters</h4>
-                    <p className="text-[#A1B5A8] leading-relaxed">
+                    <h4 className="font-bold text-[var(--color-text-main)] text-lg">Global Headquarters</h4>
+                    <p className="text-[var(--color-text-secondary)] leading-relaxed">
                       100 Security Plaza<br/>
                       Suite 400<br/>
                       New York, NY 10001
@@ -89,12 +89,12 @@ export const Contact = () => {
                 </div>
               </div>
 
-              <div className="mt-12 p-6 bg-[#050806] rounded-2xl border border-[#1D2B22]">
-                <h4 className="font-bold text-[#F0FDF4] mb-2 flex items-center gap-2">
+              <div className="mt-12 p-6 bg-[var(--color-background)] rounded-2xl border border-[var(--color-border-subtle)]">
+                <h4 className="font-bold text-[var(--color-text-main)] mb-2 flex items-center gap-2">
                   <Shield size={18} className="text-emerald-500" /> Enterprise Support
                 </h4>
-                <p className="text-sm text-[#A1B5A8] mb-4">Existing customers can access 24/7 priority support through the Help Center.</p>
-                <Button variant="secondary" className="w-full bg-[#0B110E] text-[#F0FDF4] border border-[#1D2B22] hover:bg-[#050806] shadow-sm">
+                <p className="text-sm text-[var(--color-text-secondary)] mb-4">Existing customers can access 24/7 priority support through the Help Center.</p>
+                <Button variant="secondary" className="w-full bg-[var(--color-surface-sidebar)] text-[var(--color-text-main)] border border-[var(--color-border-subtle)] hover:bg-[var(--color-background)] shadow-sm">
                   Visit Help Center
                 </Button>
               </div>
@@ -103,17 +103,17 @@ export const Contact = () => {
 
           {/* Contact Form */}
           <div className={`lg:col-span-3 transition-all duration-1000 transform ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-12 opacity-0'} delay-400`}>
-            <Card className="p-8 sm:p-10 border-[#1D2B22] shadow-2xl bg-[#0B110E] rounded-3xl h-full relative overflow-hidden">
+            <Card className="p-8 sm:p-10 border-[var(--color-border-subtle)] shadow-2xl bg-[var(--color-surface-sidebar)] rounded-3xl h-full relative overflow-hidden">
               {status === 'success' ? (
-                <div className="absolute inset-0 bg-[#0B110E] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
-                  <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
+                <div className="absolute inset-0 bg-[var(--color-surface-sidebar)] flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-500">
+                  <div className="w-20 h-20 bg-emerald-primary/10 rounded-full flex items-center justify-center mb-6">
                     <CheckCircle2 className="text-green-500 w-10 h-10" />
                   </div>
-                  <h3 className="text-3xl font-bold text-[#F0FDF4] mb-4">Request Received</h3>
-                  <p className="text-lg text-[#A1B5A8] max-w-md mx-auto mb-8">
+                  <h3 className="text-3xl font-bold text-[var(--color-text-main)] mb-4">Request Received</h3>
+                  <p className="text-lg text-[var(--color-text-secondary)] max-w-md mx-auto mb-8">
                     Thank you for reaching out! Your demo request has been securely processed. A security specialist will contact you shortly to schedule your personalized walkthrough.
                   </p>
-                  <Button onClick={() => setStatus('')} variant="secondary" className="px-8 bg-[#1D2B22] hover:bg-[#1D2B22] text-[#F0FDF4] border-0">
+                  <Button onClick={() => setStatus('')} variant="secondary" className="px-8 bg-[var(--color-border-subtle)] hover:bg-[var(--color-border-subtle)] text-[var(--color-text-main)] border-0">
                     Send another message
                   </Button>
                 </div>
@@ -121,54 +121,54 @@ export const Contact = () => {
                 <form onSubmit={handleSubmit} className="space-y-6 relative">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label htmlFor="firstName" className="block text-sm font-bold text-[#1D2B22]">First Name <span className="text-red-500">*</span></label>
+                      <label htmlFor="firstName" className="block text-sm font-bold text-text-main">First Name <span className="text-red-500">*</span></label>
                       <input 
                         id="firstName"
                         required 
                         type="text" 
-                        className="w-full bg-[#050806] border border-[#1D2B22] text-[#F0FDF4] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" 
+                        className="w-full bg-[var(--color-background)] border border-[var(--color-border-subtle)] text-[var(--color-text-main)] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" 
                         placeholder="John" 
                       />
                     </div>
                     <div className="space-y-2">
-                      <label htmlFor="lastName" className="block text-sm font-bold text-[#1D2B22]">Last Name <span className="text-red-500">*</span></label>
+                      <label htmlFor="lastName" className="block text-sm font-bold text-text-main">Last Name <span className="text-red-500">*</span></label>
                       <input 
                         id="lastName"
                         required 
                         type="text" 
-                        className="w-full bg-[#050806] border border-[#1D2B22] text-[#F0FDF4] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" 
+                        className="w-full bg-[var(--color-background)] border border-[var(--color-border-subtle)] text-[var(--color-text-main)] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" 
                         placeholder="Doe" 
                       />
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="email" className="block text-sm font-bold text-[#1D2B22]">Work Email <span className="text-red-500">*</span></label>
+                    <label htmlFor="email" className="block text-sm font-bold text-text-main">Work Email <span className="text-red-500">*</span></label>
                     <input 
                       id="email"
                       required 
                       type="email" 
-                      className="w-full bg-[#050806] border border-[#1D2B22] text-[#F0FDF4] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" 
+                      className="w-full bg-[var(--color-background)] border border-[var(--color-border-subtle)] text-[var(--color-text-main)] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" 
                       placeholder="john.doe@company.com" 
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label htmlFor="company" className="block text-sm font-bold text-[#1D2B22]">Company Name <span className="text-red-500">*</span></label>
+                    <label htmlFor="company" className="block text-sm font-bold text-text-main">Company Name <span className="text-red-500">*</span></label>
                     <input 
                       id="company"
                       required 
                       type="text" 
-                      className="w-full bg-[#050806] border border-[#1D2B22] text-[#F0FDF4] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" 
+                      className="w-full bg-[var(--color-background)] border border-[var(--color-border-subtle)] text-[var(--color-text-main)] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors" 
                       placeholder="Acme Security Services" 
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label htmlFor="guards" className="block text-sm font-bold text-[#1D2B22]">Number of Guards</label>
+                    <label htmlFor="guards" className="block text-sm font-bold text-text-main">Number of Guards</label>
                     <select 
                       id="guards"
-                      className="w-full bg-[#050806] border border-[#1D2B22] text-[#F0FDF4] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
+                      className="w-full bg-[var(--color-background)] border border-[var(--color-border-subtle)] text-[var(--color-text-main)] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors"
                     >
                       <option value="">Please select...</option>
                       <option value="1-10">1-10 Guards</option>
@@ -179,12 +179,12 @@ export const Contact = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label htmlFor="message" className="block text-sm font-bold text-[#1D2B22]">How can we help? <span className="text-red-500">*</span></label>
+                    <label htmlFor="message" className="block text-sm font-bold text-text-main">How can we help? <span className="text-red-500">*</span></label>
                     <textarea 
                       id="message"
                       required 
                       rows={5} 
-                      className="w-full bg-[#050806] border border-[#1D2B22] text-[#F0FDF4] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors resize-none" 
+                      className="w-full bg-[var(--color-background)] border border-[var(--color-border-subtle)] text-[var(--color-text-main)] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors resize-none" 
                       placeholder="Tell us about your requirements, current challenges, or specific features you'd like to see..."
                     ></textarea>
                   </div>
@@ -192,7 +192,7 @@ export const Contact = () => {
                   <Button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="w-full text-lg py-4 h-auto bg-emerald-600 hover:bg-emerald-500 text-[#F0FDF4] font-bold border-0 shadow-lg shadow-emerald-500/25 transition-all"
+                    className="w-full text-lg py-4 h-auto bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-main)] font-bold border-0 shadow-lg shadow-emerald-500/25 transition-all"
                   >
                     {isSubmitting ? (
                       <span className="flex items-center justify-center gap-2">
@@ -202,7 +202,7 @@ export const Contact = () => {
                     ) : 'Request Demo'}
                   </Button>
                   
-                  <p className="text-sm text-[#A1B5A8] text-center mt-6">
+                  <p className="text-sm text-[var(--color-text-secondary)] text-center mt-6">
                     By submitting this form, you agree to our <a href="/privacy" className="text-emerald-600 hover:underline">Privacy Policy</a> and <a href="/terms" className="text-emerald-600 hover:underline">Terms of Service</a>.
                   </p>
                 </form>

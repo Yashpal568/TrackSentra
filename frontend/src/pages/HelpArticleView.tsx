@@ -19,7 +19,7 @@ export const HelpArticleView = () => {
   useEffect(() => {
     const fetchArticle = async () => {
       try {
-        const { data } = await api.get(`/api/help-center/articles/${slug}`);
+        const { data } = await api.get(`/help-center/articles/${slug}`);
         setArticle(data);
       } catch (err) {
         console.error(err);
@@ -30,20 +30,20 @@ export const HelpArticleView = () => {
     fetchArticle();
   }, [slug]);
 
-  if (loading) return <p className="p-8 text-center text-gray-500">Loading...</p>;
+  if (loading) return <p className="p-8 text-center text-text-secondary">Loading...</p>;
   if (!article) return <p className="p-8 text-center text-red-500">Article not found.</p>;
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <Link to="/help" className="text-blue-600 hover:underline flex items-center gap-1 mb-4">
+      <Link to="/help" className="text-emerald-primary hover:underline flex items-center gap-1 mb-4">
         <ArrowLeft size={16} /> Back to Help Center
       </Link>
       
-      <div className="bg-white rounded-lg shadow-sm p-8 border border-gray-100">
-        <div className="mb-2 text-sm text-blue-600 font-semibold uppercase tracking-wider">{article.category}</div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">{article.title}</h1>
+      <div className="bg-surface-card rounded-lg shadow-sm p-8 border border-gray-100">
+        <div className="mb-2 text-sm text-emerald-primary font-semibold uppercase tracking-wider">{article.category}</div>
+        <h1 className="text-3xl font-bold text-text-main mb-4">{article.title}</h1>
         
-        <div className="flex items-center text-gray-500 text-sm mb-8 pb-4 border-b">
+        <div className="flex items-center text-text-secondary text-sm mb-8 pb-4 border-b">
           <Clock size={16} className="mr-1" />
           Last updated: {new Date(article.updatedAt).toLocaleDateString()}
         </div>

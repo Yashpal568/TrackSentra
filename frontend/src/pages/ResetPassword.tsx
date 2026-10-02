@@ -41,15 +41,15 @@ export const ResetPassword = () => {
 
   if (!token || !email) {
     return (
-      <div className="min-h-screen bg-[#050806] flex items-center justify-center p-4">
-        <div className="bg-[#0B110E] border border-red-200 text-center p-8 rounded-2xl shadow-xl max-w-md w-full animate-in fade-in zoom-in-95">
+      <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center p-4">
+        <div className="bg-[var(--color-surface-sidebar)] border border-red-200 text-center p-8 rounded-2xl shadow-xl max-w-md w-full animate-in fade-in zoom-in-95">
           <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <AlertTriangle size={32} />
           </div>
-          <h2 className="text-xl font-bold text-[#F0FDF4] mb-2">Invalid Link</h2>
-          <p className="text-[#A1B5A8] mb-6">This password reset link is invalid or missing required parameters.</p>
+          <h2 className="text-xl font-bold text-[var(--color-text-main)] mb-2">Invalid Link</h2>
+          <p className="text-[var(--color-text-secondary)] mb-6">This password reset link is invalid or missing required parameters.</p>
           <Link to="/forgot-password">
-            <Button className="w-full bg-[#0B110E] hover:bg-[#101713] text-[#F0FDF4] font-bold border-0">Request a new link</Button>
+            <Button className="w-full bg-[var(--color-surface-sidebar)] hover:bg-[var(--color-surface-main)] text-[var(--color-text-main)] font-bold border-0">Request a new link</Button>
           </Link>
         </div>
       </div>
@@ -57,18 +57,18 @@ export const ResetPassword = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#050806] font-sans selection:bg-emerald-500/30 flex items-center justify-center p-4 py-24 relative overflow-hidden">
+    <div className="min-h-screen bg-[var(--color-background)] font-sans selection:bg-emerald-500/30 flex items-center justify-center p-4 py-24 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-emerald-600/5 blur-[120px] pointer-events-none rounded-full"></div>
 
-      <div className="w-full max-w-md bg-[#0B110E] rounded-3xl shadow-xl border border-[#1D2B22] overflow-hidden relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="bg-[#050806] p-8 text-center relative overflow-hidden">
+      <div className="w-full max-w-md bg-[var(--color-surface-sidebar)] rounded-3xl shadow-xl border border-[var(--color-border-subtle)] overflow-hidden relative z-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="bg-[var(--color-background)] p-8 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('/images/hero-bg-pattern.svg')] opacity-10"></div>
           <div className="w-16 h-16 bg-emerald-600/20 text-emerald-400 rounded-2xl flex items-center justify-center mx-auto mb-6 relative z-10 border border-emerald-500/30 shadow-[0_0_15px_rgba(37,99,235,0.3)]">
             <LockKeyhole size={28} />
           </div>
-          <h2 className="text-2xl font-extrabold text-[#F0FDF4] relative z-10 tracking-tight">Create New Password</h2>
-          <p className="mt-2 text-sm text-[#718078] relative z-10">
+          <h2 className="text-2xl font-extrabold text-[var(--color-text-main)] relative z-10 tracking-tight">Create New Password</h2>
+          <p className="mt-2 text-sm text-[var(--color-text-muted)] relative z-10">
             Enter your new password below.
           </p>
         </div>
@@ -76,15 +76,15 @@ export const ResetPassword = () => {
         <div className="p-8 sm:p-10">
           {status === 'success' ? (
             <div className="text-center animate-in fade-in duration-300">
-              <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-emerald-primary/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 size={32} />
               </div>
-              <h3 className="text-lg font-bold text-[#F0FDF4] mb-2">Password Updated</h3>
-              <p className="text-[#A1B5A8] text-sm mb-8 px-4">
+              <h3 className="text-lg font-bold text-[var(--color-text-main)] mb-2">Password Updated</h3>
+              <p className="text-[var(--color-text-secondary)] text-sm mb-8 px-4">
                 {message}
               </p>
               <Link to="/login">
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-[#F0FDF4] font-bold border-0 shadow-lg shadow-emerald-500/25">
+                <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-main)] font-bold border-0 shadow-lg shadow-emerald-500/25">
                   Sign in with new password
                 </Button>
               </Link>
@@ -99,22 +99,22 @@ export const ResetPassword = () => {
               )}
               
               <div className="space-y-2">
-                <label className="block text-sm font-bold text-[#1D2B22]">New Password</label>
+                <label className="block text-sm font-bold text-text-main">New Password</label>
                 <input
                   type="password"
                   required
-                  className="w-full bg-[#050806] border border-[#1D2B22] text-[#F0FDF4] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow-sm"
+                  className="w-full bg-[var(--color-background)] border border-[var(--color-border-subtle)] text-[var(--color-text-main)] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow-sm"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-bold text-[#1D2B22]">Confirm New Password</label>
+                <label className="block text-sm font-bold text-text-main">Confirm New Password</label>
                 <input
                   type="password"
                   required
-                  className="w-full bg-[#050806] border border-[#1D2B22] text-[#F0FDF4] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow-sm"
+                  className="w-full bg-[var(--color-background)] border border-[var(--color-border-subtle)] text-[var(--color-text-main)] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow-sm"
                   placeholder="••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -124,7 +124,7 @@ export const ResetPassword = () => {
               <Button 
                 type="submit" 
                 disabled={status === 'loading'} 
-                className="w-full h-12 text-base bg-emerald-600 hover:bg-emerald-500 text-[#F0FDF4] font-bold border-0 shadow-lg shadow-emerald-500/25 transition-all mt-4"
+                className="w-full h-12 text-base bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-main)] font-bold border-0 shadow-lg shadow-emerald-500/25 transition-all mt-4"
               >
                 {status === 'loading' ? (
                   <span className="flex items-center justify-center gap-2">
@@ -138,7 +138,7 @@ export const ResetPassword = () => {
         </div>
       </div>
       
-      <div className="absolute bottom-8 text-center w-full flex justify-center items-center gap-2 text-[#718078] text-sm">
+      <div className="absolute bottom-8 text-center w-full flex justify-center items-center gap-2 text-[var(--color-text-muted)] text-sm">
         <Shield size={16} /> Secure Password Recovery
       </div>
     </div>

@@ -73,17 +73,17 @@ export const SupportTicketDetails = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <Link to={backUrl} className="text-blue-600 hover:underline flex items-center gap-1 mb-4">
+      <Link to={backUrl} className="text-emerald-primary hover:underline flex items-center gap-1 mb-4">
         <ArrowLeft size={16} /> Back to Tickets
       </Link>
       
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-surface-card rounded-lg shadow-sm border p-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <span className="text-xs font-bold text-gray-500 tracking-wider uppercase">{ticket.ticketReference} • {ticket.category}</span>
-            <h1 className="text-2xl font-bold mt-1 text-gray-900">{ticket.subject}</h1>
+            <span className="text-xs font-bold text-text-secondary tracking-wider uppercase">{ticket.ticketReference} • {ticket.category}</span>
+            <h1 className="text-2xl font-bold mt-1 text-text-main">{ticket.subject}</h1>
           </div>
-          <span className="px-3 py-1 bg-gray-100 text-gray-800 font-semibold rounded-full text-sm">
+          <span className="px-3 py-1 bg-surface-hover text-text-main font-semibold rounded-full text-sm">
             {ticket.status.replace(/_/g, ' ')}
           </span>
         </div>
@@ -92,7 +92,7 @@ export const SupportTicketDetails = () => {
           {ticket.description}
         </div>
         
-        <div className="pt-4 text-sm text-gray-500 flex gap-4">
+        <div className="pt-4 text-sm text-text-secondary flex gap-4">
           <span>Opened by: {ticket.creatorId.firstName} {ticket.creatorId.lastName}</span>
           {ticket.assigneeId && <span>Assigned to: {ticket.assigneeId.firstName} {ticket.assigneeId.lastName}</span>}
         </div>
@@ -106,16 +106,16 @@ export const SupportTicketDetails = () => {
           const isStaff = reply.authorId.role === 'SUPER_ADMIN';
           return (
             <div key={reply._id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-lg p-4 ${isMe ? 'bg-blue-50 border border-blue-100' : isStaff ? 'bg-orange-50 border border-orange-100' : 'bg-gray-50 border border-gray-200'}`}>
+              <div className={`max-w-[80%] rounded-lg p-4 ${isMe ? 'bg-blue-50 border border-blue-100' : isStaff ? 'bg-orange-50 border border-orange-100' : 'bg-surface-hover border border-border-subtle'}`}>
                 <div className="flex items-center gap-2 mb-2">
-                  <UserCircle size={16} className={isStaff ? 'text-orange-500' : 'text-gray-500'} />
+                  <UserCircle size={16} className={isStaff ? 'text-orange-500' : 'text-text-secondary'} />
                   <span className="font-semibold text-sm">
                     {reply.authorId.firstName} {reply.authorId.lastName}
                     {isStaff && <span className="ml-2 text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded">Support Staff</span>}
                   </span>
                   <span className="text-xs text-gray-400 ml-2">{new Date(reply.createdAt).toLocaleString()}</span>
                 </div>
-                <div className="text-gray-800 whitespace-pre-wrap">{reply.content}</div>
+                <div className="text-text-main whitespace-pre-wrap">{reply.content}</div>
               </div>
             </div>
           );
@@ -126,7 +126,7 @@ export const SupportTicketDetails = () => {
         <Card className="p-6">
           <form onSubmit={handleReply}>
             <textarea 
-              className="w-full border rounded-lg p-3 min-h-[100px] mb-4 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border rounded-lg p-3 min-h-[100px] mb-4 focus:ring-2 focus:ring-emerald-primary outline-none"
               placeholder="Type your reply here..."
               value={newReply}
               onChange={e => setNewReply(e.target.value)}
@@ -139,7 +139,7 @@ export const SupportTicketDetails = () => {
       )}
       
       {ticket.status === 'RESOLVED' && (
-        <div className="text-center p-6 bg-gray-50 text-gray-500 rounded-lg">
+        <div className="text-center p-6 bg-surface-hover text-text-secondary rounded-lg">
           This ticket has been resolved and is closed to new replies.
         </div>
       )}

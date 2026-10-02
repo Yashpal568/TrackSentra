@@ -22,7 +22,7 @@ export const SupportTickets = () => {
 
   const fetchTickets = async () => {
     try {
-      const { data } = await api.get('/api/tickets');
+      const { data } = await api.get('/tickets');
       setTickets(data);
     } catch (err) {
       console.error(err);
@@ -38,7 +38,7 @@ export const SupportTickets = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/api/tickets', form);
+      await api.post('/tickets', form);
       setShowModal(false);
       setForm({ subject: '', category: 'General', description: '' });
       fetchTickets();
@@ -53,8 +53,8 @@ export const SupportTickets = () => {
       case 'OPEN': return 'bg-blue-100 text-blue-800';
       case 'IN_PROGRESS': return 'bg-yellow-100 text-yellow-800';
       case 'WAITING_FOR_CUSTOMER': return 'bg-purple-100 text-purple-800';
-      case 'RESOLVED': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'RESOLVED': return 'bg-emerald-primary/20 text-emerald-primary';
+      default: return 'bg-surface-hover text-text-main';
     }
   };
 
@@ -68,18 +68,18 @@ export const SupportTickets = () => {
       </div>
 
       {loading ? (
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-text-secondary">Loading...</p>
       ) : tickets.length === 0 ? (
-        <Card className="p-8 text-center text-gray-500">
+        <Card className="p-8 text-center text-text-secondary">
           <MessageSquare className="mx-auto w-12 h-12 text-gray-300 mb-4" />
           <p>No support tickets found.</p>
           <Button variant="secondary" onClick={() => setShowModal(true)} className="mt-4">Create your first ticket</Button>
         </Card>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-surface-card rounded-lg shadow-sm border border-border-subtle overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b">
+              <tr className="bg-surface-hover border-b">
                 <th className="p-4 font-semibold text-sm text-gray-600">ID</th>
                 <th className="p-4 font-semibold text-sm text-gray-600">Subject</th>
                 <th className="p-4 font-semibold text-sm text-gray-600">Status</th>
@@ -88,24 +88,24 @@ export const SupportTickets = () => {
             </thead>
             <tbody>
               {tickets.map(ticket => (
-                <tr key={ticket._id} className="border-b last:border-0 hover:bg-gray-50 transition-colors">
+                <tr key={ticket._id} className="border-b last:border-0 hover:bg-surface-hover transition-colors">
                   <td className="p-4">
-                    <Link to={`/tickets/${ticket._id}`} className="text-blue-600 font-medium hover:underline">
+                    <Link to={`/tickets/${ticket._id}`} className="text-emerald-primary font-medium hover:underline">
                       {ticket.ticketReference}
                     </Link>
                   </td>
                   <td className="p-4">
-                    <Link to={`/tickets/${ticket._id}`} className="block text-gray-900 font-medium">
+                    <Link to={`/tickets/${ticket._id}`} className="block text-text-main font-medium">
                       {ticket.subject}
                     </Link>
-                    <span className="text-xs text-gray-500">{ticket.category}</span>
+                    <span className="text-xs text-text-secondary">{ticket.category}</span>
                   </td>
                   <td className="p-4">
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
                       {ticket.status.replace(/_/g, ' ')}
                     </span>
                   </td>
-                  <td className="p-4 text-sm text-gray-500 flex items-center gap-1">
+                  <td className="p-4 text-sm text-text-secondary flex items-center gap-1">
                     <Clock size={14} /> {new Date(ticket.updatedAt).toLocaleString()}
                   </td>
                 </tr>
@@ -117,7 +117,7 @@ export const SupportTickets = () => {
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+          <div className="bg-surface-card rounded-lg p-6 w-full max-w-md shadow-xl">
             <h2 className="text-xl font-bold mb-4">Create Support Ticket</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>

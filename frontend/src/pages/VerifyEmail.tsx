@@ -47,8 +47,8 @@ export const VerifyEmail = () => {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md border border-gray-100 text-center">
-        <h2 className="text-3xl font-extrabold text-gray-900 mb-6">Email Verification</h2>
+      <div className="max-w-md w-full space-y-8 bg-surface-card p-8 rounded-lg shadow-md border border-gray-100 text-center">
+        <h2 className="text-3xl font-extrabold text-text-main mb-6">Email Verification</h2>
         
         {status === 'verifying' && (
           <div className="text-gray-600">
@@ -59,7 +59,7 @@ export const VerifyEmail = () => {
 
         {status === 'success' && (
           <div>
-            <div className="bg-green-50 text-green-800 p-4 rounded-md mb-6">
+            <div className="bg-emerald-primary/10 text-emerald-primary p-4 rounded-md mb-6">
               {message}
             </div>
             <Link to="/login">

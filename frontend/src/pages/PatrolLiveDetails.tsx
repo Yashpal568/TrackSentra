@@ -66,8 +66,8 @@ export const PatrolLiveDetails = () => {
   if (!session) return <div className="p-8">Session not found</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-slate-900 text-white p-4">
+    <div className="min-h-screen bg-surface-hover">
+      <nav className="bg-background text-white p-4">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-6">
             <h1 className="text-xl font-bold flex items-center gap-2"><LayoutDashboard /> TrackSentra</h1>
@@ -80,7 +80,7 @@ export const PatrolLiveDetails = () => {
       </nav>
 
       <main className="p-8 max-w-4xl mx-auto">
-        <Link to="/live" className="text-blue-600 hover:text-blue-800 flex items-center gap-2 mb-6">
+        <Link to="/live" className="text-emerald-primary hover:text-blue-800 flex items-center gap-2 mb-6">
           <ArrowLeft size={16} /> Back to Live Monitoring
         </Link>
 
@@ -89,22 +89,22 @@ export const PatrolLiveDetails = () => {
             <h1 className="text-3xl font-bold">{session.routeId?.name}</h1>
             <p className="text-xl text-gray-600">{session.siteId?.name}</p>
           </div>
-          <span className={`px-4 py-2 rounded-full font-bold text-sm ${session.status === 'in_progress' ? 'bg-blue-100 text-blue-800 animate-pulse' : 'bg-gray-200 text-gray-800'}`}>
+          <span className={`px-4 py-2 rounded-full font-bold text-sm ${session.status === 'in_progress' ? 'bg-blue-100 text-blue-800 animate-pulse' : 'bg-gray-200 text-text-main'}`}>
             {session.status.toUpperCase()}
           </span>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3 mb-8">
           <Card className="p-4">
-            <p className="text-sm text-gray-500 mb-1">Guard</p>
+            <p className="text-sm text-text-secondary mb-1">Guard</p>
             <p className="font-bold">{session.guardId?.employeeId || 'Unknown'}</p>
           </Card>
           <Card className="p-4">
-            <p className="text-sm text-gray-500 mb-1">Started At</p>
+            <p className="text-sm text-text-secondary mb-1">Started At</p>
             <p className="font-bold">{new Date(session.startTime).toLocaleString()}</p>
           </Card>
           <Card className="p-4">
-            <p className="text-sm text-gray-500 mb-1">Expected Duration</p>
+            <p className="text-sm text-text-secondary mb-1">Expected Duration</p>
             <p className="font-bold">{session.routeId?.expectedDurationMinutes} mins</p>
           </Card>
         </div>
@@ -113,7 +113,7 @@ export const PatrolLiveDetails = () => {
         <Card className="p-0 overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-100 text-gray-600 text-sm">
+              <tr className="bg-surface-hover text-gray-600 text-sm">
                 <th className="p-4 border-b">Checkpoint</th>
                 <th className="p-4 border-b">Status</th>
                 <th className="p-4 border-b">Time</th>
@@ -127,14 +127,14 @@ export const PatrolLiveDetails = () => {
                 const rejectedScans = scans.filter(s => s.checkpointId?._id === cp._id && s.status !== 'valid');
 
                 return (
-                  <tr key={cp._id} className="border-b last:border-0 hover:bg-gray-50">
+                  <tr key={cp._id} className="border-b last:border-0 hover:bg-surface-hover">
                     <td className="p-4">
                       <div className="font-medium">{index + 1}. {cp.name}</div>
-                      <div className="text-xs text-gray-500">{cp.location}</div>
+                      <div className="text-xs text-text-secondary">{cp.location}</div>
                     </td>
                     <td className="p-4">
                       {scan ? (
-                        <span className="flex items-center text-green-600 text-sm font-medium"><CheckCircle2 size={16} className="mr-1" /> Valid</span>
+                        <span className="flex items-center text-emerald-primary text-sm font-medium"><CheckCircle2 size={16} className="mr-1" /> Valid</span>
                       ) : (
                         <span className="text-gray-400 text-sm font-medium">Pending</span>
                       )}
@@ -149,7 +149,7 @@ export const PatrolLiveDetails = () => {
                     </td>
                     <td className="p-4 text-sm text-gray-600">
                       {scan?.locationVerified ? (
-                        <span className="text-green-600">GPS Verified ({Math.round(scan.distanceToCheckpoint)}m)</span>
+                        <span className="text-emerald-primary">GPS Verified ({Math.round(scan.distanceToCheckpoint)}m)</span>
                       ) : scan ? (
                         <span className="text-gray-400">No GPS</span>
                       ) : '-'}

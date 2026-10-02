@@ -3,12 +3,14 @@ import * as patrolController from '../controllers/patrol.controller';
 import { validateRequest } from '../middleware/validation.middleware';
 import { createPatrolRouteSchema, updatePatrolRouteSchema, startPatrolSessionSchema, scanCheckpointSchema } from '../validators/patrol.validator';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireActiveSubscription } from '../middleware/subscription.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { UserRole } from '../models/User';
 
 const router = Router();
 
 router.use(authenticate);
+router.use(requireActiveSubscription);
 
 // --- Patrol Routes (Configuration) ---
 // View routes (Any logged in user can view routes for their company/site)

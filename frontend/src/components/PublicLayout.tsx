@@ -22,37 +22,37 @@ export const PublicLayout = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen bg-[#050806] flex flex-col font-sans selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-[var(--color-background)] flex flex-col font-sans selection:bg-emerald-500/30">
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
-        isScrolled ? 'bg-[#0B110E]/95 backdrop-blur-md border-[#1D2B22] shadow-lg py-3' : 'bg-[#0B110E] border-transparent py-5'
+        isScrolled ? 'bg-[var(--color-surface-sidebar)]/95 backdrop-blur-md border-[var(--color-border-subtle)] shadow-lg py-3' : 'bg-[var(--color-surface-sidebar)] border-transparent py-5'
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <Link to="/" className="text-2xl font-extrabold flex items-center gap-2 text-[#F0FDF4] hover:text-emerald-400 transition-colors group">
+          <Link to="/" className="text-2xl font-extrabold flex items-center gap-2 text-[var(--color-text-main)] hover:text-emerald-400 transition-colors group">
             <div className="bg-emerald-600 p-1.5 rounded-lg group-hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-500/20">
-              <Shield className="text-[#F0FDF4] w-6 h-6" />
+              <Shield className="text-[var(--color-text-main)] w-6 h-6" />
             </div>
             TrackSentra
           </Link>
           
           <div className="hidden md:flex gap-8 items-center">
-            <Link to="/how-it-works" className="text-[#718078] hover:text-[#F0FDF4] text-sm font-semibold transition-colors">How it Works</Link>
-            <Link to="/features" className="text-[#718078] hover:text-[#F0FDF4] text-sm font-semibold transition-colors">Features</Link>
-            <Link to="/pricing" className="text-[#718078] hover:text-[#F0FDF4] text-sm font-semibold transition-colors">Pricing</Link>
-            <Link to="/faq" className="text-[#718078] hover:text-[#F0FDF4] text-sm font-semibold transition-colors">FAQ</Link>
-            <Link to="/contact" className="text-[#718078] hover:text-[#F0FDF4] text-sm font-semibold transition-colors">Contact</Link>
+            <Link to="/how-it-works" className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] text-sm font-semibold transition-colors">How it Works</Link>
+            <Link to="/features" className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] text-sm font-semibold transition-colors">Features</Link>
+            <Link to="/pricing" className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] text-sm font-semibold transition-colors">Pricing</Link>
+            <Link to="/faq" className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] text-sm font-semibold transition-colors">FAQ</Link>
+            <Link to="/contact" className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] text-sm font-semibold transition-colors">Contact</Link>
             
             <div className="h-6 w-px bg-slate-700 mx-2"></div>
             
-            <Link to="/login" className="text-[#718078] hover:text-[#F0FDF4] text-sm font-semibold transition-colors">Log in</Link>
+            <Link to="/login" className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] text-sm font-semibold transition-colors">Log in</Link>
             <Link to="/register">
-              <Button className="bg-emerald-600 hover:bg-emerald-500 text-[#F0FDF4] border-0 shadow-lg shadow-emerald-600/20 font-semibold rounded-full px-6">
+              <Button className="bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-main)] border-0 shadow-lg shadow-emerald-600/20 font-semibold rounded-full px-6">
                 Start Free Trial
               </Button>
             </Link>
           </div>
 
           <button 
-            className="md:hidden text-[#718078] hover:text-[#F0FDF4] p-2"
+            className="md:hidden text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] p-2"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle menu"
           >
@@ -62,16 +62,16 @@ export const PublicLayout = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden absolute top-full left-0 w-full bg-[#0B110E] border-b border-[#1D2B22] shadow-xl py-4 px-4 flex flex-col gap-4 animate-in slide-in-from-top-4 duration-200">
-            <Link to="/how-it-works" className="text-[#718078] hover:text-[#F0FDF4] text-base font-semibold py-2">How it Works</Link>
-            <Link to="/features" className="text-[#718078] hover:text-[#F0FDF4] text-base font-semibold py-2">Features</Link>
-            <Link to="/pricing" className="text-[#718078] hover:text-[#F0FDF4] text-base font-semibold py-2">Pricing</Link>
-            <Link to="/faq" className="text-[#718078] hover:text-[#F0FDF4] text-base font-semibold py-2">FAQ</Link>
-            <Link to="/contact" className="text-[#718078] hover:text-[#F0FDF4] text-base font-semibold py-2">Contact</Link>
-            <div className="h-px w-full bg-[#101713] my-2"></div>
-            <Link to="/login" className="text-[#718078] hover:text-[#F0FDF4] text-base font-semibold py-2">Log in</Link>
+          <div className="md:hidden absolute top-full left-0 w-full bg-[var(--color-surface-sidebar)] border-b border-[var(--color-border-subtle)] shadow-xl py-4 px-4 flex flex-col gap-4 animate-in slide-in-from-top-4 duration-200">
+            <Link to="/how-it-works" className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] text-base font-semibold py-2">How it Works</Link>
+            <Link to="/features" className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] text-base font-semibold py-2">Features</Link>
+            <Link to="/pricing" className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] text-base font-semibold py-2">Pricing</Link>
+            <Link to="/faq" className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] text-base font-semibold py-2">FAQ</Link>
+            <Link to="/contact" className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] text-base font-semibold py-2">Contact</Link>
+            <div className="h-px w-full bg-[var(--color-surface-main)] my-2"></div>
+            <Link to="/login" className="text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] text-base font-semibold py-2">Log in</Link>
             <Link to="/register" className="pt-2">
-              <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-[#F0FDF4] border-0 font-semibold rounded-lg justify-center">
+              <Button className="w-full bg-emerald-600 hover:bg-emerald-500 text-[var(--color-text-main)] border-0 font-semibold rounded-lg justify-center">
                 Start Free Trial
               </Button>
             </Link>
@@ -83,20 +83,20 @@ export const PublicLayout = () => {
         <Outlet />
       </main>
 
-      <footer className="bg-[#050806] text-[#718078] py-20 px-4 sm:px-6 lg:px-8 mt-auto border-t border-slate-900 relative overflow-hidden">
+      <footer className="bg-[var(--color-background)] text-[var(--color-text-muted)] py-20 px-4 sm:px-6 lg:px-8 mt-auto border-t border-slate-900 relative overflow-hidden">
         {/* Decorative background element */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 max-w-xl h-32 bg-emerald-500/5 blur-[100px] pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto grid md:grid-cols-12 gap-12 lg:gap-8 mb-16 relative z-10">
           <div className="md:col-span-12 lg:col-span-5 lg:pr-12">
-            <Link to="/" className="text-2xl font-extrabold flex items-center gap-2 text-[#F0FDF4] mb-6 group">
+            <Link to="/" className="text-2xl font-extrabold flex items-center gap-2 text-[var(--color-text-main)] mb-6 group">
               <div className="bg-emerald-600 p-1.5 rounded-lg group-hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-500/20">
-                <Shield className="text-[#F0FDF4] w-5 h-5" />
+                <Shield className="text-[var(--color-text-main)] w-5 h-5" />
               </div>
               TrackSentra
             </Link>
-            <p className="text-sm leading-relaxed mb-8 text-[#718078] max-w-md">
+            <p className="text-sm leading-relaxed mb-8 text-[var(--color-text-muted)] max-w-md">
               The premium Industrial Security Patrol Management SaaS. Turn reactive security into proactive command with real-time GPS tracking, QR checkpoints, and instant incident reporting.
             </p>
             <div className="flex gap-4">
@@ -107,7 +107,7 @@ export const PublicLayout = () => {
           </div>
           
           <div className="md:col-span-4 lg:col-span-2">
-            <h4 className="text-[#F0FDF4] font-bold mb-6 tracking-wide text-sm uppercase">Product</h4>
+            <h4 className="text-[var(--color-text-main)] font-bold mb-6 tracking-wide text-sm uppercase">Product</h4>
             <ul className="space-y-4 text-sm font-medium">
               <li><Link to="/how-it-works" className="hover:text-emerald-400 transition-colors">How it Works</Link></li>
               <li><Link to="/features" className="hover:text-emerald-400 transition-colors">Features</Link></li>
@@ -118,7 +118,7 @@ export const PublicLayout = () => {
           </div>
           
           <div className="md:col-span-4 lg:col-span-2">
-            <h4 className="text-[#F0FDF4] font-bold mb-6 tracking-wide text-sm uppercase">Company</h4>
+            <h4 className="text-[var(--color-text-main)] font-bold mb-6 tracking-wide text-sm uppercase">Company</h4>
             <ul className="space-y-4 text-sm font-medium">
               <li><Link to="/contact" className="hover:text-emerald-400 transition-colors">Contact Sales</Link></li>
               <li><Link to="/privacy" className="hover:text-emerald-400 transition-colors">Privacy Policy</Link></li>
@@ -127,17 +127,17 @@ export const PublicLayout = () => {
           </div>
           
           <div className="md:col-span-4 lg:col-span-3">
-            <h4 className="text-[#F0FDF4] font-bold mb-6 tracking-wide text-sm uppercase">Support & Operations</h4>
+            <h4 className="text-[var(--color-text-main)] font-bold mb-6 tracking-wide text-sm uppercase">Support & Operations</h4>
             <ul className="space-y-4 text-sm font-medium">
               <li>
                 <a href="mailto:support@tracksentra.com" className="group flex items-center gap-2 hover:text-emerald-400 transition-colors">
-                  <span className="w-8 h-8 rounded-full bg-[#0B110E] border border-[#1D2B22] flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">@</span>
+                  <span className="w-8 h-8 rounded-full bg-[var(--color-surface-sidebar)] border border-[var(--color-border-subtle)] flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">@</span>
                   support@tracksentra.com
                 </a>
               </li>
               <li>
                 <Link to="/help" className="group flex items-center gap-2 hover:text-emerald-400 transition-colors">
-                  <span className="w-8 h-8 rounded-full bg-[#0B110E] border border-[#1D2B22] flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">?</span>
+                  <span className="w-8 h-8 rounded-full bg-[var(--color-surface-sidebar)] border border-[var(--color-border-subtle)] flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">?</span>
                   Help Center
                 </Link>
               </li>
@@ -145,9 +145,9 @@ export const PublicLayout = () => {
           </div>
         </div>
         
-        <div className="text-center text-sm font-medium max-w-7xl mx-auto border-t border-[#1D2B22]/50 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
+        <div className="text-center text-sm font-medium max-w-7xl mx-auto border-t border-[var(--color-border-subtle)]/50 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
           <span>&copy; {new Date().getFullYear()} TrackSentra Inc. All rights reserved.</span>
-          <div className="flex items-center gap-2 text-[#A1B5A8]">
+          <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
              <Shield size={14} /> Built for Enterprise Security
           </div>
         </div>

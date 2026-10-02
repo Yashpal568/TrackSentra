@@ -3,12 +3,14 @@ import * as guardController from '../controllers/guard.controller';
 import { validateRequest } from '../middleware/validation.middleware';
 import { createGuardSchema, updateGuardSchema } from '../validators/guard.validator';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireActiveSubscription } from '../middleware/subscription.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { UserRole } from '../models/User';
 
 const router = Router();
 
 router.use(authenticate);
+router.use(requireActiveSubscription);
 
 // List/view guards (any role in the company can view guards)
 router.get('/', guardController.getGuards);

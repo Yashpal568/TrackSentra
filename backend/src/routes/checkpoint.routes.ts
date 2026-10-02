@@ -3,12 +3,14 @@ import * as checkpointController from '../controllers/checkpoint.controller';
 import { validateRequest } from '../middleware/validation.middleware';
 import { createCheckpointSchema, updateCheckpointSchema } from '../validators/checkpoint.validator';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireActiveSubscription } from '../middleware/subscription.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { UserRole } from '../models/User';
 
 const router = Router();
 
 router.use(authenticate);
+router.use(requireActiveSubscription);
 
 // List checkpoints (Any logged in user can view checkpoints for their company/site)
 router.get('/', checkpointController.getCheckpoints);

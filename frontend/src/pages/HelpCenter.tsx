@@ -20,7 +20,7 @@ export const HelpCenter = () => {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const { data } = await api.get('/api/help-center/articles', { params: { search } });
+        const { data } = await api.get('/help-center/articles', { params: { search } });
         setArticles(data);
       } catch (err) {
         console.error(err);
@@ -42,14 +42,14 @@ export const HelpCenter = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="text-center py-10 bg-blue-600 text-white rounded-lg shadow-lg">
+      <div className="text-center py-10 bg-emerald-primary text-white rounded-lg shadow-lg">
         <h1 className="text-3xl font-bold mb-4">How can we help?</h1>
         <div className="max-w-xl mx-auto px-4 relative">
           <Search className="absolute left-7 top-3 text-gray-400" size={20} />
           <input
             type="text"
             placeholder="Search for articles..."
-            className="w-full py-2 pl-12 pr-4 rounded-full text-gray-900 outline-none"
+            className="w-full py-2 pl-12 pr-4 rounded-full text-text-main outline-none"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -57,15 +57,15 @@ export const HelpCenter = () => {
       </div>
 
       {loading ? (
-        <p className="text-center text-gray-500">Loading articles...</p>
+        <p className="text-center text-text-secondary">Loading articles...</p>
       ) : Object.keys(categories).length === 0 ? (
-        <p className="text-center text-gray-500">No articles found.</p>
+        <p className="text-center text-text-secondary">No articles found.</p>
       ) : (
         <div className="space-y-8">
           {Object.entries(categories).map(([category, items]) => (
             <div key={category}>
-              <h2 className="text-xl font-bold mb-4 text-slate-800 border-b pb-2 flex items-center gap-2">
-                <Book size={20} className="text-blue-500" />
+              <h2 className="text-xl font-bold mb-4 text-text-main border-b pb-2 flex items-center gap-2">
+                <Book size={20} className="text-emerald-primary" />
                 {category}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -73,13 +73,13 @@ export const HelpCenter = () => {
                   <Link 
                     key={item._id} 
                     to={`/help/${item.slug}`}
-                    className="p-4 border rounded-lg hover:shadow-md transition-shadow bg-white flex justify-between items-center group"
+                    className="p-4 border rounded-lg hover:shadow-md transition-shadow bg-surface-card flex justify-between items-center group"
                   >
                     <div>
-                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{item.title}</h3>
-                      <p className="text-xs text-gray-500 mt-1">Last updated: {new Date(item.updatedAt).toLocaleDateString()}</p>
+                      <h3 className="font-semibold text-text-main group-hover:text-emerald-primary transition-colors">{item.title}</h3>
+                      <p className="text-xs text-text-secondary mt-1">Last updated: {new Date(item.updatedAt).toLocaleDateString()}</p>
                     </div>
-                    <ChevronRight className="text-gray-400 group-hover:text-blue-500" size={20} />
+                    <ChevronRight className="text-gray-400 group-hover:text-emerald-primary" size={20} />
                   </Link>
                 ))}
               </div>

@@ -3,12 +3,14 @@ import * as siteController from '../controllers/site.controller';
 import { validateRequest } from '../middleware/validation.middleware';
 import { createSiteSchema, updateSiteSchema } from '../validators/site.validator';
 import { authenticate } from '../middleware/auth.middleware';
+import { requireActiveSubscription } from '../middleware/subscription.middleware';
 import { requireRole } from '../middleware/role.middleware';
 import { UserRole } from '../models/User';
 
 const router = Router();
 
 router.use(authenticate);
+router.use(requireActiveSubscription);
 
 // List/view sites (any role in the company)
 router.get('/', siteController.getSites);

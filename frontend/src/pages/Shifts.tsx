@@ -75,7 +75,7 @@ export const Shifts = () => {
   const getStatusBadge = (status: string) => {
     switch(status) {
       case 'completed': 
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800"><CheckCircle2 size={12}/> Completed</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-primary/20 text-emerald-primary"><CheckCircle2 size={12}/> Completed</span>;
       case 'cancelled': 
         return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800"><XCircle size={12}/> Cancelled</span>;
       case 'scheduled':
@@ -96,20 +96,20 @@ export const Shifts = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-text-main flex items-center gap-2">
             <CalendarClock className="text-orange-500" /> Shift Schedule
           </h1>
-          <p className="text-slate-500 text-sm mt-1">Manage guard assignments and facility coverage hours.</p>
+          <p className="text-text-secondary text-sm mt-1">Manage guard assignments and facility coverage hours.</p>
         </div>
         <div className="flex gap-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
             <input 
               type="text" 
               placeholder="Search shifts..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 bg-white w-full sm:w-64"
+              className="pl-10 pr-4 py-2 border border-border-subtle rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 bg-surface-card w-full sm:w-64"
             />
           </div>
           {canManage && !isCreating && (
@@ -129,9 +129,9 @@ export const Shifts = () => {
       {/* Creation Form */}
       {isCreating && (
         <Card className="border-t-4 border-t-orange-500 shadow-lg">
-          <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h2 className="text-lg font-bold text-slate-800">Schedule New Shift</h2>
-            <button onClick={() => setIsCreating(false)} className="text-slate-400 hover:text-slate-600">
+          <div className="px-6 py-4 border-b border-border-subtle flex justify-between items-center bg-surface-main">
+            <h2 className="text-lg font-bold text-text-main">Schedule New Shift</h2>
+            <button onClick={() => setIsCreating(false)} className="text-text-muted hover:text-text-secondary">
               <span className="sr-only">Close</span>
               &times;
             </button>
@@ -139,33 +139,33 @@ export const Shifts = () => {
           <form onSubmit={handleCreate} className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Target Site <span className="text-red-500">*</span></label>
-                <select required value={formData.siteId} onChange={e => setFormData({...formData, siteId: e.target.value})} className="w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border bg-white">
+                <label className="block text-sm font-semibold text-text-main mb-1">Target Site <span className="text-red-500">*</span></label>
+                <select required value={formData.siteId} onChange={e => setFormData({...formData, siteId: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border bg-surface-card">
                   <option value="">Select a site</option>
                   {sites.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Assigned Guard <span className="text-red-500">*</span></label>
-                <select required value={formData.guardId} onChange={e => setFormData({...formData, guardId: e.target.value})} className="w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border bg-white">
+                <label className="block text-sm font-semibold text-text-main mb-1">Assigned Guard <span className="text-red-500">*</span></label>
+                <select required value={formData.guardId} onChange={e => setFormData({...formData, guardId: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border bg-surface-card">
                   <option value="">Select a guard</option>
                   {guards.map(g => <option key={g._id} value={g._id}>{g.userId?.firstName} {g.userId?.lastName}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Start Time <span className="text-red-500">*</span></label>
-                <input type="datetime-local" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} className="w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border" />
+                <label className="block text-sm font-semibold text-text-main mb-1">Start Time <span className="text-red-500">*</span></label>
+                <input type="datetime-local" required value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">End Time <span className="text-red-500">*</span></label>
-                <input type="datetime-local" required value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} className="w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border" />
+                <label className="block text-sm font-semibold text-text-main mb-1">End Time <span className="text-red-500">*</span></label>
+                <input type="datetime-local" required value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Shift Notes / Instructions</label>
-                <input type="text" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full rounded-md border-slate-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border" placeholder="e.g. Ensure perimeter check at 03:00 AM." />
+                <label className="block text-sm font-semibold text-text-main mb-1">Shift Notes / Instructions</label>
+                <input type="text" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border" placeholder="e.g. Ensure perimeter check at 03:00 AM." />
               </div>
             </div>
-            <div className="flex gap-3 mt-8 pt-6 border-t border-slate-100">
+            <div className="flex gap-3 mt-8 pt-6 border-t border-border-subtle">
               <Button type="submit" className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700"><Plus size={16}/> Schedule Shift</Button>
               <Button type="button" variant="secondary" onClick={() => setIsCreating(false)}>Cancel</Button>
             </div>
@@ -175,20 +175,20 @@ export const Shifts = () => {
 
       {/* Empty State */}
       {shifts.length === 0 && !isCreating ? (
-        <Card className="text-center py-16 px-6 border-dashed border-2 border-slate-200 bg-slate-50">
-          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100">
-            <CalendarClock className="w-8 h-8 text-slate-400" />
+        <Card className="text-center py-16 px-6 border-dashed border-2 border-border-subtle bg-surface-main">
+          <div className="w-16 h-16 bg-surface-card rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-border-subtle">
+            <CalendarClock className="w-8 h-8 text-text-muted" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-2">No Shifts Scheduled</h3>
-          <p className="text-slate-500 max-w-md mx-auto mb-6">Schedule shifts to assign guards to specific sites and ensure facility coverage.</p>
+          <h3 className="text-lg font-bold text-text-main mb-2">No Shifts Scheduled</h3>
+          <p className="text-text-secondary max-w-md mx-auto mb-6">Schedule shifts to assign guards to specific sites and ensure facility coverage.</p>
           {canManage && <Button onClick={() => setIsCreating(true)} className="bg-orange-600 hover:bg-orange-700">Schedule First Shift</Button>}
         </Card>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-surface-card rounded-lg shadow-sm border border-border-subtle overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <tr className="bg-surface-main border-b border-border-subtle text-xs font-semibold text-text-secondary uppercase tracking-wider">
                   <th className="px-6 py-4">Assigned Guard</th>
                   <th className="px-6 py-4">Facility / Site</th>
                   <th className="px-6 py-4">Time Window</th>
@@ -198,30 +198,30 @@ export const Shifts = () => {
               </thead>
               <tbody className="divide-y divide-slate-200 text-sm">
                 {filteredShifts.map(shift => (
-                  <tr key={shift._id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={shift._id} className="hover:bg-surface-main transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-xs shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-text-secondary font-bold text-xs shrink-0">
                           {shift.guardId?.userId?.firstName?.charAt(0)}{shift.guardId?.userId?.lastName?.charAt(0)}
                         </div>
                         <div>
-                          <div className="font-semibold text-slate-900">{shift.guardId?.userId?.firstName} {shift.guardId?.userId?.lastName}</div>
-                          <div className="text-slate-500 text-xs flex items-center gap-1 mt-0.5"><User size={12}/> Guard</div>
+                          <div className="font-semibold text-text-main">{shift.guardId?.userId?.firstName} {shift.guardId?.userId?.lastName}</div>
+                          <div className="text-text-secondary text-xs flex items-center gap-1 mt-0.5"><User size={12}/> Guard</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-slate-700 font-medium">
-                        <MapPin size={16} className="text-slate-400" />
+                      <div className="flex items-center gap-2 text-text-main font-medium">
+                        <MapPin size={16} className="text-text-muted" />
                         {shift.siteId?.name}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-slate-700">
-                        <Calendar size={16} className="text-slate-400 shrink-0" />
+                      <div className="flex items-center gap-2 text-text-main">
+                        <Calendar size={16} className="text-text-muted shrink-0" />
                         <div>
                           <div className="font-medium">{new Date(shift.startTime).toLocaleDateString()}</div>
-                          <div className="text-xs text-slate-500">{new Date(shift.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {new Date(shift.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                          <div className="text-xs text-text-secondary">{new Date(shift.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {new Date(shift.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                         </div>
                       </div>
                     </td>

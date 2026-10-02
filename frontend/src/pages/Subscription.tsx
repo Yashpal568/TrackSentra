@@ -50,15 +50,15 @@ export function Subscription() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold text-gray-900">Subscription & Billing</h1>
+      <h1 className="text-2xl font-semibold text-text-main">Subscription & Billing</h1>
 
       {!subscription ? (
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <div className="bg-surface-card p-6 rounded-lg shadow-sm border">
           <p>You have no active subscription.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="bg-surface-card p-6 rounded-lg shadow-sm border">
             <h2 className="text-xl font-bold mb-4">Current Plan: {subscription.planSnapshot.name}</h2>
             <div className="space-y-2">
               <p><span className="font-medium">Status:</span> {subscription.status}</p>
@@ -69,9 +69,9 @@ export function Subscription() {
           </div>
 
           {subscription.status === 'PENDING_PAYMENT' && (
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-orange-200">
+            <div className="bg-surface-card p-6 rounded-lg shadow-sm border border-orange-200">
               <h2 className="text-xl font-bold mb-4 text-orange-800">Pending Payment</h2>
-              <div className="mb-4 text-sm text-gray-700 bg-gray-50 p-4 rounded">
+              <div className="mb-4 text-sm text-gray-700 bg-surface-hover p-4 rounded">
                 <p className="font-semibold mb-2">Payment Instructions:</p>
                 {settings?.manualPaymentInstructions?.upiId && <p>UPI ID: {settings.manualPaymentInstructions.upiId}</p>}
                 {settings?.manualPaymentInstructions?.bankName && (
@@ -91,7 +91,7 @@ export function Subscription() {
                     required
                     value={transactionRef}
                     onChange={(e) => setTransactionRef(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-emerald-primary focus:ring-emerald-primary sm:text-sm p-2 border"
                     placeholder="Enter UPI or Bank Ref No."
                   />
                 </div>
