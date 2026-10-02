@@ -22,9 +22,9 @@ export const GuardQRScanner = () => {
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
-    if (user?.role !== 'GUARD') {
-      setError(t('scanner.no_session'));
-      setLoading(false);
+    if (user && user.role !== 'GUARD') {
+      // If a non-guard opens a guard checkpoint URL, redirect them to their dashboard
+      navigate('/dashboard', { replace: true });
       return;
     }
     

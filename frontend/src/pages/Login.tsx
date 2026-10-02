@@ -20,7 +20,22 @@ export const Login = () => {
     e.preventDefault();
     try {
       await login(email, password);
-      navigate(from, { replace: true });
+      
+      const currentUser = useAuthStore.getState().user;
+      
+      // Validate 'from' to prevent open redirects (must be an internal path starting with / but not //)
+      let destination = '/dashboard';
+      if (from && from.startsWith('/') && !from.startsWith('//')) {
+        destination = from;
+      }
+
+      // Role-based redirect logic:
+      // If a non-guard tries to access the scanner, redirect to their dashboard instead
+      if (destination.startsWith('/guard/scan') && currentUser?.role !== 'GUARD') {
+        destination = '/dashboard';
+      }
+
+      navigate(destination, { replace: true });
     } catch (err) {
       // Error is handled in store
     }
@@ -164,7 +179,15 @@ export const Login = () => {
               onClick={async () => {
                 try {
                   await useAuthStore.getState().demoLogin();
-                  navigate(from, { replace: true });
+                  const currentUser = useAuthStore.getState().user;
+                  let destination = '/dashboard';
+                  if (from && from.startsWith('/') && !from.startsWith('//')) {
+                    destination = from;
+                  }
+                  if (destination.startsWith('/guard/scan') && currentUser?.role !== 'GUARD') {
+                    destination = '/dashboard';
+                  }
+                  navigate(destination, { replace: true });
                 } catch (e) {
                   // Error handled in store
                 }

@@ -237,7 +237,7 @@ export const startPatrolSession = async (req: Request, res: Response): Promise<v
 export const scanCheckpoint = async (req: Request, res: Response): Promise<void> => {
   const user = (req as any).user;
   const { id } = req.params; // PatrolSession ID
-  const { qrPayload, latitude, longitude, accuracy } = req.body;
+  const { qrPayload, latitude, longitude, accuracy, isMockLocation } = req.body;
 
   const session = await PatrolSession.findOne({ _id: id, companyId: user.companyId }).populate('routeId');
   if (!session) {
@@ -264,7 +264,7 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
 
   // Validate QR payload maps to a checkpoint
   const checkpoint = await Checkpoint.findOne({ qrPayload, companyId: user.companyId });
-  if (!checkpoint) {
+  if (!checkpoint || checkpoint.status !== 'active' || checkpoint.installationStatus !== 'active') {
     // Record rejected scan
     await CheckpointScan.create({
       companyId: user.companyId,
@@ -320,6 +320,26 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
   // GPS Validation
   let distanceToCheckpoint: number | undefined;
   let locationVerified = false;
+  let riskSignals: string[] = [];
+
+  if (isMockLocation) {
+    riskSignals.push('MOCK_LOCATION_DETECTED');
+  }
+
+  // Check impossible travel times
+  if (pastScans.length > 0 && latitude && longitude) {
+    const lastScan = pastScans[pastScans.length - 1];
+    if (lastScan.latitude && lastScan.longitude) {
+      const distToLast = getDistanceInMeters(latitude, longitude, lastScan.latitude, lastScan.longitude);
+      const timeDiffSec = (Date.now() - new Date(lastScan.scannedAt).getTime()) / 1000;
+      if (timeDiffSec > 0) {
+        const speedMpS = distToLast / timeDiffSec;
+        if (speedMpS > 30) { // > 108 km/h is highly suspicious for a walking guard
+          riskSignals.push('IMPOSSIBLE_TRAVEL_SPEED');
+        }
+      }
+    }
+  }
 
   if (checkpoint.latitude !== undefined && checkpoint.longitude !== undefined) {
     if (latitude === undefined || longitude === undefined) {
@@ -340,7 +360,8 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    if (accuracy && accuracy > 100) {
+    const maxAccuracy = checkpoint.gpsAccuracyThreshold || 20;
+    if (accuracy && accuracy > maxAccuracy) {
       await CheckpointScan.create({
         companyId: user.companyId,
         siteId: session.siteId,
@@ -348,13 +369,13 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
         checkpointId: checkpoint._id,
         guardId: guard._id,
         status: 'rejected',
-        failureReason: 'GPS accuracy too low',
+        failureReason: `GPS accuracy (${Math.round(accuracy)}m) is too low. Required: ${maxAccuracy}m`,
         latitude,
         longitude,
         accuracy,
         locationVerified: false,
       });
-      res.status(400).json({ error: { message: 'GPS accuracy too low' } });
+      res.status(400).json({ error: { message: `GPS accuracy too low. Please try again.` } });
       return;
     }
 
@@ -424,6 +445,7 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
     accuracy,
     distanceToCheckpoint,
     locationVerified,
+    riskSignals,
   });
 
   // Automatically complete session if this was the last checkpoint (regardless of order, if all are scanned)

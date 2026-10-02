@@ -4,7 +4,8 @@ import { api } from '../lib/axios';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { QRCodeCanvas } from 'qrcode.react';
-import { QrCode, Plus, Download, RefreshCw, MapPin, Search, ShieldAlert, FileText } from 'lucide-react';
+import { QrCode, Plus, Download, RefreshCw, MapPin, Search, ShieldAlert, FileText, Map as MapIcon, Grid } from 'lucide-react';
+import { CheckpointMap } from '../components/CheckpointMap';
 
 export const Checkpoints = () => {
   const { user } = useAuthStore();
@@ -15,7 +16,8 @@ export const Checkpoints = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   const [isCreating, setIsCreating] = useState(false);
-  const [formData, setFormData] = useState({ siteId: '', name: '', latitude: '', longitude: '', radius: '50', notes: '' });
+  const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+  const [formData, setFormData] = useState({ siteId: '', name: '', latitude: '', longitude: '', accuracy: '', radius: '50', gpsAccuracyThreshold: '20', description: '', installationInstructions: '', notes: '' });
 
   useEffect(() => {
     fetchData();
@@ -46,12 +48,15 @@ export const Checkpoints = () => {
       if (formData.latitude) payload.latitude = parseFloat(formData.latitude);
       if (formData.longitude) payload.longitude = parseFloat(formData.longitude);
       if (formData.radius) payload.radius = parseInt(formData.radius, 10);
+      if (formData.gpsAccuracyThreshold) payload.gpsAccuracyThreshold = parseInt(formData.gpsAccuracyThreshold, 10);
+      if (formData.description) payload.description = formData.description;
+      if (formData.installationInstructions) payload.installationInstructions = formData.installationInstructions;
       if (formData.notes) payload.notes = formData.notes;
 
       await api.post('/checkpoints', payload);
       fetchData();
       setIsCreating(false);
-      setFormData({ siteId: '', name: '', latitude: '', longitude: '', radius: '50', notes: '' });
+      setFormData({ siteId: '', name: '', latitude: '', longitude: '', accuracy: '', radius: '50', gpsAccuracyThreshold: '20', description: '', installationInstructions: '', notes: '' });
       setError('');
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to create checkpoint.');
@@ -65,15 +70,26 @@ export const Checkpoints = () => {
           setFormData(prev => ({
             ...prev,
             latitude: position.coords.latitude.toString(),
-            longitude: position.coords.longitude.toString()
+            longitude: position.coords.longitude.toString(),
+            accuracy: position.coords.accuracy.toString()
           }));
         },
         (err) => {
           alert('Error getting location: ' + err.message);
-        }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     } else {
       alert('Geolocation is not supported by your browser');
+    }
+  };
+
+  const handleVerify = async (id: string) => {
+    try {
+      await api.post(`/checkpoints/${id}/verify`);
+      fetchData();
+    } catch (err: any) {
+      setError(err.response?.data?.error?.message || 'Failed to verify checkpoint.');
     }
   };
 
@@ -139,6 +155,22 @@ export const Checkpoints = () => {
               className="pl-10 pr-4 py-2 border border-border-subtle rounded-md shadow-sm focus:ring-emerald-primary focus:border-emerald-primary bg-surface-card w-full sm:w-64"
             />
           </div>
+          <div className="flex bg-surface-card border border-border-subtle rounded-md overflow-hidden">
+            <button 
+              onClick={() => setViewMode('grid')} 
+              className={`p-2 px-3 flex items-center justify-center transition-colors ${viewMode === 'grid' ? 'bg-emerald-100 text-emerald-800' : 'text-text-muted hover:bg-surface-hover'}`}
+              title="Grid View"
+            >
+              <Grid size={18} />
+            </button>
+            <button 
+              onClick={() => setViewMode('map')} 
+              className={`p-2 px-3 flex items-center justify-center border-l border-border-subtle transition-colors ${viewMode === 'map' ? 'bg-emerald-100 text-emerald-800' : 'text-text-muted hover:bg-surface-hover'}`}
+              title="Map View"
+            >
+              <MapIcon size={18} />
+            </button>
+          </div>
           {canManage && !isCreating && (
             <Button onClick={() => setIsCreating(true)} className="flex items-center gap-2 whitespace-nowrap bg-emerald-primary hover:bg-purple-700">
               <Plus size={18} /> Add Checkpoint
@@ -176,6 +208,14 @@ export const Checkpoints = () => {
                 <label className="block text-sm font-semibold text-text-main mb-1">Checkpoint Name <span className="text-red-500">*</span></label>
                 <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" placeholder="e.g. North Gate Entrance" />
               </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-text-main mb-1">Description</label>
+                <input type="text" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" placeholder="e.g. Near the main entrance pillar" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-semibold text-text-main mb-1">Installation Instructions</label>
+                <input type="text" value={formData.installationInstructions} onChange={e => setFormData({...formData, installationInstructions: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" placeholder="e.g. Mount on wall at 1.5m height" />
+              </div>
               <div className="md:col-span-2 flex items-center justify-between pt-2">
                 <h3 className="text-sm font-semibold text-text-main">GPS Coordinates</h3>
                 <Button type="button" variant="secondary" onClick={handleGetLocation} className="text-xs px-3 py-1.5 flex items-center gap-1.5 h-auto">
@@ -190,9 +230,19 @@ export const Checkpoints = () => {
                 <label className="block text-sm font-semibold text-text-main mb-1">Longitude</label>
                 <input type="number" step="any" value={formData.longitude} onChange={e => setFormData({...formData, longitude: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" placeholder="e.g. -74.0060" />
               </div>
+              {formData.accuracy && (
+                <div className="md:col-span-2 text-sm text-amber-600 bg-amber-50 p-2 rounded">
+                  Captured GPS Accuracy: <strong>{Math.round(parseFloat(formData.accuracy))} meters</strong>. 
+                  {parseFloat(formData.accuracy) > parseInt(formData.gpsAccuracyThreshold || '20') && " Warning: Accuracy is poorer than the threshold. Try moving outdoors or waiting a moment before retrying."}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-semibold text-text-main mb-1">Validation Radius (meters)</label>
                 <input type="number" min="5" value={formData.radius} onChange={e => setFormData({...formData, radius: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-text-main mb-1">Required Accuracy Threshold (meters)</label>
+                <input type="number" min="1" value={formData.gpsAccuracyThreshold} onChange={e => setFormData({...formData, gpsAccuracyThreshold: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-semibold text-text-main mb-1">Location Notes / Instructions</label>
@@ -217,6 +267,8 @@ export const Checkpoints = () => {
           <p className="text-text-secondary max-w-md mx-auto mb-6">Create checkpoints within your sites to generate secure, cryptographic QR codes for guard patrols.</p>
           {canManage && <Button onClick={() => setIsCreating(true)} className="bg-emerald-primary hover:bg-purple-700">Create First Checkpoint</Button>}
         </Card>
+      ) : viewMode === 'map' ? (
+        <CheckpointMap checkpoints={filteredCheckpoints} />
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredCheckpoints.map(cp => (
@@ -226,6 +278,14 @@ export const Checkpoints = () => {
                 <div className="flex items-center text-xs text-text-secondary mt-1">
                   <MapPin size={12} className="mr-1 shrink-0" />
                   <span className="truncate" title={getSiteName(cp.siteId)}>{getSiteName(cp.siteId)}</span>
+                </div>
+                <div className="mt-2">
+                  <span className={`text-[10px] uppercase px-2 py-0.5 rounded-full font-bold ${
+                    cp.installationStatus === 'active' ? 'bg-green-100 text-green-700' : 
+                    cp.installationStatus === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {cp.installationStatus || 'pending'}
+                  </span>
                 </div>
               </div>
               
@@ -253,13 +313,21 @@ export const Checkpoints = () => {
                 )}
               </div>
 
-              <div className="w-full grid grid-cols-2 border-t border-border-subtle divide-x divide-slate-100 bg-surface-main">
+              <div className={`w-full grid ${cp.installationStatus === 'pending' && canManage ? 'grid-cols-3' : 'grid-cols-2'} border-t border-border-subtle divide-x divide-slate-100 bg-surface-main`}>
                 <button 
                   onClick={() => downloadQR(cp)}
                   className="py-3 flex items-center justify-center gap-2 text-sm font-medium text-text-main hover:text-text-main hover:bg-surface-hover transition-colors"
                 >
                   <Download size={16} /> Print
                 </button>
+                {cp.installationStatus === 'pending' && canManage && (
+                  <button 
+                    onClick={() => handleVerify(cp._id)} 
+                    className="py-3 flex items-center justify-center gap-2 text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
+                  >
+                    <ShieldAlert size={16} /> Verify
+                  </button>
+                )}
                 {canManage ? (
                   <button 
                     onClick={() => handleRegenerateQR(cp._id)} 

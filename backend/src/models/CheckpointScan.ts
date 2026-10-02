@@ -12,8 +12,8 @@ export interface ICheckpointScan extends Document {
   latitude?: number;
   longitude?: number;
   accuracy?: number;
-  distanceToCheckpoint?: number;
   locationVerified: boolean;
+  riskSignals?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +37,7 @@ const CheckpointScanSchema = new Schema<ICheckpointScan>(
     accuracy: { type: Number },
     distanceToCheckpoint: { type: Number },
     locationVerified: { type: Boolean, default: false },
+    riskSignals: [{ type: String }],
   },
   { timestamps: true }
 );

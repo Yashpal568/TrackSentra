@@ -214,6 +214,12 @@ export const PatrolLiveDetails = () => {
                             </span>
                           </div>
                         ) : <span className="text-text-muted">-</span>}
+                        {scan?.riskSignals && scan.riskSignals.length > 0 && (
+                          <div className="text-warning text-xs mt-2 font-medium bg-warning/10 p-2 rounded border border-warning/20 flex flex-col gap-1">
+                            <span className="font-bold flex items-center gap-1 uppercase tracking-wider"><AlertTriangle size={12}/> Risk Signals Detected:</span>
+                            {scan.riskSignals.map((r: string) => <span key={r}>• {r.replace(/_/g, ' ')}</span>)}
+                          </div>
+                        )}
                         {rejectedScans.length > 0 && (
                           <div className="text-danger text-xs mt-2 font-medium bg-danger/10 p-2 rounded border border-danger/20">
                             Failed: {rejectedScans[0].failureReason}

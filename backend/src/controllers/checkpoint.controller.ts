@@ -9,7 +9,7 @@ const generateQrPayload = () => crypto.randomUUID();
 export const createCheckpoint = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;
-    const { siteId, name, latitude, longitude, radius, notes } = req.body;
+    const { siteId, name, latitude, longitude, radius, gpsAccuracyThreshold, description, installationInstructions, notes } = req.body;
 
     const site = await Site.findOne({ _id: siteId, companyId: user.companyId });
     if (!site || site.status !== 'active') {
@@ -27,7 +27,11 @@ export const createCheckpoint = async (req: Request, res: Response): Promise<voi
       latitude,
       longitude,
       radius,
+      gpsAccuracyThreshold,
+      description,
+      installationInstructions,
       notes,
+      installationStatus: 'pending'
     });
 
     await AuditLog.create({
@@ -94,6 +98,40 @@ export const updateCheckpoint = async (req: Request, res: Response): Promise<voi
   }
 };
 
+export const verifyCheckpoint = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user;
+    const checkpoint = await Checkpoint.findOne({ _id: req.params.id, companyId: user.companyId });
+
+    if (!checkpoint) {
+      res.status(404).json({ error: { message: 'Checkpoint not found' } });
+      return;
+    }
+
+    if (checkpoint.installationStatus === 'active') {
+      res.status(400).json({ error: { message: 'Checkpoint is already active' } });
+      return;
+    }
+
+    checkpoint.installationStatus = 'active';
+    checkpoint.verifiedBy = user._id;
+    checkpoint.verifiedAt = new Date();
+    await checkpoint.save();
+
+    await AuditLog.create({
+      companyId: user.companyId,
+      userId: user._id,
+      action: 'VERIFY_CHECKPOINT',
+      resource: 'Checkpoint',
+      details: { checkpointId: checkpoint._id },
+    });
+
+    res.json({ checkpoint, message: 'Checkpoint verified and activated' });
+  } catch (error) {
+    res.status(500).json({ error: { message: 'Failed to verify checkpoint' } });
+  }
+};
+
 export const regenerateQrCode = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;
@@ -141,6 +179,7 @@ export const lookupCheckpointByToken = async (req: Request, res: Response): Prom
         latitude: checkpoint.latitude,
         longitude: checkpoint.longitude,
         radius: checkpoint.radius,
+        gpsAccuracyThreshold: checkpoint.gpsAccuracyThreshold,
         notes: checkpoint.notes 
       } 
     });
