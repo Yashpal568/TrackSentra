@@ -77,7 +77,7 @@ export const AuditLogs = () => {
 
       <Card className="p-5 bg-surface-card border-border-subtle shadow-sm">
         <div className="flex flex-wrap gap-5 items-end">
-          <div className="flex-1 min-w-[200px]">
+          <div className="flex-1 min-w-50">
             <Label className="mb-2">Filter by Action</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={16} />
@@ -90,7 +90,7 @@ export const AuditLogs = () => {
               />
             </div>
           </div>
-          <div className="flex-1 min-w-[200px]">
+          <div className="flex-1 min-w-50">
             <Label className="mb-2">Filter by Resource</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={16} />
@@ -252,7 +252,7 @@ export const AuditLogs = () => {
                   <ClipboardList className="text-text-muted" size={24} />
                 </div>
                 <h4 className="text-text-main font-bold mb-1">No Log Selected</h4>
-                <p className="text-text-secondary text-sm max-w-[200px]">Select an audit log from the table to view its detailed payload here.</p>
+                <p className="text-text-secondary text-sm max-w-50">Select an audit log from the table to view its detailed payload here.</p>
               </div>
             )}
           </Card>

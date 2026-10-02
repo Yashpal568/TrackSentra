@@ -133,7 +133,7 @@ export const AdminHelpCenter = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Content (Markdown supported in rendering)</label>
-                <textarea required className="w-full border p-2 rounded min-h-[300px]" value={form.content} onChange={e => setForm({...form, content: e.target.value})} />
+                <textarea required className="w-full border p-2 rounded min-h-75" value={form.content} onChange={e => setForm({...form, content: e.target.value})} />
               </div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="isPublished" checked={form.isPublished} onChange={e => setForm({...form, isPublished: e.target.checked})} />

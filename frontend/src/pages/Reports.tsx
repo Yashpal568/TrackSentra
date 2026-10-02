@@ -96,7 +96,7 @@ export const Reports = () => {
       {/* Tabs */}
       <Card className="p-1 bg-surface-sidebar border-border-subtle shadow-sm flex overflow-x-auto">
         <button 
-          className={`flex items-center justify-center gap-2 flex-1 min-w-[200px] py-2.5 px-4 text-sm font-bold rounded transition-all ${
+          className={`flex items-center justify-center gap-2 flex-1 min-w-50 py-2.5 px-4 text-sm font-bold rounded transition-all ${
             activeTab === 'operational' ? 'bg-surface-main text-emerald-primary shadow-sm' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover/50'
           }`}
           onClick={() => setActiveTab('operational')}
@@ -104,7 +104,7 @@ export const Reports = () => {
           <Activity size={18} /> Operational Summary
         </button>
         <button 
-          className={`flex items-center justify-center gap-2 flex-1 min-w-[200px] py-2.5 px-4 text-sm font-bold rounded transition-all ${
+          className={`flex items-center justify-center gap-2 flex-1 min-w-50 py-2.5 px-4 text-sm font-bold rounded transition-all ${
             activeTab === 'guards' ? 'bg-surface-main text-emerald-primary shadow-sm' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover/50'
           }`}
           onClick={() => setActiveTab('guards')}
@@ -112,7 +112,7 @@ export const Reports = () => {
           <Users size={18} /> Guard Analytics
         </button>
         <button 
-          className={`flex items-center justify-center gap-2 flex-1 min-w-[200px] py-2.5 px-4 text-sm font-bold rounded transition-all ${
+          className={`flex items-center justify-center gap-2 flex-1 min-w-50 py-2.5 px-4 text-sm font-bold rounded transition-all ${
             activeTab === 'history' ? 'bg-surface-main text-emerald-primary shadow-sm' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover/50'
           }`}
           onClick={() => setActiveTab('history')}
@@ -122,7 +122,7 @@ export const Reports = () => {
       </Card>
 
       {/* Content */}
-      <div className="min-h-[400px]">
+      <div className="min-h-100">
         {loading ? (
           <div className="flex justify-center items-center h-64 bg-surface-card border border-border-subtle rounded-xl shadow-sm">
             <div className="flex flex-col items-center gap-3">

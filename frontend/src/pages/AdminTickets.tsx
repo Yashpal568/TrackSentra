@@ -79,7 +79,7 @@ export const AdminTickets = () => {
                     {ticket.companyId?.name || 'Unknown'}
                   </td>
                   <td className="p-4">
-                    <Link to={`/admin/tickets/${ticket._id}`} className="block text-text-main font-medium truncate max-w-[250px]">
+                    <Link to={`/admin/tickets/${ticket._id}`} className="block text-text-main font-medium truncate max-w-62.5">
                       {ticket.subject}
                     </Link>
                     <span className="text-xs text-text-secondary">{ticket.category}</span>

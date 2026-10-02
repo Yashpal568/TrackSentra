@@ -26,13 +26,6 @@ export const Incidents = () => {
   const [newStatus, setNewStatus] = useState('');
   const [resolutionDetails, setResolutionDetails] = useState('');
 
-  useEffect(() => {
-    fetchIncidents();
-    if (user?.role !== 'GUARD') {
-      fetchSites();
-    }
-  }, [user]);
-
   const fetchIncidents = async () => {
     setLoading(true);
     try {
@@ -56,6 +49,13 @@ export const Incidents = () => {
       console.error('Failed to load sites', error);
     }
   };
+
+  useEffect(() => {
+    fetchIncidents();
+    if (user?.role !== 'GUARD') {
+      fetchSites();
+    }
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -76,7 +76,7 @@ export const AppLayout = () => {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out bg-surface-sidebar border-r border-border-subtle shadow-2xl xl:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} xl:translate-x-0 ${desktopSidebarOpen ? 'w-[280px]' : 'w-[280px] xl:w-[80px]'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out bg-surface-sidebar border-r border-border-subtle shadow-2xl xl:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} xl:translate-x-0 ${desktopSidebarOpen ? 'w-70' : 'w-70 xl:w-20'}`}>
         <div className={`h-16 flex items-center shrink-0 border-b border-border-subtle bg-surface-sidebar overflow-hidden transition-all duration-300 ${desktopSidebarOpen ? 'px-6 justify-between' : 'px-6 xl:px-0 justify-between xl:justify-center'}`}>
           <Link to="/dashboard" className="flex items-center gap-3 text-text-main font-bold text-lg tracking-tight">
             <div className="p-1.5 rounded-lg shadow-inner bg-surface-main border border-border-subtle flex items-center justify-center text-emerald-primary shrink-0">
@@ -128,7 +128,7 @@ export const AppLayout = () => {
                   
                   {/* Tooltip for collapsed state */}
                   {!desktopSidebarOpen && (
-                     <div className="fixed left-[85px] hidden xl:group-hover:block xl:group-focus-visible:block px-2.5 py-1.5 bg-surface-sidebar text-text-main text-xs font-bold rounded border border-border-subtle shadow-xl whitespace-nowrap z-[100] animate-in fade-in zoom-in-95 duration-200 pointer-events-none">
+                     <div className="fixed left-21.25 hidden xl:group-hover:block xl:group-focus-visible:block px-2.5 py-1.5 bg-surface-sidebar text-text-main text-xs font-bold rounded border border-border-subtle shadow-xl whitespace-nowrap z-100 animate-in fade-in zoom-in-95 duration-200 pointer-events-none">
                         {item.name}
                      </div>
                   )}
@@ -152,7 +152,7 @@ export const AppLayout = () => {
             
             {/* Tooltip for user profile */}
             {!desktopSidebarOpen && (
-              <div className="fixed left-[85px] hidden xl:group-hover:block xl:group-focus-visible:block px-2.5 py-1.5 bg-surface-sidebar text-text-main text-xs font-bold rounded border border-border-subtle shadow-xl whitespace-nowrap z-[100] animate-in fade-in zoom-in-95 duration-200 pointer-events-none">
+              <div className="fixed left-21.25 hidden xl:group-hover:block xl:group-focus-visible:block px-2.5 py-1.5 bg-surface-sidebar text-text-main text-xs font-bold rounded border border-border-subtle shadow-xl whitespace-nowrap z-100 animate-in fade-in zoom-in-95 duration-200 pointer-events-none">
                 {user?.firstName} {user?.lastName} - {user?.role?.replace('_', ' ')}
               </div>
             )}
@@ -161,9 +161,9 @@ export const AppLayout = () => {
       </aside>
 
       {/* Main Content Wrapper */}
-      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden relative transition-all duration-300 ease-in-out ${desktopSidebarOpen ? 'xl:ml-[280px]' : 'xl:ml-[80px]'}`}>
+      <div className={`flex-1 flex flex-col min-w-0 overflow-hidden relative transition-all duration-300 ease-in-out ${desktopSidebarOpen ? 'xl:ml-70' : 'xl:ml-20'}`}>
         {/* Decorative ambient light */}
-        <div className="absolute top-0 right-0 w-[800px] h-[400px] bg-emerald-primary/5 blur-[120px] pointer-events-none rounded-full"></div>
+        <div className="absolute top-0 right-0 w-200 h-100 bg-emerald-primary/5 blur-[120px] pointer-events-none rounded-full"></div>
 
         {/* Demo Mode Banner */}
         {user?.isDemoUser && (

@@ -20,23 +20,6 @@ export const GuardPatrols = () => {
   const { t } = useLanguageStore();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchData();
-
-    const saved = localStorage.getItem('trackSentra_offlineQueue');
-    if (saved) {
-      try {
-        setOfflineQueue(JSON.parse(saved));
-      } catch (e) {}
-    }
-
-    const handleOnline = () => {
-      syncOfflineQueue();
-    };
-    window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
-  }, []);
-
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -93,8 +76,32 @@ export const GuardPatrols = () => {
       setOfflineQueue(newQueue);
       localStorage.setItem('trackSentra_offlineQueue', JSON.stringify(newQueue));
       fetchData();
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Failed to sync offline queue', e);
+    }
   };
+
+  useEffect(() => {
+    fetchData();
+
+    const saved = localStorage.getItem('trackSentra_offlineQueue');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setOfflineQueue(parsed);
+      } catch (e) {
+        console.warn('Failed to parse offline queue', e);
+      }
+    }
+
+    const handleOnline = () => {
+      syncOfflineQueue();
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, []);
+
+  // (Replaced above)
 
   const startSession = async (routeId: string) => {
     try {
@@ -135,73 +142,73 @@ export const GuardPatrols = () => {
   );
 
   return (
-    <div className="p-4 space-y-6 pb-20 animate-in fade-in duration-300">
+    <div className="p-4 space-y-6 pb-20 animate-in fade-in duration-300 max-w-lg mx-auto">
       
-      <div className="mb-2 flex items-center justify-between">
-        <h1 className="text-2xl font-black text-[var(--color-text-main)]">
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-2xl font-black text-text-main tracking-tight">
           {t('patrol.active') || 'Patrols'}
         </h1>
         {offlineQueue.length > 0 && (
-          <div className="flex items-center gap-1.5 bg-warning/10 text-warning px-3 py-1 rounded-full text-xs font-bold border border-warning/30">
+          <div className="flex items-center gap-1.5 bg-warning/10 text-warning px-3 py-1 rounded-full text-xs font-bold border border-warning/30 shadow-sm">
             <Clock size={12} /> {offlineQueue.length} queued
           </div>
         )}
       </div>
 
       {error && (
-        <div className="p-4 bg-danger/10 text-danger border border-danger/30 rounded-2xl flex items-center gap-3">
-          <AlertTriangle size={20} className="shrink-0" />
-          <p className="font-bold text-sm">{error}</p>
+        <div className="p-4 bg-danger/10 text-danger border border-danger/30 rounded-xl flex items-start gap-3 shadow-sm">
+          <AlertTriangle size={18} className="shrink-0 mt-0.5" />
+          <p className="font-bold text-sm leading-tight">{error}</p>
         </div>
       )}
 
       {activeSession ? (
         <div className="space-y-6">
-          <Card className="bg-emerald-900/20 border-2 border-emerald-500 shadow-[0_10px_40px_rgba(16,185,129,0.15)] rounded-3xl overflow-hidden relative">
-            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(16,185,129,0.05)_50%,transparent_75%,transparent_100%)] bg-[length:20px_20px]"></div>
+          <Card className="bg-gradient-to-br from-emerald-900/80 to-emerald-950 border border-emerald-500/50 shadow-lg rounded-2xl overflow-hidden relative group">
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(16,185,129,0.05)_50%,transparent_75%,transparent_100%)] bg-size-[20px_20px]"></div>
             <div className="p-6 relative z-10">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-5">
                 <span className="relative flex items-center gap-2">
-                  <span className="relative flex h-3 w-3">
+                  <span className="relative flex h-2.5 w-2.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                   </span>
                   <span className="text-emerald-400 font-bold uppercase tracking-widest text-[10px]">
                     {t('patrol.in_progress') || 'IN PROGRESS'}
                   </span>
                 </span>
-                <span className="text-emerald-100/70 font-bold text-sm bg-emerald-900/50 px-3 py-1 rounded-full">
+                <span className="text-emerald-100/90 font-bold text-xs bg-emerald-950/50 border border-emerald-500/30 px-3 py-1 rounded-full shadow-inner">
                   {scans.filter(s => s.status === 'valid').length} / {activeSession.routeId.checkpoints.length} {t('dashboard.stops') || 'Stops'}
                 </span>
               </div>
               
-              <h2 className="text-2xl font-bold text-white mb-2">{activeSession.routeId.name}</h2>
-              <div className="flex items-center gap-4 text-emerald-100/70 text-xs font-bold">
-                <span className="flex items-center gap-1"><MapPin size={14}/> {activeSession.siteId?.name}</span>
-                <span className="flex items-center gap-1"><Clock size={14}/> {new Date(activeSession.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+              <h2 className="text-2xl font-black text-white mb-3 tracking-tight">{activeSession.routeId.name}</h2>
+              <div className="flex items-center gap-4 text-emerald-100/70 text-xs font-semibold">
+                <span className="flex items-center gap-1.5"><MapPin size={14} className="text-emerald-500"/> {activeSession.siteId?.name}</span>
+                <span className="flex items-center gap-1.5"><Clock size={14} className="text-emerald-500"/> {new Date(activeSession.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
               </div>
             </div>
           </Card>
 
-          <div className="bg-[var(--color-surface-sidebar)] rounded-3xl p-6 border border-[var(--color-border-subtle)]">
-            <h3 className="font-bold text-[var(--color-text-main)] text-lg mb-6">
+          <div className="bg-surface-card rounded-2xl p-6 border border-border-subtle shadow-sm">
+            <h3 className="font-black text-text-main text-lg mb-6 tracking-tight">
               {t('patrol.checkpoints') || 'Checkpoints'}
             </h3>
             
-            <div className="relative border-l-2 border-[var(--color-border-subtle)] ml-4 space-y-8 pb-4">
+            <div className="relative border-l-2 border-border-subtle ml-3.5 space-y-6 pb-2">
               {activeSession.routeId.checkpoints.map((cp: any, idx: number) => {
                 const scan = scans.find(s => s.checkpointId?._id === cp._id && s.status === 'valid');
                 return (
-                  <div key={cp._id} className="relative pl-6">
-                    <div className={`absolute -left-[11px] top-0 w-5 h-5 rounded-full border-4 flex items-center justify-center ${scan ? 'bg-emerald-500 border-[var(--color-surface-sidebar)] ring-2 ring-emerald-500/30' : 'bg-[var(--color-surface-main)] border-[var(--color-surface-sidebar)] ring-2 ring-[var(--color-border-subtle)]'}`}>
-                      {scan && <CheckCircle2 size={12} className="text-[#070B09]" />}
+                  <div key={cp._id} className="relative pl-7">
+                    <div className={`absolute -left-2.5 top-0.5 w-5 h-5 rounded-full border-[3px] flex items-center justify-center transition-colors ${scan ? 'bg-emerald-500 border-surface-card ring-4 ring-emerald-500/20' : 'bg-surface-main border-surface-card ring-2 ring-border-subtle'}`}>
+                      {scan && <CheckCircle2 size={12} className="text-background" />}
                     </div>
                     
-                    <div className={`p-4 rounded-2xl border ${scan ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-[var(--color-surface-main)] border-[var(--color-border-subtle)]'}`}>
-                      <h4 className={`font-bold text-base mb-1 ${scan ? 'text-emerald-400' : 'text-[var(--color-text-main)]'}`}>
+                    <div className={`p-4 rounded-xl border transition-colors ${scan ? 'bg-emerald-500/10 border-emerald-500/30 shadow-sm' : 'bg-surface-main border-border-subtle'}`}>
+                      <h4 className={`font-bold text-sm mb-1 tracking-tight ${scan ? 'text-emerald-500' : 'text-text-main'}`}>
                         {idx + 1}. {cp.name}
                       </h4>
-                      <p className="text-xs text-[var(--color-text-secondary)] font-medium">
+                      <p className="text-xs text-text-secondary font-medium">
                         {cp.location}
                       </p>
                     </div>
@@ -210,25 +217,25 @@ export const GuardPatrols = () => {
               })}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-[var(--color-border-subtle)]">
+            <div className="mt-8 pt-6 border-t border-border-subtle">
               {scanning ? (
-                <div className="bg-[var(--color-surface-main)] p-4 rounded-3xl border border-[var(--color-border-subtle)]">
-                  <div className="mb-4 rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-inner">
+                <div className="bg-surface-main p-4 rounded-2xl border border-border-subtle shadow-sm animate-in zoom-in-95 duration-200">
+                  <div className="mb-4 rounded-xl overflow-hidden border border-emerald-500 shadow-inner">
                     <Scanner
                       onScan={(result) => handleScan(result[0].rawValue)}
                       onError={(error: any) => console.log(error?.message)}
                     />
                   </div>
-                  <Button variant="secondary" className="w-full h-14 rounded-xl font-bold" onClick={() => setScanning(false)}>
+                  <Button variant="secondary" className="w-full h-12 rounded-lg font-bold" onClick={() => setScanning(false)}>
                     {t('patrol.cancel_scan') || 'Cancel'}
                   </Button>
                 </div>
               ) : (
                 <Button 
                   onClick={() => setScanning(true)}
-                  className="w-full h-16 text-lg shadow-lg flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-[#070B09] font-black"
+                  className="w-full h-14 text-base shadow-md flex items-center justify-center gap-2 rounded-xl bg-emerald-primary hover:bg-emerald-400 text-background font-black transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  <ScanLine size={24} /> {t('patrol.launch_scanner') || 'Scan QR Code'}
+                  <ScanLine size={20} /> {t('patrol.launch_scanner') || 'Scan QR Code'}
                 </Button>
               )}
             </div>
@@ -236,16 +243,16 @@ export const GuardPatrols = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex bg-[var(--color-surface-sidebar)] rounded-xl p-1.5 border border-[var(--color-border-subtle)] mb-6">
+          <div className="flex bg-surface-main rounded-xl p-1 border border-border-subtle mb-6 shadow-sm">
             <button 
               onClick={() => setActiveTab('assigned')}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'assigned' ? 'bg-[var(--color-surface-main)] text-[var(--color-text-main)] shadow-sm' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-main)]'}`}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'assigned' ? 'bg-surface-card text-text-main shadow-sm border border-border-subtle' : 'text-text-secondary hover:text-text-main'}`}
             >
-              {t('dashboard.upcoming_duty') || 'Assigned Routes'}
+              {t('dashboard.upcoming_duty') || 'Assigned'}
             </button>
             <button 
               onClick={() => setActiveTab('completed')}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'completed' ? 'bg-[var(--color-surface-main)] text-[var(--color-text-main)] shadow-sm' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-main)]'}`}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'completed' ? 'bg-surface-card text-text-main shadow-sm border border-border-subtle' : 'text-text-secondary hover:text-text-main'}`}
             >
               Completed
             </button>
@@ -253,28 +260,28 @@ export const GuardPatrols = () => {
 
           {activeTab === 'assigned' && (
             routes.length === 0 ? (
-              <div className="bg-[var(--color-surface-sidebar)] p-8 rounded-3xl text-center border border-dashed border-[var(--color-border-subtle)]">
-                <MapPin size={32} className="mx-auto text-[var(--color-text-muted)] mb-3" />
-                <p className="text-[var(--color-text-secondary)] font-bold">{t('patrol.no_routes') || 'No Routes Assigned'}</p>
+              <div className="bg-surface-card p-10 rounded-2xl text-center border border-dashed border-border-subtle shadow-sm">
+                <MapPin size={32} className="mx-auto text-border-subtle mb-4" />
+                <p className="text-text-secondary font-bold text-sm">{t('patrol.no_routes') || 'No Routes Assigned'}</p>
               </div>
             ) : (
               routes.map(route => (
-                <Card key={route._id} className="bg-[var(--color-surface-sidebar)] border-[var(--color-border-subtle)] rounded-3xl p-5 hover:border-emerald-500/50 transition-colors">
-                  <h3 className="text-xl font-black text-[var(--color-text-main)] mb-3">{route.name}</h3>
+                <Card key={route._id} className="bg-surface-card border-border-subtle rounded-2xl p-6 hover:border-emerald-500/40 transition-colors shadow-sm group">
+                  <h3 className="text-lg font-black text-text-main mb-4 tracking-tight group-hover:text-emerald-400 transition-colors">{route.name}</h3>
                   <div className="flex gap-3 mb-6">
-                    <span className="flex items-center gap-1.5 bg-[var(--color-surface-main)] px-3 py-1.5 rounded-lg border border-[var(--color-border-subtle)] text-xs font-bold text-[var(--color-text-secondary)]">
+                    <span className="flex items-center gap-1.5 bg-surface-main px-3 py-1.5 rounded-lg border border-border-subtle text-xs font-bold text-text-secondary">
                       <MapPin size={14} className="text-emerald-500" /> {route.checkpoints.length} {t('dashboard.stops') || 'Stops'}
                     </span>
-                    <span className="flex items-center gap-1.5 bg-[var(--color-surface-main)] px-3 py-1.5 rounded-lg border border-[var(--color-border-subtle)] text-xs font-bold text-[var(--color-text-secondary)]">
+                    <span className="flex items-center gap-1.5 bg-surface-main px-3 py-1.5 rounded-lg border border-border-subtle text-xs font-bold text-text-secondary">
                       <Clock size={14} className="text-emerald-500" /> {route.expectedDurationMinutes} {t('dashboard.mins') || 'mins'}
                     </span>
                   </div>
                   
                   <Button
                     onClick={() => startSession(route._id)}
-                    className="w-full h-14 rounded-xl flex justify-center items-center gap-2 font-black text-lg bg-emerald-500 hover:bg-emerald-400 text-[#070B09]"
+                    className="w-full h-12 rounded-xl flex justify-center items-center gap-2 font-black text-sm bg-surface-main hover:bg-emerald-primary hover:text-background text-text-main border border-border-subtle hover:border-emerald-primary transition-all group-hover:shadow-md"
                   >
-                    {t('patrol.start_patrol') || 'Start Patrol'} <ArrowRight size={20} />
+                    {t('patrol.start_patrol') || 'Start Patrol'} <ArrowRight size={16} />
                   </Button>
                 </Card>
               ))
@@ -283,21 +290,22 @@ export const GuardPatrols = () => {
 
           {activeTab === 'completed' && (
             sessions.filter(s => s.status === 'completed').length === 0 ? (
-              <div className="bg-[var(--color-surface-sidebar)] p-8 rounded-3xl text-center border border-dashed border-[var(--color-border-subtle)]">
-                <CheckCircle2 size={32} className="mx-auto text-[var(--color-text-muted)] mb-3" />
-                <p className="text-[var(--color-text-secondary)] font-bold">No completed patrols yet</p>
+              <div className="bg-surface-card p-10 rounded-2xl text-center border border-dashed border-border-subtle shadow-sm">
+                <CheckCircle2 size={32} className="mx-auto text-border-subtle mb-4" />
+                <p className="text-text-secondary font-bold text-sm">No completed patrols yet</p>
               </div>
             ) : (
               sessions.filter(s => s.status === 'completed').map(session => (
-                <Card key={session._id} className="bg-[var(--color-surface-sidebar)] border-[var(--color-border-subtle)] rounded-3xl p-5 opacity-80">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-bold text-[var(--color-text-main)]">{session.routeId?.name}</h3>
-                    <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-md text-[10px] font-bold border border-emerald-500/20 uppercase">
+                <Card key={session._id} className="bg-surface-card border-border-subtle rounded-2xl p-5 shadow-sm hover:border-border-subtle transition-colors">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-base font-bold text-text-main tracking-tight">{session.routeId?.name}</h3>
+                    <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-md text-[10px] font-bold border border-emerald-500/20 uppercase tracking-wider">
                       <CheckCircle2 size={12} /> Completed
                     </span>
                   </div>
-                  <div className="flex gap-3 text-xs font-bold text-[var(--color-text-secondary)]">
-                    <span className="flex items-center gap-1"><Clock size={14} className="text-emerald-500" /> {new Date(session.startTime).toLocaleDateString()}</span>
+                  <div className="flex gap-4 text-xs font-semibold text-text-secondary">
+                    <span className="flex items-center gap-1.5"><MapPin size={14} className="text-text-muted" /> {session.siteId?.name}</span>
+                    <span className="flex items-center gap-1.5"><Clock size={14} className="text-text-muted" /> {new Date(session.startTime).toLocaleDateString()}</span>
                   </div>
                 </Card>
               ))
