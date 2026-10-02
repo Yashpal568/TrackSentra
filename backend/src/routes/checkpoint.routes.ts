@@ -12,6 +12,9 @@ const router = Router();
 router.use(authenticate);
 router.use(requireActiveSubscription);
 
+// Lookup checkpoint by token (Guard QR scan)
+router.get('/lookup/:token', checkpointController.lookupCheckpointByToken);
+
 // List checkpoints (Any logged in user can view checkpoints for their company/site)
 router.get('/', checkpointController.getCheckpoints);
 

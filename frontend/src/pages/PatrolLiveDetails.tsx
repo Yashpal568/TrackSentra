@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
 import { api } from '../lib/axios';
 import { Card } from '../components/ui/Card';
-import { LayoutDashboard, ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
-import { Button } from '../components/ui/Button';
+import { LayoutDashboard, ArrowLeft, CheckCircle2, XCircle, Clock, MapPin, User, Activity, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Badge } from '../components/ui/Badge';
 
 export const PatrolLiveDetails = () => {
   const { id } = useParams();
-  const { user } = useAuthStore();
   const [session, setSession] = useState<any>(null);
   const [scans, setScans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,8 +38,6 @@ export const PatrolLiveDetails = () => {
 
   const fetchDetails = async () => {
     try {
-      // Find the session info by getting all and filtering (since we don't have a GET /sessions/:id yet)
-      // Alternatively, we can fetch all sessions and filter.
       const [sessionsRes, scansRes] = await Promise.all([
         api.get('/patrols/sessions'),
         api.get(`/patrols/sessions/${id}/scans`)
@@ -61,107 +57,175 @@ export const PatrolLiveDetails = () => {
     }
   };
 
-  if (loading) return <div className="p-8">Loading...</div>;
-  if (error) return <div className="p-8 text-red-500">{error}</div>;
-  if (!session) return <div className="p-8">Session not found</div>;
+  if (loading) return (
+    <div className="flex justify-center items-center h-64 bg-surface-card m-8 rounded-xl border border-border-subtle shadow-sm">
+      <div className="flex flex-col items-center gap-3">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-primary"></div>
+        <p className="text-emerald-primary font-bold animate-pulse text-sm uppercase tracking-wider">Syncing Telemetry...</p>
+      </div>
+    </div>
+  );
+  if (error) return <div className="p-8 text-danger text-center font-bold bg-danger/10 border border-danger/30 rounded-lg max-w-2xl mx-auto mt-8 flex items-center justify-center gap-2"><AlertTriangle/> {error}</div>;
+  if (!session) return <div className="p-8 text-text-main text-center bg-surface-card m-8 rounded-xl border border-border-subtle">Session not found</div>;
+
+  const validScansCount = scans.filter(s => s.status === 'valid').length;
+  const totalCheckpoints = session.routeId?.checkpoints?.length || 0;
+  const completionPercentage = totalCheckpoints > 0 ? Math.round((validScansCount / totalCheckpoints) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-surface-hover">
-      <nav className="bg-background text-white p-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-6">
-            <h1 className="text-xl font-bold flex items-center gap-2"><LayoutDashboard /> TrackSentra</h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-slate-300">{user?.email}</span>
-            <Button variant="secondary" onClick={() => window.location.href = '/dashboard'}>Dashboard</Button>
-          </div>
-        </div>
-      </nav>
-
-      <main className="p-8 max-w-4xl mx-auto">
-        <Link to="/live" className="text-emerald-primary hover:text-blue-800 flex items-center gap-2 mb-6">
-          <ArrowLeft size={16} /> Back to Live Monitoring
+    <div className="text-text-main">
+      <main className="p-4 sm:p-8 max-w-6xl mx-auto animate-in fade-in duration-500">
+        <Link to="/patrols" className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-surface-main border border-border-subtle text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors mb-8 text-sm font-bold shadow-sm">
+          <ArrowLeft size={16} /> Back to Patrol Management
         </Link>
 
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">{session.routeId?.name}</h1>
-            <p className="text-xl text-gray-600">{session.siteId?.name}</p>
+        {/* Hero Header Card */}
+        <Card className="bg-surface-card border-border-subtle shadow-lg mb-8 overflow-hidden relative p-0">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
+          <div className="p-8 relative z-10">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-4xl font-black text-text-main tracking-tight">{session.routeId?.name}</h1>
+                  <Badge variant={session.status === 'in_progress' ? 'default' : session.status === 'completed' ? 'success' : 'outline'} className="uppercase px-3 py-1 text-xs">
+                    {session.status === 'in_progress' && <span className="inline-block w-2 h-2 rounded-full bg-blue-400 mr-2 animate-pulse"></span>}
+                    {session.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+                <p className="text-lg text-text-secondary flex items-center gap-2 font-medium"><MapPin size={18} className="text-emerald-primary"/> {session.siteId?.name}</p>
+              </div>
+              
+              <div className="flex flex-col items-end">
+                <div className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Completion Progress</div>
+                <div className="flex items-center gap-4">
+                  <div className="w-48 h-3 bg-surface-main rounded-full overflow-hidden border border-border-subtle shadow-inner">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-1000 ${completionPercentage === 100 ? 'bg-emerald-primary' : 'bg-blue-500'}`}
+                      style={{ width: `${completionPercentage}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xl font-black text-text-main">{completionPercentage}%</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <span className={`px-4 py-2 rounded-full font-bold text-sm ${session.status === 'in_progress' ? 'bg-blue-100 text-blue-800 animate-pulse' : 'bg-gray-200 text-text-main'}`}>
-            {session.status.toUpperCase()}
-          </span>
+        </Card>
+
+        {/* Stats Grid */}
+        <div className="grid gap-6 md:grid-cols-3 mb-10">
+          <Card className="p-6 bg-surface-card border-border-subtle hover:border-emerald-primary/30 transition-colors shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-surface-main border border-border-subtle flex items-center justify-center text-emerald-primary shadow-inner">
+                <User size={20} />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-widest text-text-muted">Assigned Guard</p>
+            </div>
+            <p className="text-2xl font-black text-text-main">{session.guardId?.employeeId || 'Unknown ID'}</p>
+          </Card>
+          
+          <Card className="p-6 bg-surface-card border-border-subtle hover:border-blue-500/30 transition-colors shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-surface-main border border-border-subtle flex items-center justify-center text-blue-500 shadow-inner">
+                <Clock size={20} />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-widest text-text-muted">Start Time</p>
+            </div>
+            <p className="text-2xl font-black text-text-main">{new Date(session.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</p>
+            <p className="text-sm text-text-secondary mt-1">{new Date(session.startTime).toLocaleDateString()}</p>
+          </Card>
+          
+          <Card className="p-6 bg-surface-card border-border-subtle hover:border-warning/30 transition-colors shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg bg-surface-main border border-border-subtle flex items-center justify-center text-warning shadow-inner">
+                <LayoutDashboard size={20} />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-widest text-text-muted">Expected Duration</p>
+            </div>
+            <p className="text-2xl font-black text-text-main">{session.routeId?.expectedDurationMinutes} <span className="text-lg font-medium text-text-secondary">mins</span></p>
+          </Card>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3 mb-8">
-          <Card className="p-4">
-            <p className="text-sm text-text-secondary mb-1">Guard</p>
-            <p className="font-bold">{session.guardId?.employeeId || 'Unknown'}</p>
-          </Card>
-          <Card className="p-4">
-            <p className="text-sm text-text-secondary mb-1">Started At</p>
-            <p className="font-bold">{new Date(session.startTime).toLocaleString()}</p>
-          </Card>
-          <Card className="p-4">
-            <p className="text-sm text-text-secondary mb-1">Expected Duration</p>
-            <p className="font-bold">{session.routeId?.expectedDurationMinutes} mins</p>
-          </Card>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-text-main flex items-center gap-2">
+            <Activity className="text-emerald-primary" /> Checkpoint Telemetry Stream
+          </h2>
+          <Badge variant="outline" className="bg-surface-card font-mono">
+            {validScansCount} / {totalCheckpoints} CLEARED
+          </Badge>
         </div>
+        
+        <Card className="p-0 overflow-hidden bg-surface-card border-border-subtle shadow-md">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-surface-sidebar text-text-muted text-xs uppercase tracking-wider font-bold border-b border-border-subtle">
+                  <th className="px-6 py-4">Checkpoint Node</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Timestamp</th>
+                  <th className="px-6 py-4">GPS Cryptographic Validation</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-subtle">
+                {session.routeId?.checkpoints?.map((cp: any, index: number) => {
+                  const scan = scans.find(s => s.checkpointId?._id === cp._id && s.status === 'valid');
+                  const rejectedScans = scans.filter(s => s.checkpointId?._id === cp._id && s.status !== 'valid');
 
-        <h2 className="text-xl font-bold mb-4">Checkpoint Sequence & Scans</h2>
-        <Card className="p-0 overflow-hidden">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-hover text-gray-600 text-sm">
-                <th className="p-4 border-b">Checkpoint</th>
-                <th className="p-4 border-b">Status</th>
-                <th className="p-4 border-b">Time</th>
-                <th className="p-4 border-b">GPS / Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {session.routeId?.checkpoints?.map((cp: any, index: number) => {
-                // Find scan for this checkpoint
-                const scan = scans.find(s => s.checkpointId?._id === cp._id && s.status === 'valid');
-                const rejectedScans = scans.filter(s => s.checkpointId?._id === cp._id && s.status !== 'valid');
-
-                return (
-                  <tr key={cp._id} className="border-b last:border-0 hover:bg-surface-hover">
-                    <td className="p-4">
-                      <div className="font-medium">{index + 1}. {cp.name}</div>
-                      <div className="text-xs text-text-secondary">{cp.location}</div>
-                    </td>
-                    <td className="p-4">
-                      {scan ? (
-                        <span className="flex items-center text-emerald-primary text-sm font-medium"><CheckCircle2 size={16} className="mr-1" /> Valid</span>
-                      ) : (
-                        <span className="text-gray-400 text-sm font-medium">Pending</span>
-                      )}
-                      {rejectedScans.map(rs => (
-                        <div key={rs._id} className="flex items-center text-red-500 text-xs mt-1">
-                          <XCircle size={12} className="mr-1" /> {rs.status}
+                  return (
+                    <tr key={cp._id} className="hover:bg-surface-hover/50 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="font-bold text-text-main flex items-center gap-3">
+                          <span className="w-7 h-7 rounded-md bg-surface-main border border-border-subtle flex items-center justify-center text-xs text-text-secondary font-black shadow-inner group-hover:text-emerald-primary transition-colors">{index + 1}</span>
+                          {cp.name}
                         </div>
-                      ))}
-                    </td>
-                    <td className="p-4 text-sm">
-                      {scan ? new Date(scan.scannedAt).toLocaleTimeString() : '-'}
-                    </td>
-                    <td className="p-4 text-sm text-gray-600">
-                      {scan?.locationVerified ? (
-                        <span className="text-emerald-primary">GPS Verified ({Math.round(scan.distanceToCheckpoint)}m)</span>
-                      ) : scan ? (
-                        <span className="text-gray-400">No GPS</span>
-                      ) : '-'}
-                      {rejectedScans.length > 0 && (
-                        <div className="text-red-500 text-xs mt-1">{rejectedScans[0].failureReason}</div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                        <div className="text-xs text-text-secondary mt-1 ml-10 flex items-center gap-1 font-mono">
+                          <MapPin size={10}/> {cp.location}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {scan ? (
+                          <Badge variant="success" className="uppercase"><CheckCircle2 size={12} className="mr-1"/> Cleared</Badge>
+                        ) : (
+                          <Badge variant="outline" className="bg-surface-main text-text-muted border-dashed uppercase"><Clock size={12} className="mr-1"/> Pending</Badge>
+                        )}
+                        {rejectedScans.map(rs => (
+                          <div key={rs._id} className="mt-2">
+                            <Badge variant="destructive" className="uppercase text-[10px]"><XCircle size={10} className="mr-1"/> {rs.status}</Badge>
+                          </div>
+                        ))}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-text-main font-bold font-mono">
+                        {scan ? new Date(scan.scannedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) : <span className="text-text-muted">-</span>}
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        {scan?.locationVerified ? (
+                          <div className="flex flex-col gap-1 bg-emerald-primary/5 p-2 rounded border border-emerald-primary/10">
+                            <span className="text-emerald-primary font-bold flex items-center gap-1.5 text-xs uppercase tracking-wider">
+                              <ShieldCheck size={14} /> GPS Verified
+                            </span>
+                            <span className="text-xs text-text-secondary font-mono flex justify-between items-center">
+                              <span>Distance Tolerance:</span>
+                              <span className="font-bold text-text-main">{Math.round(scan.distanceToCheckpoint)}m</span>
+                            </span>
+                          </div>
+                        ) : scan ? (
+                          <div className="bg-warning/5 p-2 rounded border border-warning/20">
+                            <span className="text-warning font-bold flex items-center gap-1.5 text-xs uppercase tracking-wider">
+                              <AlertTriangle size={14} /> No GPS Data
+                            </span>
+                          </div>
+                        ) : <span className="text-text-muted">-</span>}
+                        {rejectedScans.length > 0 && (
+                          <div className="text-danger text-xs mt-2 font-medium bg-danger/10 p-2 rounded border border-danger/20">
+                            Failed: {rejectedScans[0].failureReason}
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </Card>
       </main>
     </div>

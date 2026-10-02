@@ -5,6 +5,7 @@ import { Card } from '../components/ui/Card';
 import { Link } from 'react-router-dom';
 import { Radio, Clock, AlertTriangle, Shield, MapPin, Activity, User, ChevronRight } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
 
 export const LiveMonitoring = () => {
   const { user } = useAuthStore();
@@ -57,7 +58,7 @@ export const LiveMonitoring = () => {
   if (user?.role === 'GUARD') {
     return (
       <div className="flex flex-col justify-center items-center h-64 p-8 text-center animate-in fade-in duration-500">
-        <Shield size={48} className="text-slate-300 mb-4" />
+        <Shield size={48} className="text-danger mb-4" />
         <h2 className="text-xl font-bold text-text-main">Access Restricted</h2>
         <p className="text-text-secondary max-w-md mt-2">Live monitoring is restricted to control room operators, supervisors, and administrators.</p>
       </div>
@@ -65,116 +66,118 @@ export const LiveMonitoring = () => {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl mx-auto">
       
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-text-main flex items-center gap-2">
-            <Radio className="text-emerald-primary" /> Live Monitoring
+            <Radio className="text-emerald-primary animate-pulse" /> Live SOC Monitoring
           </h1>
           <p className="text-text-secondary text-sm mt-1">Real-time overview of active security patrols across all facilities.</p>
         </div>
-        <div className="flex items-center gap-3 bg-surface-card px-4 py-2 rounded-lg border border-border-subtle shadow-sm">
+        <div className="flex items-center gap-3 bg-surface-card px-4 py-2.5 rounded-lg border border-border-subtle shadow-sm">
           <div className="relative flex h-3 w-3">
-            {connectionStatus === 'Live' && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>}
-            <span className={`relative inline-flex rounded-full h-3 w-3 ${connectionStatus === 'Live' ? 'bg-emerald-primary/100' : 'bg-red-500'}`}></span>
+            {connectionStatus === 'Live' && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-primary opacity-75"></span>}
+            <span className={`relative inline-flex rounded-full h-3 w-3 ${connectionStatus === 'Live' ? 'bg-emerald-primary' : 'bg-red-500'}`}></span>
           </div>
-          <span className={`text-sm font-bold ${connectionStatus === 'Live' ? 'text-emerald-primary' : 'text-red-700'}`}>{connectionStatus}</span>
+          <span className={`text-sm font-bold uppercase tracking-wider ${connectionStatus === 'Live' ? 'text-emerald-primary' : 'text-red-500'}`}>{connectionStatus}</span>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-lg flex items-center gap-3">
+        <div className="p-4 bg-danger/10 text-danger border border-danger/30 rounded-lg flex items-center gap-3 shadow-sm">
           <AlertTriangle size={20} /> {error}
         </div>
       )}
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
+        <div className="flex justify-center items-center h-64 bg-surface-card border border-border-subtle rounded-xl shadow-sm">
           <div className="flex flex-col items-center gap-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="text-text-secondary font-medium animate-pulse">Initializing Live View...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-primary"></div>
+            <p className="text-emerald-primary font-bold animate-pulse text-sm uppercase tracking-wider">Initializing Live View...</p>
           </div>
         </div>
       ) : sessions.length === 0 ? (
-        <Card className="text-center py-16 px-6 border-dashed border-2 border-border-subtle bg-surface-main">
-          <div className="w-16 h-16 bg-surface-card rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-border-subtle relative">
-            <Activity className="w-8 h-8 text-text-muted" />
-            <div className="absolute top-0 right-0 w-3 h-3 bg-slate-300 rounded-full border-2 border-white"></div>
+        <Card className="text-center py-20 px-6 border-dashed border-2 border-border-subtle bg-surface-main">
+          <div className="w-20 h-20 bg-surface-card rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-border-subtle relative">
+            <Activity className="w-10 h-10 text-text-muted" />
+            <div className="absolute top-1 right-1 w-4 h-4 bg-surface-main rounded-full border-2 border-border-subtle"></div>
           </div>
-          <h3 className="text-lg font-bold text-text-main mb-2">No Active Patrols</h3>
+          <h3 className="text-xl font-bold text-text-main mb-2">No Active Patrols</h3>
           <p className="text-text-secondary max-w-md mx-auto">There are currently no security patrols in progress. The feed will automatically update when a patrol begins.</p>
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {sessions.map(session => (
-            <Card key={session._id} className="flex flex-col border-t-4 border-t-blue-500 shadow-md hover:shadow-lg transition-shadow bg-surface-card overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 opacity-50 blur-2xl pointer-events-none"></div>
+            <Card key={session._id} className="flex flex-col border border-border-subtle shadow-md hover:border-emerald-primary/30 transition-all bg-surface-card overflow-hidden relative p-0 group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-primary/5 rounded-full -mr-16 -mt-16 blur-2xl pointer-events-none transition-opacity group-hover:opacity-100 opacity-50"></div>
               
               <div className="p-6 pb-4 flex-1 relative z-10">
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-start mb-5">
                   <div>
-                    <h3 className="text-xl font-bold text-text-main">{session.routeId?.name}</h3>
-                    <div className="flex items-center text-text-secondary text-sm mt-1 font-medium">
-                      <MapPin size={14} className="mr-1" /> {session.siteId?.name}
+                    <h3 className="text-xl font-black text-text-main tracking-tight">{session.routeId?.name}</h3>
+                    <div className="flex items-center text-text-secondary text-sm mt-1.5 font-medium">
+                      <MapPin size={14} className="mr-1 text-emerald-primary" /> {session.siteId?.name}
                     </div>
                   </div>
-                  <span className="px-2.5 py-1 bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider rounded border border-blue-200 flex items-center gap-1.5 shadow-sm">
-                    <span className="w-1.5 h-1.5 bg-emerald-hover rounded-full animate-pulse"></span> ACTIVE
-                  </span>
+                  <Badge variant="default" className="bg-blue-500/10 text-blue-400 border-blue-500/30 uppercase tracking-wider font-bold animate-in zoom-in shadow-sm px-2.5 py-1">
+                    <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse mr-1.5 inline-block"></span> ACTIVE
+                  </Badge>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 my-6 bg-surface-main p-4 rounded-lg border border-border-subtle">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded bg-surface-card border border-border-subtle flex items-center justify-center text-text-secondary shrink-0">
+                {/* Changed from grid to flex column with row layout to fix the text overflow issue */}
+                <div className="flex flex-col gap-3 my-6 bg-surface-main p-4 rounded-lg border border-border-subtle">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-md bg-surface-card border border-border-subtle flex items-center justify-center text-text-secondary shrink-0 shadow-inner">
                       <User size={16} />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Guard / ID</p>
-                      <p className="font-semibold text-text-main text-sm line-clamp-1" title={session.guardId?.employeeId}>{session.guardId?.employeeId || 'Unknown ID'}</p>
+                      <p className="font-bold text-text-main text-sm truncate" title={session.guardId?.employeeId}>{session.guardId?.userId ? `${session.guardId.userId.firstName} ${session.guardId.userId.lastName}` : session.guardId?.employeeId || 'Unknown ID'}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded bg-surface-card border border-border-subtle flex items-center justify-center text-text-secondary shrink-0">
+                  <div className="w-full h-px bg-border-subtle"></div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-md bg-surface-card border border-border-subtle flex items-center justify-center text-text-secondary shrink-0 shadow-inner">
                       <Clock size={16} />
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Started At</p>
-                      <p className="font-semibold text-text-main text-sm">{new Date(session.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</p>
+                      <p className="font-bold text-text-main text-sm font-mono">{new Date(session.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="mb-2">
-                  <h4 className="text-[11px] font-bold text-text-muted mb-3 uppercase tracking-wider flex items-center gap-2">
-                    <Activity size={12} /> Live Checkpoint Feed
+                  <h4 className="text-[10px] font-bold text-text-muted mb-3 uppercase tracking-widest flex items-center gap-2">
+                    <Activity size={12} className="text-emerald-primary" /> Live Checkpoint Feed
                   </h4>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {session.routeId?.checkpoints?.slice(0, 4).map((cp: any, idx: number) => {
                       return (
-                        <div key={cp._id || idx} className="flex items-center text-sm p-2 rounded-md bg-surface-card border border-border-subtle shadow-sm hover:border-blue-200 transition-colors group">
-                          <div className="w-5 h-5 rounded bg-surface-hover flex items-center justify-center text-[10px] mr-3 font-bold text-text-secondary group-hover:bg-blue-50 group-hover:text-emerald-primary transition-colors">
+                        <div key={cp._id || idx} className="flex items-center text-sm px-3 py-2.5 rounded-md bg-surface-main border border-border-subtle shadow-sm transition-colors hover:border-emerald-primary/30">
+                          <div className="w-5 h-5 rounded bg-surface-card border border-border-subtle flex items-center justify-center text-[10px] mr-3 font-bold text-text-secondary shadow-inner">
                             {idx + 1}
                           </div>
-                          <span className="font-medium flex-1 text-text-main truncate">{cp.name}</span>
+                          <span className="font-bold flex-1 text-text-main truncate text-xs">{cp.name}</span>
                         </div>
                       );
                     })}
                     {(session.routeId?.checkpoints?.length || 0) > 4 && (
-                      <div className="text-xs text-text-muted font-medium pl-10 pt-1 italic">
-                        + {(session.routeId?.checkpoints?.length || 0) - 4} more checkpoints in route...
+                      <div className="text-[10px] font-bold text-text-muted uppercase tracking-wider pl-12 pt-2">
+                        + {(session.routeId?.checkpoints?.length || 0) - 4} more nodes
                       </div>
                     )}
                   </div>
                 </div>
               </div>
               
-              <div className="p-4 bg-surface-main border-t border-border-subtle mt-auto flex justify-end">
+              <div className="p-4 bg-surface-sidebar border-t border-border-subtle mt-auto flex justify-end">
                 <Link to={`/patrols/${session._id}`} className="w-full">
-                  <Button variant="secondary" className="w-full bg-surface-card hover:bg-surface-hover flex justify-between items-center group">
+                  <Button variant="outline" className="w-full flex justify-between items-center group font-bold tracking-wide">
                     <span>View Telemetry & Details</span>
-                    <ChevronRight size={16} className="text-text-muted group-hover:text-emerald-primary transition-colors" />
+                    <ChevronRight size={16} className="text-text-muted group-hover:text-text-main transition-colors" />
                   </Button>
                 </Link>
               </div>

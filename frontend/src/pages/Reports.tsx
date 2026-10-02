@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../lib/axios';
 import { Card } from '../components/ui/Card';
-import { Download, PieChart, Activity, ShieldAlert, BarChart3, Users, CheckCircle2, Search, XCircle } from 'lucide-react';
+import { Download, Activity, ShieldAlert, BarChart3, Users, CheckCircle2, Search, FileText } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Badge } from '../components/ui/Badge';
 
 export const Reports = () => {
   const { user } = useAuthStore();
@@ -58,7 +60,7 @@ export const Reports = () => {
   if (user?.role !== 'SUPER_ADMIN' && user?.role !== 'COMPANY_ADMIN' && user?.role !== 'SITE_MANAGER') {
     return (
       <div className="flex flex-col justify-center items-center h-64 p-8 text-center animate-in fade-in duration-500">
-        <ShieldAlert size={48} className="text-slate-300 mb-4" />
+        <ShieldAlert size={48} className="text-danger mb-4" />
         <h2 className="text-xl font-bold text-text-main">Access Restricted</h2>
         <p className="text-text-secondary max-w-md mt-2">Reports and Analytics are restricted to management and administrative personnel.</p>
       </div>
@@ -68,7 +70,9 @@ export const Reports = () => {
   const filteredHistory = history.filter(h => 
     (h.routeId?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (h.siteId?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (h.guardId?.employeeId || '').toLowerCase().includes(searchTerm.toLowerCase())
+    (h.guardId?.employeeId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (h.guardId?.userId?.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (h.guardId?.userId?.lastName || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -83,47 +87,47 @@ export const Reports = () => {
           <p className="text-text-secondary text-sm mt-1">Review operational performance, guard statistics, and export historical data.</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button onClick={handleExport} className="flex items-center gap-2 bg-surface-sidebar hover:bg-background text-white shadow-sm border border-slate-700">
+          <Button onClick={handleExport} className="flex items-center gap-2 shadow-lg">
             <Download size={16} /> Export CSV Data
           </Button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-surface-card rounded-xl shadow-sm border border-border-subtle p-1 flex overflow-x-auto">
+      <Card className="p-1 bg-surface-sidebar border-border-subtle shadow-sm flex overflow-x-auto">
         <button 
-          className={`flex items-center justify-center gap-2 flex-1 min-w-[200px] py-2.5 px-4 text-sm font-bold rounded-lg transition-all ${
-            activeTab === 'operational' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-text-secondary hover:text-text-main hover:bg-surface-main'
+          className={`flex items-center justify-center gap-2 flex-1 min-w-[200px] py-2.5 px-4 text-sm font-bold rounded transition-all ${
+            activeTab === 'operational' ? 'bg-surface-main text-emerald-primary shadow-sm' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover/50'
           }`}
           onClick={() => setActiveTab('operational')}
         >
           <Activity size={18} /> Operational Summary
         </button>
         <button 
-          className={`flex items-center justify-center gap-2 flex-1 min-w-[200px] py-2.5 px-4 text-sm font-bold rounded-lg transition-all ${
-            activeTab === 'guards' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-text-secondary hover:text-text-main hover:bg-surface-main'
+          className={`flex items-center justify-center gap-2 flex-1 min-w-[200px] py-2.5 px-4 text-sm font-bold rounded transition-all ${
+            activeTab === 'guards' ? 'bg-surface-main text-emerald-primary shadow-sm' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover/50'
           }`}
           onClick={() => setActiveTab('guards')}
         >
           <Users size={18} /> Guard Analytics
         </button>
         <button 
-          className={`flex items-center justify-center gap-2 flex-1 min-w-[200px] py-2.5 px-4 text-sm font-bold rounded-lg transition-all ${
-            activeTab === 'history' ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' : 'text-text-secondary hover:text-text-main hover:bg-surface-main'
+          className={`flex items-center justify-center gap-2 flex-1 min-w-[200px] py-2.5 px-4 text-sm font-bold rounded transition-all ${
+            activeTab === 'history' ? 'bg-surface-main text-emerald-primary shadow-sm' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover/50'
           }`}
           onClick={() => setActiveTab('history')}
         >
-          <PieChart size={18} /> Patrol History
+          <FileText size={18} /> Patrol History
         </button>
-      </div>
+      </Card>
 
       {/* Content */}
       <div className="min-h-[400px]">
         {loading ? (
-          <div className="flex justify-center items-center h-64">
+          <div className="flex justify-center items-center h-64 bg-surface-card border border-border-subtle rounded-xl shadow-sm">
             <div className="flex flex-col items-center gap-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="text-text-secondary font-medium animate-pulse">Generating Report...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-primary"></div>
+              <p className="text-emerald-primary font-bold animate-pulse text-sm uppercase tracking-wider">Compiling Data...</p>
             </div>
           </div>
         ) : (
@@ -131,98 +135,108 @@ export const Reports = () => {
             
             {activeTab === 'operational' && summary && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4 duration-500">
-                <Card className="relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110">
-                    <Activity className="w-32 h-32 text-emerald-primary" />
+                <Card className="relative overflow-hidden group bg-surface-card border-border-subtle hover:border-blue-500/30 transition-colors">
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity transform group-hover:scale-110">
+                    <Activity className="w-32 h-32 text-blue-500" />
                   </div>
-                  <div className="p-6 relative z-10">
-                    <div className="w-12 h-12 bg-blue-50 text-emerald-primary rounded-xl flex items-center justify-center mb-4 border border-blue-100">
-                      <Activity size={24} />
+                  <div className="p-6 relative z-10 flex flex-col items-center text-center">
+                    <div className="w-14 h-14 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mb-4 border border-blue-500/20 shadow-inner">
+                      <Activity size={28} />
                     </div>
-                    <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-1">Total Patrols Logged</h3>
-                    <p className="text-4xl font-black text-text-main">{summary.total}</p>
+                    <p className="text-5xl font-black text-text-main mb-2">{summary.total}</p>
+                    <h3 className="text-xs font-bold text-text-secondary uppercase tracking-widest">Total Patrols Logged</h3>
                   </div>
+                  <div className="h-1 w-full bg-blue-500/20"></div>
                 </Card>
 
-                <Card className="relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110">
+                <Card className="relative overflow-hidden group bg-surface-card border-border-subtle hover:border-emerald-primary/30 transition-colors">
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity transform group-hover:scale-110">
                     <CheckCircle2 className="w-32 h-32 text-emerald-primary" />
                   </div>
-                  <div className="p-6 relative z-10">
-                    <div className="w-12 h-12 bg-emerald-primary/10 text-emerald-primary rounded-xl flex items-center justify-center mb-4 border border-green-100">
-                      <CheckCircle2 size={24} />
+                  <div className="p-6 relative z-10 flex flex-col items-center text-center">
+                    <div className="w-14 h-14 bg-emerald-primary/10 text-emerald-primary rounded-full flex items-center justify-center mb-4 border border-emerald-primary/20 shadow-inner">
+                      <CheckCircle2 size={28} />
                     </div>
-                    <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-1">Successfully Completed</h3>
-                    <p className="text-4xl font-black text-text-main">{summary.completed}</p>
-                    <div className="mt-2 flex items-center text-sm font-medium text-emerald-primary">
-                      {summary.total > 0 ? Math.round((summary.completed / summary.total) * 100) : 0}% Completion Rate
+                    <p className="text-5xl font-black text-text-main mb-2">{summary.completed}</p>
+                    <h3 className="text-xs font-bold text-text-secondary uppercase tracking-widest mb-2">Successfully Completed</h3>
+                    <div className="inline-flex items-center bg-emerald-primary/10 px-2.5 py-1 rounded-full text-xs font-bold text-emerald-primary border border-emerald-primary/20">
+                      {summary.total > 0 ? Math.round((summary.completed / summary.total) * 100) : 0}% Success Rate
                     </div>
                   </div>
+                  <div className="h-1 w-full bg-emerald-primary/50"></div>
                 </Card>
 
-                <Card className="relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110">
-                    <ShieldAlert className="w-32 h-32 text-orange-600" />
+                <Card className="relative overflow-hidden group bg-surface-card border-border-subtle hover:border-warning/30 transition-colors">
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity transform group-hover:scale-110">
+                    <ShieldAlert className="w-32 h-32 text-warning" />
                   </div>
-                  <div className="p-6 relative z-10">
-                    <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mb-4 border border-orange-100">
-                      <ShieldAlert size={24} />
+                  <div className="p-6 relative z-10 flex flex-col items-center text-center">
+                    <div className="w-14 h-14 bg-warning/10 text-warning rounded-full flex items-center justify-center mb-4 border border-warning/20 shadow-inner">
+                      <ShieldAlert size={28} />
                     </div>
-                    <h3 className="text-sm font-bold text-text-secondary uppercase tracking-wider mb-1">Currently In Progress</h3>
-                    <p className="text-4xl font-black text-text-main">{summary.in_progress}</p>
+                    <p className="text-5xl font-black text-text-main mb-2">{summary.in_progress}</p>
+                    <h3 className="text-xs font-bold text-text-secondary uppercase tracking-widest">Currently In Progress</h3>
                   </div>
+                  <div className="h-1 w-full bg-warning/50"></div>
                 </Card>
               </div>
             )}
 
             {activeTab === 'guards' && (
-              <Card className="overflow-hidden shadow-sm border border-border-subtle animate-in slide-in-from-bottom-4 duration-500">
-                <div className="px-6 py-4 border-b border-border-subtle bg-surface-main flex justify-between items-center">
-                  <h3 className="font-bold text-text-main">Guard Performance Metrics</h3>
+              <Card className="overflow-hidden shadow-sm border border-border-subtle animate-in slide-in-from-bottom-4 duration-500 p-0 bg-surface-card">
+                <div className="px-6 py-5 border-b border-border-subtle bg-surface-sidebar flex justify-between items-center">
+                  <h3 className="font-bold text-text-main flex items-center gap-2">
+                    <Users size={18} className="text-emerald-primary"/> Guard Performance Metrics
+                  </h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-surface-card border-b border-border-subtle text-xs font-semibold text-text-secondary uppercase tracking-wider">
-                        <th className="px-6 py-4">Guard Employee ID</th>
+                      <tr className="bg-surface-main border-b border-border-subtle text-xs font-bold text-text-muted uppercase tracking-wider">
+                        <th className="px-6 py-4">Security Guard</th>
+                        <th className="px-6 py-4">Employee ID</th>
                         <th className="px-6 py-4 text-center">Total Assigned</th>
                         <th className="px-6 py-4 text-center">Completed</th>
                         <th className="px-6 py-4 text-right">Completion Rate</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-sm">
+                    <tbody className="divide-y divide-border-subtle text-sm">
                       {guardsReport.length === 0 ? (
                         <tr>
-                          <td colSpan={4} className="px-6 py-12 text-center text-text-secondary font-medium">No guard performance data available.</td>
+                          <td colSpan={5} className="px-6 py-12 text-center text-text-secondary font-medium">No guard performance data available.</td>
                         </tr>
                       ) : (
                         guardsReport.map((stat, idx) => {
                           const rate = stat.totalPatrols > 0 ? Math.round((stat.completedPatrols / stat.totalPatrols) * 100) : 0;
                           return (
-                            <tr key={idx} className="hover:bg-surface-main transition-colors">
-                              <td className="px-6 py-4 font-bold text-text-main flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs">
-                                  {stat.employeeId ? stat.employeeId.substring(0, 2) : 'ID'}
+                            <tr key={idx} className="hover:bg-surface-hover/50 transition-colors">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 rounded-full bg-surface-main border border-border-subtle flex items-center justify-center text-xs font-black text-emerald-primary shadow-inner">
+                                    {stat.firstName ? stat.firstName.charAt(0) : 'U'}
+                                    {stat.lastName ? stat.lastName.charAt(0) : ''}
+                                  </div>
+                                  <div className="font-bold text-text-main">
+                                    {stat.firstName || stat.lastName ? `${stat.firstName || ''} ${stat.lastName || ''}` : 'Unknown Guard'}
+                                  </div>
                                 </div>
-                                {stat.employeeId || 'Unknown ID'}
                               </td>
-                              <td className="px-6 py-4 text-center font-medium text-text-secondary">{stat.totalPatrols}</td>
-                              <td className="px-6 py-4 text-center font-medium text-text-secondary">{stat.completedPatrols}</td>
+                              <td className="px-6 py-4 font-mono text-text-secondary text-xs font-medium">
+                                {stat.employeeId || 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 text-center font-bold text-text-main">{stat.totalPatrols}</td>
+                              <td className="px-6 py-4 text-center font-bold text-text-main">{stat.completedPatrols}</td>
                               <td className="px-6 py-4 text-right">
                                 <div className="flex items-center justify-end gap-3">
-                                  <div className="w-24 h-2 bg-surface-hover rounded-full overflow-hidden">
+                                  <div className="w-32 h-2 bg-surface-main rounded-full overflow-hidden border border-border-subtle">
                                     <div 
-                                      className={`h-full rounded-full ${rate >= 90 ? 'bg-emerald-primary/100' : rate >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                      className={`h-full rounded-full transition-all duration-1000 ${rate >= 90 ? 'bg-emerald-primary' : rate >= 70 ? 'bg-warning' : 'bg-danger'}`}
                                       style={{ width: `${rate}%` }}
                                     ></div>
                                   </div>
-                                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold ${
-                                    rate >= 90 ? 'bg-emerald-primary/20 text-emerald-primary' : 
-                                    rate >= 70 ? 'bg-yellow-100 text-yellow-800' : 
-                                    'bg-red-100 text-red-800'
-                                  }`}>
+                                  <Badge variant={rate >= 90 ? 'success' : rate >= 70 ? 'warning' : 'destructive'}>
                                     {rate}%
-                                  </span>
+                                  </Badge>
                                 </div>
                               </td>
                             </tr>
@@ -236,24 +250,26 @@ export const Reports = () => {
             )}
 
             {activeTab === 'history' && (
-              <Card className="overflow-hidden shadow-sm border border-border-subtle animate-in slide-in-from-bottom-4 duration-500">
-                <div className="px-6 py-4 border-b border-border-subtle bg-surface-main flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                  <h3 className="font-bold text-text-main">Historical Patrol Log (Last 50)</h3>
+              <Card className="overflow-hidden shadow-sm border border-border-subtle animate-in slide-in-from-bottom-4 duration-500 p-0 bg-surface-card">
+                <div className="px-6 py-4 border-b border-border-subtle bg-surface-sidebar flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                  <h3 className="font-bold text-text-main flex items-center gap-2">
+                    <FileText size={18} className="text-emerald-primary"/> Historical Patrol Log (Last 50)
+                  </h3>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={16} />
-                    <input 
+                    <Input 
                       type="text" 
                       placeholder="Filter records..." 
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9 pr-4 py-1.5 text-sm border border-border-subtle rounded shadow-sm focus:ring-emerald-primary focus:border-emerald-primary bg-surface-card w-full sm:w-64"
+                      className="pl-9 pr-4 py-1.5 h-9 text-sm w-full sm:w-64"
                     />
                   </div>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-surface-card border-b border-border-subtle text-xs font-semibold text-text-secondary uppercase tracking-wider">
+                      <tr className="bg-surface-main border-b border-border-subtle text-xs font-bold text-text-muted uppercase tracking-wider">
                         <th className="px-6 py-4">Status</th>
                         <th className="px-6 py-4">Date Logged</th>
                         <th className="px-6 py-4">Route Name</th>
@@ -261,33 +277,38 @@ export const Reports = () => {
                         <th className="px-6 py-4">Facility / Site</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 text-sm">
+                    <tbody className="divide-y divide-border-subtle text-sm">
                       {filteredHistory.length === 0 ? (
                         <tr>
                           <td colSpan={5} className="px-6 py-12 text-center text-text-secondary font-medium">No historical records match your criteria.</td>
                         </tr>
                       ) : (
                         filteredHistory.map((session) => (
-                          <tr key={session._id} className="hover:bg-surface-main transition-colors">
+                          <tr key={session._id} className="hover:bg-surface-hover/50 transition-colors">
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-bold uppercase tracking-wider ${
-                                session.status === 'completed' ? 'bg-emerald-primary/20 text-emerald-primary border border-emerald-primary/30' :
-                                session.status === 'in_progress' ? 'bg-blue-100 text-blue-800 border border-blue-200' : 
-                                session.status === 'cancelled' ? 'bg-red-100 text-red-800 border border-red-200' :
-                                'bg-surface-hover text-text-main border border-border-subtle'
-                              }`}>
-                                {session.status === 'completed' && <CheckCircle2 size={12} />}
-                                {session.status === 'in_progress' && <Activity size={12} className="animate-pulse" />}
-                                {session.status === 'cancelled' && <XCircle size={12} />}
+                              <Badge 
+                                variant={session.status === 'completed' ? 'success' : session.status === 'in_progress' ? 'default' : session.status === 'cancelled' ? 'destructive' : 'outline'}
+                                className="uppercase"
+                              >
                                 {session.status.replace('_', ' ')}
-                              </span>
+                              </Badge>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap font-medium text-text-main">
-                              {new Date(session.createdAt).toLocaleDateString()} <span className="text-text-muted font-normal ml-1">{new Date(session.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="font-bold text-text-main">{new Date(session.createdAt).toLocaleDateString()}</div>
+                              <div className="text-xs text-text-secondary mt-0.5">{new Date(session.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap font-bold text-text-main">{session.routeId?.name || 'Unknown Route'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-text-secondary">{session.guardId?.employeeId || 'Unknown ID'}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-text-secondary font-medium">{session.siteId?.name || 'Unknown Site'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap font-bold text-text-main">
+                              {session.routeId?.name || 'Unknown Route'}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="font-bold text-text-main">
+                                {session.guardId?.userId ? `${session.guardId.userId.firstName} ${session.guardId.userId.lastName}` : 'Unknown Guard'}
+                              </div>
+                              <div className="text-xs text-text-secondary font-mono mt-0.5">{session.guardId?.employeeId || 'Unknown ID'}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-text-secondary font-medium">
+                              {session.siteId?.name || 'Unknown Site'}
+                            </td>
                           </tr>
                         ))
                       )}

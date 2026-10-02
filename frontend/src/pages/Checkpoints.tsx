@@ -233,7 +233,7 @@ export const Checkpoints = () => {
                 <div className="bg-surface-card p-3 rounded-xl border-2 border-border-subtle shadow-sm mb-4 group-hover:border-border-subtle transition-colors">
                   <QRCodeCanvas 
                     id={`qr-${cp._id}`}
-                    value={cp.qrPayload} 
+                    value={`${window.location.origin}/guard/scan/${cp.qrPayload}`}
                     size={140}
                     level="H"
                     includeMargin={false}

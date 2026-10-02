@@ -30,7 +30,11 @@ export const getPatrolHistory = async (req: Request, res: Response): Promise<voi
     PatrolSession.countDocuments(filter),
     PatrolSession.find(filter)
       .populate('siteId', 'name')
-      .populate('guardId', 'employeeId')
+      .populate({
+        path: 'guardId',
+        select: 'employeeId userId',
+        populate: { path: 'userId', select: 'firstName lastName' }
+      })
       .populate('routeId', 'name')
       .sort({ createdAt: -1 })
       .skip((pageNum - 1) * limitNum)
@@ -118,9 +122,20 @@ export const getGuardReports = async (req: Request, res: Response): Promise<void
     },
     { $unwind: '$guard' },
     {
+      $lookup: {
+        from: 'users',
+        localField: 'guard.userId',
+        foreignField: '_id',
+        as: 'user'
+      }
+    },
+    { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+    {
       $project: {
         _id: 1,
         employeeId: '$guard.employeeId',
+        firstName: '$user.firstName',
+        lastName: '$user.lastName',
         totalPatrols: 1,
         completedPatrols: 1
       }

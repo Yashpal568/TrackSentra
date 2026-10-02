@@ -1,6 +1,7 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { AppLayout } from './AppLayout';
+import { GuardLayout } from './GuardLayout';
 
 export const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: string[] }) => {
   const { user, isLoading } = useAuthStore();
@@ -25,9 +26,9 @@ export const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: string[] }) =>
     return <Navigate to="/unauthorized" replace />;
   }
 
-  return (
-    <AppLayout>
-      <Outlet />
-    </AppLayout>
-  );
+  if (user.role === 'GUARD') {
+    return <GuardLayout />;
+  }
+
+  return <AppLayout />;
 };

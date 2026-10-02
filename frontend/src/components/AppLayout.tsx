@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { 
   LayoutDashboard, MapPin, QrCode, Users, CalendarClock, 
   Radio, BarChart3, AlertTriangle, Shield, HelpCircle, 
-  MessageSquare, Building2, Menu, LogOut, ChevronDown 
+  MessageSquare, Building2, Menu, LogOut, ChevronDown, 
+  X, Bell, Search, Settings
 } from 'lucide-react';
+import { Badge } from './ui/Badge';
 
 export const AppLayout = () => {
   const { user, logout } = useAuthStore();
@@ -49,28 +51,37 @@ export const AppLayout = () => {
   }
 
   return (
-    <div className="min-h-screen flex overflow-hidden font-sans bg-background text-text-main selection:bg-emerald-primary/30">
+    <div className="h-screen w-full flex overflow-hidden font-sans bg-background text-text-main selection:bg-emerald-primary/30">
       
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden transition-opacity"
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm xl:hidden transition-all duration-300 animate-in fade-in"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 flex flex-col transition-transform duration-300 ease-in-out bg-surface-sidebar border-r border-border-subtle ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        <div className="h-16 flex items-center px-6 shrink-0 border-b border-border-subtle bg-surface-sidebar">
-          <Link to="/dashboard" className="flex items-center gap-2 text-text-main font-semibold text-lg tracking-tight">
-            <div className="p-1.5 rounded-lg shadow-lg bg-emerald-primary/20 border border-emerald-primary/30">
-              <Shield size={18} className="text-emerald-primary" />
+      <aside className={`fixed xl:static inset-y-0 left-0 z-50 w-[280px] flex flex-col transition-transform duration-300 ease-in-out bg-surface-sidebar border-r border-border-subtle shadow-2xl xl:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'}`}>
+        <div className="h-16 flex items-center justify-between px-6 shrink-0 border-b border-border-subtle bg-surface-sidebar">
+          <Link to="/dashboard" className="flex items-center gap-3 text-text-main font-bold text-lg tracking-tight">
+            <div className="p-1.5 rounded-lg shadow-inner bg-surface-main border border-border-subtle flex items-center justify-center text-emerald-primary">
+              <Shield size={20} />
             </div>
             TrackSentra
           </Link>
+          {/* Close Sidebar Button for Mobile */}
+          <button 
+            onClick={() => setSidebarOpen(false)}
+            className="xl:hidden p-1.5 rounded-md text-text-muted hover:bg-surface-hover hover:text-text-main transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-primary"
+            aria-label="Close sidebar"
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-6 px-3 scrollbar-thin scrollbar-thumb-surface-card">
+        <div className="flex-1 overflow-y-auto py-6 px-4 scrollbar-thin scrollbar-thumb-surface-card">
+          <p className="px-3 text-[10px] font-bold text-text-muted uppercase tracking-widest mb-3">Main Navigation</p>
           <div className="space-y-1">
             {menuItems.map((item) => {
               const active = isActive(item.path);
@@ -80,10 +91,10 @@ export const AppLayout = () => {
                   key={item.path}
                   to={item.path}
                   onClick={() => setSidebarOpen(false)}
-                  className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all ${
+                  className={`group flex items-center px-3 py-2.5 text-sm font-bold rounded-lg transition-all ${
                     active 
-                      ? 'bg-emerald-primary/10 text-emerald-primary shadow-[inset_2px_0_0_0_rgba(16,185,129,1)]'
-                      : 'text-text-secondary hover:bg-surface-hover hover:text-text-main'
+                      ? 'bg-emerald-primary/10 text-emerald-primary shadow-sm border border-emerald-primary/20'
+                      : 'text-text-secondary hover:bg-surface-main hover:text-text-main border border-transparent hover:border-border-subtle'
                   }`}
                 >
                   <Icon 
@@ -93,90 +104,128 @@ export const AppLayout = () => {
                     } ${item.highlight ? 'text-emerald-primary' : ''} ${item.highlightAlert ? 'text-warning' : ''}`} 
                   />
                   <span className="flex-1">{item.name}</span>
-                  {item.highlight && <span className="w-2 h-2 rounded-full animate-pulse bg-emerald-primary"></span>}
-                  {item.highlightAlert && <span className="w-2 h-2 rounded-full bg-warning"></span>}
+                  {item.highlight && (
+                    <span className="relative flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-primary"></span>
+                    </span>
+                  )}
+                  {item.highlightAlert && <span className="w-2 h-2 rounded-full bg-warning shadow-[0_0_8px_rgba(234,179,8,0.8)]"></span>}
                 </Link>
               );
             })}
           </div>
         </div>
 
-        <div className="p-4 border-t border-border-subtle shrink-0">
-          <div className="rounded-xl p-3 flex items-center gap-3 border border-border-subtle bg-surface-main">
-            <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 bg-surface-hover text-text-main border border-border-subtle">
-              <span className="text-sm font-bold">{user?.firstName?.charAt(0) || user?.email?.charAt(0)}</span>
+        <div className="p-4 border-t border-border-subtle shrink-0 bg-surface-sidebar">
+          <div className="rounded-xl p-3 flex items-center gap-3 border border-border-subtle bg-surface-main shadow-sm cursor-pointer hover:border-emerald-primary/50 transition-colors group">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-surface-card text-emerald-primary border border-border-subtle font-black shadow-inner">
+              {user?.firstName?.charAt(0) || user?.email?.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate text-text-main">{user?.firstName} {user?.lastName}</p>
-              <p className="text-xs truncate text-text-muted">{user?.role?.replace('_', ' ')}</p>
+              <p className="text-sm font-bold truncate text-text-main group-hover:text-emerald-primary transition-colors">{user?.firstName} {user?.lastName}</p>
+              <p className="text-[10px] uppercase tracking-wider font-bold truncate text-text-muted">{user?.role?.replace('_', ' ')}</p>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* Main Content Wrapper */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
         {/* Decorative ambient light */}
-        <div className="absolute top-0 right-0 w-full max-w-2xl h-96 bg-emerald-primary/5 blur-[120px] pointer-events-none rounded-full"></div>
+        <div className="absolute top-0 right-0 w-[800px] h-[400px] bg-emerald-primary/5 blur-[120px] pointer-events-none rounded-full"></div>
 
         {/* Demo Mode Banner */}
         {user?.isDemoUser && (
-          <div className="px-4 py-2 text-sm flex items-center justify-between shrink-0 z-20 shadow-md bg-emerald-primary/20 text-text-main border-b border-emerald-primary/30">
-            <div className="flex items-center gap-2 font-bold text-emerald-primary">
+          <div className="px-4 py-2.5 text-xs flex items-center justify-between shrink-0 z-30 shadow-md bg-emerald-primary/10 text-emerald-primary border-b border-emerald-primary/20 backdrop-blur-md">
+            <div className="flex items-center gap-2 font-bold uppercase tracking-wider">
               <span className="w-2 h-2 rounded-full bg-emerald-primary animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-              DEMO MODE
+              Demo Mode Active
             </div>
-            <p className="hidden sm:block opacity-80 font-medium">You are viewing a read-only demonstration with simulated data.</p>
+            <p className="hidden md:block opacity-80 font-medium">You are viewing a read-only demonstration with simulated data.</p>
             <button 
               onClick={handleLogout}
-              className="px-3 py-1 rounded text-xs font-bold transition-colors bg-emerald-primary text-background hover:bg-emerald-hover"
+              className="px-3 py-1 rounded bg-emerald-primary text-background font-bold hover:bg-emerald-hover transition-colors shadow-sm"
             >
               Exit Demo
             </button>
           </div>
         )}
 
-        {/* Top Header */}
-        <header className="h-16 border-b border-border-subtle flex items-center justify-between px-4 sm:px-6 shrink-0 z-10 bg-surface-sidebar/80 backdrop-blur-md">
-          <div className="flex items-center gap-4">
+        {/* Top Navbar */}
+        <header className="h-16 border-b border-border-subtle flex items-center justify-between px-4 sm:px-6 lg:px-8 shrink-0 z-20 bg-surface-sidebar/90 backdrop-blur-md shadow-sm">
+          <div className="flex items-center gap-4 flex-1 min-w-0">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 -ml-2 rounded-md focus:outline-none text-text-secondary hover:text-text-main"
+              className="xl:hidden p-2 -ml-2 rounded-md focus:outline-none text-text-secondary hover:text-text-main hover:bg-surface-hover transition-colors"
             >
               <Menu size={20} />
             </button>
-            <h2 className="text-lg font-bold hidden sm:block text-text-main">
+            <h2 className="text-lg font-bold hidden sm:block text-text-main whitespace-nowrap">
                {menuItems.find(i => i.path === location.pathname)?.name || 'TrackSentra SOC'}
             </h2>
+
+            {/* Global Search (Visual Only for UI) */}
+            <div className="hidden md:flex ml-8 flex-1 max-w-md relative group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-emerald-primary transition-colors" size={16} />
+              <input 
+                type="text" 
+                placeholder="Search resources, guards, patrols..." 
+                className="w-full pl-10 pr-4 py-2 bg-surface-main border border-border-subtle rounded-lg text-sm text-text-main placeholder-text-muted focus:outline-none focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary transition-all shadow-inner"
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <kbd className="hidden lg:inline-flex items-center justify-center px-1.5 h-5 text-[10px] font-medium text-text-muted bg-surface-card border border-border-subtle rounded uppercase">Ctrl K</kbd>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0 pl-4">
+            <button className="relative p-2 rounded-full text-text-secondary hover:text-text-main hover:bg-surface-hover transition-colors focus:outline-none hidden sm:block">
+              <Bell size={20} />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-danger border-2 border-surface-sidebar"></span>
+            </button>
+            
+            <button className="p-2 rounded-full text-text-secondary hover:text-text-main hover:bg-surface-hover transition-colors focus:outline-none hidden sm:block">
+              <Settings size={20} />
+            </button>
+
+            <div className="h-6 w-px bg-border-subtle hidden sm:block mx-1"></div>
+
             <div className="relative">
               <button 
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center gap-2 p-1 rounded-full transition-colors focus:outline-none hover:bg-surface-hover"
+                className="flex items-center gap-2 p-1 pl-2 pr-3 rounded-full transition-colors focus:outline-none hover:bg-surface-main border border-transparent hover:border-border-subtle"
               >
-                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold border border-emerald-primary/30 bg-emerald-primary/10 text-emerald-primary">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs bg-surface-main border border-border-subtle shadow-inner">
                   {user?.firstName?.charAt(0) || user?.email?.charAt(0)}
                 </div>
-                <ChevronDown size={16} className="hidden sm:block mr-1 text-text-secondary" />
+                <ChevronDown size={14} className="text-text-muted" />
               </button>
 
               {userMenuOpen && (
                 <>
-                  <div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)} />
-                  <div className="absolute right-0 mt-2 w-56 rounded-xl shadow-2xl py-2 z-20 border border-border-subtle bg-surface-card">
-                    <div className="px-4 py-3 border-b border-border-subtle">
+                  <div className="fixed inset-0 z-30" onClick={() => setUserMenuOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-64 rounded-xl shadow-2xl py-2 z-40 border border-border-subtle bg-surface-sidebar animate-in fade-in slide-in-from-top-2">
+                    <div className="px-4 py-3 border-b border-border-subtle mb-1 bg-surface-sidebar">
                       <p className="text-sm font-bold truncate text-text-main">{user?.firstName} {user?.lastName}</p>
-                      <p className="text-xs truncate text-text-muted">{user?.email}</p>
+                      <p className="text-xs truncate text-text-muted mt-0.5">{user?.email}</p>
+                      <Badge variant="outline" className="mt-2 uppercase text-[10px]">{user?.role?.replace('_', ' ')}</Badge>
                     </div>
-                    <Link to="/company" onClick={() => setUserMenuOpen(false)} className="block px-4 py-2.5 text-sm transition-colors text-text-secondary hover:bg-surface-hover hover:text-text-main">Company Settings</Link>
-                    <button 
-                      onClick={() => { setUserMenuOpen(false); handleLogout(); }}
-                      className="w-full text-left flex items-center px-4 py-2.5 text-sm transition-colors text-danger hover:bg-danger/10"
-                    >
-                      <LogOut size={16} className="mr-2" /> Sign out
-                    </button>
+                    <div className="px-2">
+                      <Link to="/company" onClick={() => setUserMenuOpen(false)} className="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-text-secondary hover:bg-surface-main hover:text-text-main mb-1">
+                        <Building2 size={16} className="mr-3 text-text-muted" /> Company Settings
+                      </Link>
+                      <Link to="/help" onClick={() => setUserMenuOpen(false)} className="flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-text-secondary hover:bg-surface-main hover:text-text-main mb-1">
+                        <HelpCircle size={16} className="mr-3 text-text-muted" /> Help Center
+                      </Link>
+                      <div className="h-px bg-border-subtle my-1 mx-2"></div>
+                      <button 
+                        onClick={() => { setUserMenuOpen(false); handleLogout(); }}
+                        className="w-full text-left flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-danger hover:bg-danger/10"
+                      >
+                        <LogOut size={16} className="mr-3" /> Sign out
+                      </button>
+                    </div>
                   </div>
                 </>
               )}
@@ -185,15 +234,15 @@ export const AppLayout = () => {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative z-0">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative z-0 h-full w-full">
+          <div className="w-full max-w-[1600px] mx-auto min-h-[calc(100vh-16rem)]">
             <Outlet />
           </div>
           
           {/* Footer */}
-          <footer className="mt-16 py-6 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-text-muted">
-             <div>&copy; 2026 TrackSentra Security Operations. All rights reserved.</div>
-             <div className="flex gap-4">
+          <footer className="mt-16 py-6 border-t border-border-subtle flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-medium text-text-muted w-full max-w-[1600px] mx-auto">
+             <div>&copy; {new Date().getFullYear()} TrackSentra Security Operations. All rights reserved.</div>
+             <div className="flex flex-wrap justify-center gap-4 md:gap-6">
                <Link to="/privacy" className="hover:text-text-main transition-colors">Privacy Policy</Link>
                <Link to="/terms" className="hover:text-text-main transition-colors">Terms of Service</Link>
                <Link to="/help" className="hover:text-text-main transition-colors">Help Center</Link>

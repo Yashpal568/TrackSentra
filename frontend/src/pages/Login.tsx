@@ -2,14 +2,17 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { Button } from '../components/ui/Button';
-import { Shield } from 'lucide-react';
+import { Shield, Globe, Eye, EyeOff } from 'lucide-react';
+import { useLanguageStore } from '../store/languageStore';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const { login, error, isLoading } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t, language, setLanguage } = useLanguageStore();
 
   const from = location.state?.from?.pathname || '/dashboard';
 
@@ -36,13 +39,13 @@ export const Login = () => {
 
         <div className="relative z-10 max-w-lg mt-auto mb-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--color-surface-sidebar)] border border-[var(--color-border-subtle)] text-emerald-400 text-xs font-bold uppercase tracking-wider mb-6">
-            Welcome Back
+            {t('login.welcome')}
           </div>
           <h2 className="text-4xl font-extrabold mb-6 leading-tight tracking-tight">
-            Secure your <br/> operations command.
+            {t('login.title').split(' ').map((word, i, arr) => i === arr.length - 1 ? <span key={i}><br/>{word}</span> : word + ' ')}
           </h2>
           <p className="text-lg text-[var(--color-text-muted)] leading-relaxed font-light">
-            Log in to manage your active patrols, respond to incidents, and access real-time SOC telemetry.
+            {t('login.subtitle')}
           </p>
         </div>
 
@@ -62,12 +65,31 @@ export const Login = () => {
               </div>
               TrackSentra
             </Link>
-            <p className="text-[var(--color-text-secondary)]">Log in to your account</p>
+            <p className="text-[var(--color-text-secondary)]">{t('login.welcome')}</p>
+          </div>
+
+          <div className="flex justify-end mb-4">
+            <div className="flex items-center gap-2 bg-[var(--color-surface-sidebar)] rounded-lg p-1 border border-[var(--color-border-subtle)]">
+              <Globe size={16} className="text-[var(--color-text-muted)] ml-2" />
+              <button 
+                type="button"
+                onClick={() => setLanguage('en')}
+                className={`px-3 py-1 text-sm font-bold rounded-md transition-colors ${language === 'en' ? 'bg-emerald-600 text-white' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-main)]'}`}
+              >
+                EN
+              </button>
+              <button 
+                type="button"
+                onClick={() => setLanguage('hi')}
+                className={`px-3 py-1 text-sm font-bold rounded-md transition-colors ${language === 'hi' ? 'bg-emerald-600 text-white' : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-main)]'}`}
+              >
+                HI
+              </button>
+            </div>
           </div>
 
           <div className="mb-10 hidden lg:block">
-            <h1 className="text-3xl font-extrabold text-[var(--color-text-main)] tracking-tight">Sign in</h1>
-            <p className="text-[var(--color-text-secondary)] mt-2">Enter your credentials to access your dashboard.</p>
+            <h1 className="text-3xl font-extrabold text-[var(--color-text-main)] tracking-tight">{t('login.signin')}</h1>
           </div>
 
           {error && (
@@ -79,7 +101,7 @@ export const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="block text-sm font-bold text-text-main">Email Address</label>
+              <label className="block text-sm font-bold text-text-main">{t('login.email')}</label>
               <input
                 type="email"
                 required
@@ -93,20 +115,29 @@ export const Login = () => {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-bold text-text-main">Password</label>
+                <label className="block text-sm font-bold text-text-main">{t('login.password')}</label>
                 <Link to="/forgot-password" className="text-sm font-bold text-emerald-600 hover:text-emerald-400 transition-colors">
                   Forgot password?
                 </Link>
               </div>
-              <input
-                type="password"
-                required
-                className="w-full bg-[var(--color-surface-sidebar)] border border-[var(--color-border-subtle)] text-[var(--color-text-main)] rounded-lg p-3.5 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow-sm"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  className="w-full bg-[var(--color-surface-sidebar)] border border-[var(--color-border-subtle)] text-[var(--color-text-main)] rounded-lg p-3.5 pr-12 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors shadow-sm"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-main)] transition-colors"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
 
             <Button 
@@ -117,9 +148,9 @@ export const Login = () => {
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Authenticating...
+                  {t('login.authenticating')}
                 </span>
-              ) : 'Sign in to Dashboard'}
+              ) : t('login.button')}
             </Button>
             
             <div className="relative flex items-center py-2">

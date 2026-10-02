@@ -121,3 +121,30 @@ export const regenerateQrCode = async (req: Request, res: Response): Promise<voi
     res.status(500).json({ error: { message: 'Failed to regenerate QR code' } });
   }
 };
+
+export const lookupCheckpointByToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user;
+    const { token } = req.params;
+
+    const checkpoint = await Checkpoint.findOne({ qrPayload: token, companyId: user.companyId });
+    if (!checkpoint || checkpoint.status === 'archived') {
+      res.status(404).json({ error: { message: 'Checkpoint not found or invalid QR token' } });
+      return;
+    }
+
+    res.json({ 
+      checkpoint: { 
+        _id: checkpoint._id, 
+        name: checkpoint.name, 
+        siteId: checkpoint.siteId, 
+        latitude: checkpoint.latitude,
+        longitude: checkpoint.longitude,
+        radius: checkpoint.radius,
+        notes: checkpoint.notes 
+      } 
+    });
+  } catch (error) {
+    res.status(500).json({ error: { message: 'Failed to lookup checkpoint' } });
+  }
+};

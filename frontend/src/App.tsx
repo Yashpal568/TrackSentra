@@ -31,6 +31,8 @@ const PatrolLiveDetails = lazy(() => import('./pages/PatrolLiveDetails').then(mo
 const Reports = lazy(() => import('./pages/Reports').then(module => ({ default: module.Reports })));
 const Incidents = lazy(() => import('./pages/Incidents').then(module => ({ default: module.Incidents })));
 const AuditLogs = lazy(() => import('./pages/AuditLogs').then(module => ({ default: module.AuditLogs })));
+const GuardQRScanner = lazy(() => import('./pages/GuardQRScanner').then(module => ({ default: module.GuardQRScanner })));
+const GuardProfile = lazy(() => import('./pages/guard/GuardProfile').then(module => ({ default: module.GuardProfile })));
 
 const Pricing = lazy(() => import('./pages/Pricing').then(module => ({ default: module.Pricing })));
 const Register = lazy(() => import('./pages/Register').then(module => ({ default: module.Register })));
@@ -89,11 +91,13 @@ function App() {
               <Route path="/shifts" element={<Shifts />} />
               <Route path="/patrols" element={<Patrols />} />
               <Route path="/patrols/:id" element={<PatrolLiveDetails />} />
+              <Route path="/guard/scan/:token" element={<GuardQRScanner />} />
               <Route path="/live" element={<LiveMonitoring />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/incidents" element={<Incidents />} />
             </Route>
             <Route path="/audit" element={<AuditLogs />} />
+            <Route path="/profile" element={<GuardProfile />} />
             <Route path="/subscription" element={<Subscription />} />
             <Route path="/tickets" element={<SupportTickets />} />
             <Route path="/tickets/:id" element={<SupportTicketDetails />} />

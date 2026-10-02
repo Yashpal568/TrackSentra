@@ -4,8 +4,14 @@ import { Link } from 'react-router-dom';
 import { Building2, MapPin, LayoutDashboard, Users, CalendarClock, QrCode, Radio, BarChart3, AlertTriangle, Shield, HelpCircle, ArrowRight, Zap } from 'lucide-react';
 import { OnboardingChecklist } from '../components/OnboardingChecklist';
 
+import { GuardDashboard } from './guard/GuardDashboard';
+
 export const Dashboard = () => {
   const { user } = useAuthStore();
+
+  if (user?.role === 'GUARD') {
+    return <GuardDashboard />;
+  }
 
   const primaryActions = [
     { name: 'Live Monitoring', path: '/live', icon: Radio, color: 'bg-emerald-primary/10', iconColor: 'text-emerald-primary', hoverBorder: 'hover:border-emerald-primary', alert: true },
