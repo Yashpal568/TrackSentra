@@ -12,6 +12,7 @@ export interface ICheckpointScan extends Document {
   latitude?: number;
   longitude?: number;
   accuracy?: number;
+  distanceToCheckpoint?: number;
   locationVerified: boolean;
   riskSignals?: string[];
   createdAt: Date;

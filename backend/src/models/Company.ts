@@ -11,9 +11,15 @@ export interface ICompany extends Document {
     patrol: {
       requireGps: boolean;
       gpsAccuracyThreshold: number;
+      scanWindowMinutes: number;
+      autoComplete: boolean;
     };
     security: {
       sessionTimeoutMinutes: number;
+      multiDeviceLogin: boolean;
+      requireDeviceLocation: boolean;
+      loginAttemptLimit: number;
+      passwordExpiryDays: number;
     };
     onboarding: {
       dismissed: boolean;
@@ -35,9 +41,15 @@ const CompanySchema: Schema = new Schema(
       patrol: {
         requireGps: { type: Boolean, default: true },
         gpsAccuracyThreshold: { type: Number, default: 50 },
+        scanWindowMinutes: { type: Number, default: 5 },
+        autoComplete: { type: Boolean, default: true },
       },
       security: {
         sessionTimeoutMinutes: { type: Number, default: 60 },
+        multiDeviceLogin: { type: Boolean, default: false },
+        requireDeviceLocation: { type: Boolean, default: true },
+        loginAttemptLimit: { type: Number, default: 5 },
+        passwordExpiryDays: { type: Number, default: 90 },
       },
       onboarding: {
         dismissed: { type: Boolean, default: false },

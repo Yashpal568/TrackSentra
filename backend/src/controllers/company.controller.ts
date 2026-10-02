@@ -105,9 +105,15 @@ export const updateCompany = async (req: Request, res: Response): Promise<void> 
       if (settings.patrol) {
         if (settings.patrol.requireGps !== undefined) company.settings.patrol.requireGps = settings.patrol.requireGps;
         if (settings.patrol.gpsAccuracyThreshold !== undefined) company.settings.patrol.gpsAccuracyThreshold = settings.patrol.gpsAccuracyThreshold;
+        if (settings.patrol.scanWindowMinutes !== undefined) company.settings.patrol.scanWindowMinutes = settings.patrol.scanWindowMinutes;
+        if (settings.patrol.autoComplete !== undefined) company.settings.patrol.autoComplete = settings.patrol.autoComplete;
       }
       if (settings.security) {
         if (settings.security.sessionTimeoutMinutes !== undefined) company.settings.security.sessionTimeoutMinutes = settings.security.sessionTimeoutMinutes;
+        if (settings.security.multiDeviceLogin !== undefined) company.settings.security.multiDeviceLogin = settings.security.multiDeviceLogin;
+        if (settings.security.requireDeviceLocation !== undefined) company.settings.security.requireDeviceLocation = settings.security.requireDeviceLocation;
+        if (settings.security.loginAttemptLimit !== undefined) company.settings.security.loginAttemptLimit = settings.security.loginAttemptLimit;
+        if (settings.security.passwordExpiryDays !== undefined) company.settings.security.passwordExpiryDays = settings.security.passwordExpiryDays;
       }
     }
 
