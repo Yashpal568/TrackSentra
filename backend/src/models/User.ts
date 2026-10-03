@@ -13,6 +13,9 @@ export interface IUser extends Document {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string;
+  timezone?: string;
+  language?: string;
   passwordHash: string;
   role: UserRole;
   status: 'active' | 'inactive' | 'suspended';
@@ -28,6 +31,9 @@ const UserSchema: Schema = new Schema(
     firstName: { type: String, required: true, trim: true },
     lastName: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+    phone: { type: String, trim: true },
+    timezone: { type: String, default: 'UTC' },
+    language: { type: String, default: 'en' },
     passwordHash: { type: String, required: true },
     role: { type: String, enum: Object.values(UserRole), required: true },
     status: { type: String, enum: ['active', 'inactive', 'suspended'], default: 'active' },

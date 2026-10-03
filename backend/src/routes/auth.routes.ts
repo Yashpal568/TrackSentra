@@ -19,5 +19,8 @@ router.post('/resend-verification', authLimiter, authController.resendVerificati
 router.post('/activate-guard', authLimiter, authController.activateGuard);
 
 router.get('/me', authenticate, authController.getMe);
+router.put('/me', authenticate, authController.updateProfile);
+router.get('/sessions', authenticate, authController.getSessions);
+router.delete('/sessions/:id', authenticate, authController.revokeSession);
 
 export default router;

@@ -4,6 +4,8 @@ import { api } from '../lib/axios';
 import { Card } from '../components/ui/Card';
 import { Download, Activity, ShieldAlert, BarChart3, Users, CheckCircle2, FileText, ChevronRight, Calendar, MapPin, Clock, ShieldCheck, MoreHorizontal, ArrowUpRight, ArrowDownRight, UserCircle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { GuardAnalyticsTab } from '../components/reports/GuardAnalyticsTab';
+import { PatrolHistoryTab } from '../components/reports/PatrolHistoryTab';
 
 // Helper for Donut Chart
 const DonutChart = ({ percentage }: { percentage: number }) => {
@@ -166,6 +168,7 @@ export const Reports = () => {
       if (dateRange !== 'all') params.append('startDate', startDate.toISOString());
       if (siteId) params.append('siteId', siteId);
       if (guardId) params.append('guardId', guardId);
+      if (activeTab === 'guards') params.append('type', 'guards');
       
       const res = await api.get(`/reports/export/csv?${params.toString()}`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([res.data]));
@@ -597,19 +600,11 @@ export const Reports = () => {
             )}
 
             {activeTab === 'guards' && (
-              <div className="animate-in slide-in-from-bottom-4 duration-500 text-center py-20 bg-surface-sidebar border border-border-subtle rounded-xl text-text-secondary font-bold">
-                Guard Analytics Details - Available in detailed view.
-                <br/><br/>
-                <Button onClick={() => setActiveTab('operational')}>Return to Operational Summary</Button>
-              </div>
+              <GuardAnalyticsTab dateRange={dateRange} siteId={siteId} guardId={guardId} />
             )}
 
             {activeTab === 'history' && (
-              <div className="animate-in slide-in-from-bottom-4 duration-500 text-center py-20 bg-surface-sidebar border border-border-subtle rounded-xl text-text-secondary font-bold">
-                Detailed Patrol History - Pagination & Advanced filtering view.
-                <br/><br/>
-                <Button onClick={() => setActiveTab('operational')}>Return to Operational Summary</Button>
-              </div>
+              <PatrolHistoryTab dateRange={dateRange} siteId={siteId} guardId={guardId} />
             )}
 
           </div>

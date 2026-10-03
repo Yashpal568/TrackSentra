@@ -130,3 +130,27 @@ export const exportAuditLogsCsv = async (req: Request, res: Response): Promise<v
     res.status(500).json({ error: { message: error.message } });
   }
 };
+
+export const getMyActivity = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user;
+    
+    const logs = await AuditLog.find({ userId: user._id })
+      .sort({ createdAt: -1 })
+      .limit(50);
+      
+    // Redact sensitive details just in case
+    const sanitizedLogs = logs.map(log => {
+      const obj = log.toObject();
+      if (obj.details?.passwordHash) delete obj.details.passwordHash;
+      if (obj.details?.token) delete obj.details.token;
+      return obj;
+    });
+
+    res.json({
+      data: sanitizedLogs
+    });
+  } catch (error: any) {
+    res.status(500).json({ error: { message: error.message } });
+  }
+};

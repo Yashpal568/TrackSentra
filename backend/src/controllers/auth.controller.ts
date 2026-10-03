@@ -350,11 +350,110 @@ export const refresh = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const updateProfile = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user;
+    if (user.isDemoUser) {
+      res.status(403).json({ error: { message: 'Write operations are disabled in demo mode.' } });
+      return;
+    }
+
+    const { firstName, lastName, phone, timezone, language } = req.body;
+    
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
+    
+    if (phone !== undefined) user.phone = phone;
+    if (timezone !== undefined) user.timezone = timezone;
+    if (language !== undefined) user.language = language;
+
+    await user.save();
+
+    await AuditLog.create({
+      companyId: user.companyId,
+      userId: user._id,
+      action: 'UPDATE_PROFILE',
+      resource: 'User',
+      details: 'Updated profile information'
+    });
+
+    const userObj = user.toObject();
+    delete (userObj as any).passwordHash;
+    const sub = await Subscription.findOne({ companyId: user.companyId });
+    if (sub) userObj.subscription = { status: sub.status, planId: sub.planId };
+    if (user.companyId) {
+      const company = await Company.findById(user.companyId).select('name');
+      if (company) userObj.companyName = company.name;
+    }
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: userObj
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: { message: 'Failed to update profile' } });
+  }
+};
+
 export const getMe = async (req: Request, res: Response): Promise<void> => {
   const userObj = (req as any).user.toObject();
   const sub = await Subscription.findOne({ companyId: userObj.companyId });
   if (sub) userObj.subscription = { status: sub.status, planId: sub.planId };
+  if (userObj.companyId) {
+     const company = await Company.findById(userObj.companyId).select('name');
+     if (company) userObj.companyName = company.name;
+  }
   res.json({ user: userObj });
+};
+
+export const getSessions = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user;
+    const tokens = await RefreshToken.find({ userId: user._id, revokedAt: { $exists: false } }).sort({ createdAt: -1 });
+    
+    res.json({
+      sessions: tokens.map(t => ({
+        id: t._id,
+        createdAt: t.createdAt,
+        expiresAt: t.expiresAt,
+        isActive: t.isActive,
+        isExpired: t.isExpired
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ error: { message: 'Failed to fetch sessions' } });
+  }
+};
+
+export const revokeSession = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user;
+    if (user.isDemoUser) {
+      res.status(403).json({ error: { message: 'Write operations are disabled in demo mode.' } });
+      return;
+    }
+    const token = await RefreshToken.findOne({ _id: req.params.id, userId: user._id });
+    if (!token) {
+      res.status(404).json({ error: { message: 'Session not found' } });
+      return;
+    }
+    
+    token.revokedAt = new Date();
+    await token.save();
+    
+    await AuditLog.create({
+      companyId: user.companyId,
+      userId: user._id,
+      action: 'REVOKE_SESSION',
+      resource: 'User',
+      details: 'Revoked a session'
+    });
+
+    res.json({ message: 'Session revoked' });
+  } catch (error) {
+    res.status(500).json({ error: { message: 'Failed to revoke session' } });
+  }
 };
 
 // M17 Workflows

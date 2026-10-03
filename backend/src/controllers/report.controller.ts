@@ -12,7 +12,7 @@ const buildDateFilter = (startDate?: string, endDate?: string) => {
 
 export const getPatrolHistory = async (req: Request, res: Response): Promise<void> => {
   const user = (req as any).user;
-  const { siteId, guardId, status, startDate, endDate, page = 1, limit = 20 } = req.query;
+  const { siteId, guardId, status, startDate, endDate, page = 1, limit = 20, search } = req.query;
 
   const filter: any = { companyId: user.companyId };
   if (siteId) filter.siteId = siteId;
@@ -22,6 +22,35 @@ export const getPatrolHistory = async (req: Request, res: Response): Promise<voi
   const dateFilter = buildDateFilter(startDate as string, endDate as string);
   if (dateFilter) {
     filter.createdAt = dateFilter;
+  }
+
+  let sessionIdsFromSearch: any[] | null = null;
+  if (search) {
+    const s = (search as string).toLowerCase();
+    
+    // To search by guard name or site name, we first find matching guards/sites
+    const matchingUsers = await mongoose.model('User').find({
+      $or: [
+        { firstName: { $regex: s, $options: 'i' } },
+        { lastName: { $regex: s, $options: 'i' } }
+      ]
+    }).select('_id');
+    const userIds = matchingUsers.map(u => u._id);
+    const matchingGuards = await mongoose.model('Guard').find({ userId: { $in: userIds } }).select('_id');
+    const guardIds = matchingGuards.map(g => g._id);
+
+    const matchingSites = await mongoose.model('Site').find({ name: { $regex: s, $options: 'i' }, companyId: user.companyId }).select('_id');
+    const siteIds = matchingSites.map(st => st._id);
+
+    const matchingRoutes = await mongoose.model('PatrolRoute').find({ name: { $regex: s, $options: 'i' }, companyId: user.companyId }).select('_id');
+    const routeIds = matchingRoutes.map(r => r._id);
+
+    // Apply these constraints to the session filter
+    filter.$or = [
+      { guardId: { $in: guardIds } },
+      { siteId: { $in: siteIds } },
+      { routeId: { $in: routeIds } }
+    ];
   }
 
   const pageNum = parseInt(page as string);
@@ -110,23 +139,47 @@ export const getOperationalSummary = async (req: Request, res: Response): Promis
 
 export const getGuardReports = async (req: Request, res: Response): Promise<void> => {
   const user = (req as any).user;
-  const { startDate, endDate } = req.query;
+  const { startDate, endDate, siteId } = req.query;
 
-  const match: any = { companyId: user.companyId };
+  const match: any = { companyId: new mongoose.Types.ObjectId(user.companyId) };
+  if (siteId) match.siteId = new mongoose.Types.ObjectId(siteId as string);
   const dateFilter = buildDateFilter(startDate as string, endDate as string);
   if (dateFilter) {
     match.createdAt = dateFilter;
   }
+
+  // Find total and active guards based on the filter
+  const allGuardsQuery: any = { companyId: user.companyId };
+  if (siteId) allGuardsQuery.siteId = siteId;
+  const totalGuardsCount = await mongoose.model('Guard').countDocuments(allGuardsQuery);
 
   const guardStats = await PatrolSession.aggregate([
     { $match: match },
     {
       $group: {
         _id: '$guardId',
-        totalPatrols: { $sum: 1 },
-        completedPatrols: {
-          $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
-        }
+        patrolCount: { $sum: 1 },
+        completedPatrols: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } },
+        missedPatrols: { $sum: { $cond: [{ $in: ['$status', ['missed', 'cancelled']] }, 1, 0] } },
+        totalDuration: {
+          $sum: {
+            $cond: [
+              { $and: [{ $eq: ['$status', 'completed'] }, { $ne: ['$startTime', null] }, { $ne: ['$endTime', null] }] },
+              { $subtract: ['$endTime', '$startTime'] },
+              0
+            ]
+          }
+        },
+        durationCount: {
+          $sum: {
+            $cond: [
+              { $and: [{ $eq: ['$status', 'completed'] }, { $ne: ['$startTime', null] }, { $ne: ['$endTime', null] }] },
+              1, 0
+            ]
+          }
+        },
+        lastPatrolAt: { $max: '$createdAt' },
+        sessionIds: { $push: '$_id' }
       }
     },
     {
@@ -148,18 +201,90 @@ export const getGuardReports = async (req: Request, res: Response): Promise<void
     },
     { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
     {
-      $project: {
-        _id: 1,
-        employeeId: '$guard.employeeId',
-        firstName: '$user.firstName',
-        lastName: '$user.lastName',
-        totalPatrols: 1,
-        completedPatrols: 1
+      $lookup: {
+        from: 'sites',
+        localField: 'guard.siteId',
+        foreignField: '_id',
+        as: 'site'
+      }
+    },
+    { $unwind: { path: '$site', preserveNullAndEmptyArrays: true } }
+  ]);
+
+  // To calculate compliance, we need checkpoint scans for these sessions.
+  // We'll collect all session IDs and get scans.
+  const allSessionIds = guardStats.flatMap(g => g.sessionIds);
+  const scans = await CheckpointScan.aggregate([
+    { $match: { sessionId: { $in: allSessionIds } } },
+    {
+      $group: {
+        _id: '$sessionId',
+        validScans: { $sum: { $cond: [{ $eq: ['$status', 'valid'] }, 1, 0] } },
+        totalScans: { $sum: 1 }
       }
     }
   ]);
+  const scanMap = new Map(scans.map(s => [s._id.toString(), s]));
 
-  res.json(guardStats);
+  // Also we need expected checkpoints, which depends on the routes.
+  // Easiest is to lookup routes for the sessions.
+  const sessionsWithRoutes = await PatrolSession.find({ _id: { $in: allSessionIds } }).populate('routeId', 'checkpoints').lean();
+  const sessionMap = new Map(sessionsWithRoutes.map(s => [s._id.toString(), s]));
+
+  let totalCompletedAll = 0;
+  let totalComplianceSum = 0;
+  let complianceCount = 0;
+
+  const enrichedGuards = guardStats.map(g => {
+    let guardValidScans = 0;
+    let guardExpectedScans = 0;
+
+    g.sessionIds.forEach((sid: any) => {
+      const sStr = sid.toString();
+      const sData = sessionMap.get(sStr) as any;
+      const sScans = scanMap.get(sStr);
+      if (sData?.routeId?.checkpoints) {
+        guardExpectedScans += sData.routeId.checkpoints.length;
+      }
+      if (sScans) {
+        guardValidScans += sScans.validScans;
+      }
+    });
+
+    const compliance = guardExpectedScans > 0 ? Math.round((guardValidScans / guardExpectedScans) * 100) : 0;
+    const avgDuration = g.durationCount > 0 ? Math.round((g.totalDuration / g.durationCount) / 60000) : 0;
+    
+    totalCompletedAll += g.completedPatrols;
+    if (g.patrolCount > 0) {
+      totalComplianceSum += compliance;
+      complianceCount++;
+    }
+
+    return {
+      guardId: g._id,
+      name: g.user ? `${g.user.firstName} ${g.user.lastName}` : 'Unknown Guard',
+      site: g.site?.name || 'Unassigned',
+      patrolCount: g.patrolCount,
+      completedPatrols: g.completedPatrols,
+      missedPatrols: g.missedPatrols,
+      compliance,
+      averageDuration: avgDuration, // in minutes
+      lastPatrolAt: g.lastPatrolAt,
+      status: g.guard.status || 'active'
+    };
+  });
+
+  const averageCompliance = complianceCount > 0 ? Math.round(totalComplianceSum / complianceCount) : 0;
+
+  res.json({
+    summary: {
+      totalGuards: totalGuardsCount,
+      activeGuards: guardStats.length,
+      completedPatrols: totalCompletedAll,
+      averageCompliance
+    },
+    guards: enrichedGuards
+  });
 };
 
 export const getCheckpointAnalytics = async (req: Request, res: Response): Promise<void> => {
@@ -213,7 +338,7 @@ export const getCheckpointAnalytics = async (req: Request, res: Response): Promi
 
 export const exportCsv = async (req: Request, res: Response): Promise<void> => {
   const user = (req as any).user;
-  const { siteId, guardId, status, startDate, endDate } = req.query;
+  const { siteId, guardId, status, startDate, endDate, type } = req.query;
 
   const filter: any = { companyId: user.companyId };
   if (siteId) filter.siteId = siteId;
@@ -225,6 +350,52 @@ export const exportCsv = async (req: Request, res: Response): Promise<void> => {
     filter.createdAt = dateFilter;
   }
 
+  const escapeCsv = (str: string) => {
+    if (!str) return '""';
+    let clean = String(str).replace(/"/g, '""');
+    if (['=', '+', '-', '@'].includes(clean.charAt(0))) {
+      clean = "'" + clean;
+    }
+    return `"${clean}"`;
+  };
+
+  if (type === 'guards') {
+    // Generate guard analytics report
+    // Similar query as getGuardReports
+    const guardStats = await PatrolSession.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: '$guardId',
+          patrols: { $sum: 1 },
+          completedPatrols: { $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] } }
+        }
+      },
+      { $lookup: { from: 'guards', localField: '_id', foreignField: '_id', as: 'guard' } },
+      { $unwind: '$guard' },
+      { $lookup: { from: 'users', localField: 'guard.userId', foreignField: '_id', as: 'user' } },
+      { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } }
+    ]);
+    
+    const headers = ['Guard ID', 'Name', 'Total Patrols', 'Completed Patrols', 'Completion Rate'];
+    const rows = guardStats.map((g: any) => {
+      const rate = g.patrols > 0 ? Math.round((g.completedPatrols / g.patrols) * 100) : 0;
+      return [
+        escapeCsv(g.guard.employeeId),
+        escapeCsv(`${g.user?.firstName || ''} ${g.user?.lastName || ''}`.trim()),
+        escapeCsv(g.patrols.toString()),
+        escapeCsv(g.completedPatrols.toString()),
+        escapeCsv(`${rate}%`)
+      ].join(',');
+    });
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="guard_analytics.csv"');
+    res.send([headers.join(','), ...rows].join('\n'));
+    return;
+  }
+
+  // Default: Patrol History
   const sessions = await PatrolSession.find(filter)
     .populate('siteId', 'name')
     .populate('guardId', 'employeeId')
@@ -232,19 +403,8 @@ export const exportCsv = async (req: Request, res: Response): Promise<void> => {
     .sort({ createdAt: -1 })
     .lean(); // Use lean for speed
 
-  // Generate CSV manually to avoid dependencies and prevent formula injection
   const headers = ['Session ID', 'Site', 'Guard ID', 'Route', 'Status', 'Start Time', 'End Time'];
   
-  const escapeCsv = (str: string) => {
-    if (!str) return '""';
-    let clean = String(str).replace(/"/g, '""');
-    // Basic protection against formula injection
-    if (['=', '+', '-', '@'].includes(clean.charAt(0))) {
-      clean = "'" + clean;
-    }
-    return `"${clean}"`;
-  };
-
   const rows = sessions.map((s: any) => {
     return [
       escapeCsv(s._id.toString()),

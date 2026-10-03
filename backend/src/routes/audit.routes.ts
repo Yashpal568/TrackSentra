@@ -7,6 +7,7 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', auditController.getAuditLogs);
+router.get('/me', auditController.getMyActivity);
 router.get('/export/csv', auditController.exportAuditLogsCsv);
 
 export default router;

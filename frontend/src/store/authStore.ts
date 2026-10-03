@@ -23,6 +23,7 @@ interface AuthState {
   register: (data: any) => Promise<void>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  updateProfile: (data: any) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -89,6 +90,15 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user: response.data.user, isLoading: false });
     } catch (error) {
       set({ user: null, isLoading: false });
+    }
+  },
+
+  updateProfile: async (data: any) => {
+    try {
+      const response = await api.put('/auth/me', data);
+      set({ user: response.data.user });
+    } catch (error: any) {
+      throw error;
     }
   }
 }));
