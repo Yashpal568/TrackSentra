@@ -62,7 +62,7 @@ export const LandingPage = () => {
                     Start Free Trial
                   </Button>
                 </Link>
-                <button 
+                <Button 
                   onClick={async () => {
                     try {
                       const { useAuthStore } = await import('../store/authStore');
@@ -72,13 +72,12 @@ export const LandingPage = () => {
                       console.error('Demo login failed');
                     }
                   }}
-                  className="w-full sm:w-auto"
+                  variant="secondary" 
+                  className="w-full sm:w-auto text-lg px-8 py-6 h-auto bg-[var(--color-surface-sidebar)]/50 backdrop-blur-sm text-[var(--color-text-main)] border border-[var(--color-border-subtle)] hover:bg-[var(--color-surface-main)] hover:border-emerald-600/50 rounded-xl font-bold transition-all flex items-center justify-center gap-2"
                 >
-                  <Button variant="secondary" className="w-full sm:w-auto text-lg px-8 py-6 h-auto bg-[var(--color-surface-sidebar)]/50 backdrop-blur-sm text-[var(--color-text-main)] border border-[var(--color-border-subtle)] hover:bg-[var(--color-surface-main)] hover:border-emerald-600/50 rounded-xl font-bold transition-all flex items-center justify-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Try Live Demo
-                  </Button>
-                </button>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  Try Live Demo
+                </Button>
               </div>
               <div className="mt-10 flex items-center justify-center lg:justify-start gap-6 text-sm font-medium text-[var(--color-text-secondary)]">
                 <span className="flex items-center gap-2"><CheckCircle2 size={16} className="text-green-500"/> No credit card required</span>

@@ -11,6 +11,7 @@ router.use(authenticate);
 // All reports are accessible only to SUPER_ADMIN, COMPANY_ADMIN, SITE_MANAGER
 router.use(requireRole([UserRole.COMPANY_ADMIN, UserRole.SITE_MANAGER]));
 
+router.get('/dashboard', reportController.getDashboardSummary);
 router.get('/patrols', reportController.getPatrolHistory);
 router.get('/operational', reportController.getOperationalSummary);
 router.get('/guards', reportController.getGuardReports);

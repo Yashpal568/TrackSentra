@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../lib/axios';
 import { Card } from '../components/ui/Card';
-import { Download, Activity, ShieldAlert, BarChart3, Users, CheckCircle2, FileText, ChevronRight, Calendar, MapPin, Clock, ShieldCheck, MoreHorizontal, ArrowUpRight, ArrowDownRight, UserCircle } from 'lucide-react';
+import { Download, Activity, ShieldAlert, BarChart3, Users, CheckCircle2, FileText, ChevronRight, Calendar, MapPin, Clock, ShieldCheck, MoreHorizontal, ArrowUpRight, ArrowDownRight, UserCircle, Search } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Badge } from '../components/ui/Badge';
 
 // Helper for Donut Chart
 const DonutChart = ({ percentage }: { percentage: number }) => {
@@ -89,7 +91,8 @@ export const Reports = () => {
   const [siteId, setSiteId] = useState('');
   const [guardId, setGuardId] = useState('');
 
-
+  const [guardsReport, setGuardsReport] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchFilters();
@@ -99,10 +102,28 @@ export const Reports = () => {
     if (activeTab === 'operational') {
       fetchDashboard();
       fetchHistory(5);
+    } else if (activeTab === 'guards') {
+      fetchGuardsReport();
     } else if (activeTab === 'history') {
       fetchHistory(50);
     }
   }, [activeTab, dateRange, siteId, guardId]);
+
+  const fetchGuardsReport = async () => {
+    setLoading(true);
+    try {
+      let startDate = new Date();
+      startDate.setDate(startDate.getDate() - parseInt(dateRange));
+      const params = new URLSearchParams();
+      if (dateRange !== 'all') params.append('startDate', startDate.toISOString());
+      const res = await api.get(`/reports/guards?${params.toString()}`);
+      setGuardsReport(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchFilters = async () => {
     try {
@@ -110,8 +131,8 @@ export const Reports = () => {
         api.get('/sites'),
         api.get('/guards')
       ]);
-      setSites(sitesRes.data.sites || []);
-      setGuards(guardsRes.data.guards || []);
+      setSites(sitesRes.data.data || sitesRes.data);
+      setGuards(guardsRes.data.data || guardsRes.data);
     } catch (err) {
       console.error('Failed to load filters', err);
     }
@@ -196,6 +217,14 @@ export const Reports = () => {
     if (trend > 0) return <span className="text-emerald-500 flex items-center text-xs font-bold gap-1"><ArrowUpRight size={14}/> +{trend}%</span>;
     return <span className="text-red-500 flex items-center text-xs font-bold gap-1"><ArrowDownRight size={14}/> {trend}%</span>;
   };
+
+  const filteredHistory = history.filter(h => 
+    (h.routeId?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (h.siteId?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (h.guardId?.employeeId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (h.guardId?.userId?.firstName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (h.guardId?.userId?.lastName || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 max-w-full pb-10">

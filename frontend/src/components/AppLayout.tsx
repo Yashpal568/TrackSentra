@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { api } from '../lib/axios';
 import { 
   LayoutDashboard, MapPin, QrCode, Users, CalendarClock, 
   Radio, BarChart3, AlertTriangle, Shield, HelpCircle, 
@@ -14,6 +15,8 @@ export const AppLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeIncidents, setActiveIncidents] = useState(0);
+  const [activePatrols, setActivePatrols] = useState(0);
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(() => {
     const saved = localStorage.getItem('sidebarExpanded');
     return saved !== null ? saved === 'true' : true;
@@ -37,6 +40,31 @@ export const AppLayout = () => {
     navigate('/login');
   };
 
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        if (user && user.role !== 'GUARD') {
+          const [incidentsRes, sessionsRes] = await Promise.all([
+            api.get('/incidents'),
+            api.get('/patrols/sessions')
+          ]);
+          
+          const unresolved = incidentsRes.data.data?.filter((i: any) => i.status !== 'Closed' && i.status !== 'Resolved') || [];
+          setActiveIncidents(unresolved.length);
+          
+          const inProgress = sessionsRes.data?.filter((s: any) => s.status === 'in_progress') || [];
+          setActivePatrols(inProgress.length);
+        }
+      } catch (err) {
+        console.error('Failed to fetch sidebar notification counts', err);
+      }
+    };
+    
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 60000);
+    return () => clearInterval(interval);
+  }, [user]);
+
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Sites', path: '/sites', icon: MapPin },
@@ -44,8 +72,8 @@ export const AppLayout = () => {
     { name: 'Guards', path: '/guards', icon: Users },
     { name: 'Shifts', path: '/shifts', icon: CalendarClock },
     { name: 'Patrols', path: '/patrols', icon: LayoutDashboard },
-    { name: 'Live', path: '/live', icon: Radio, highlight: true },
-    { name: 'Incidents', path: '/incidents', icon: AlertTriangle, highlightAlert: true },
+    { name: 'Live', path: '/live', icon: Radio, highlight: activePatrols > 0, badge: activePatrols },
+    { name: 'Incidents', path: '/incidents', icon: AlertTriangle, highlightAlert: activeIncidents > 0, badgeAlert: activeIncidents },
     { name: 'Reports', path: '/reports', icon: BarChart3 },
     { name: 'Audit', path: '/audit', icon: Shield },
     { name: 'Company', path: '/company', icon: Building2 },
@@ -118,13 +146,25 @@ export const AppLayout = () => {
                     } ${item.highlight ? 'text-emerald-primary' : ''} ${item.highlightAlert ? 'text-warning' : ''}`} 
                   />
                   <span className={`whitespace-nowrap transition-all duration-300 ${desktopSidebarOpen ? 'opacity-100 w-auto' : 'xl:opacity-0 xl:w-0 xl:hidden'}`}>{item.name}</span>
-                  {item.highlight && (
-                    <span className={`relative flex h-2.5 w-2.5 ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-2 xl:right-2'}`}>
+                  
+                  {item.badge !== undefined && item.badge > 0 && (
+                    <span className={`ml-auto flex items-center justify-center bg-emerald-500/20 text-emerald-500 text-[10px] font-black px-1.5 py-0.5 rounded-full border border-emerald-500/30 min-w-5 h-5 ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-1 xl:right-1 xl:ml-0'}`}>
+                      {item.badge}
+                    </span>
+                  )}
+                  {item.badgeAlert !== undefined && item.badgeAlert > 0 && (
+                    <span className={`ml-auto flex items-center justify-center bg-danger/20 text-danger text-[10px] font-black px-1.5 py-0.5 rounded-full border border-danger/30 min-w-5 h-5 ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-1 xl:right-1 xl:ml-0'}`}>
+                      {item.badgeAlert}
+                    </span>
+                  )}
+
+                  {!item.badge && item.highlight && (
+                    <span className={`relative flex h-2.5 w-2.5 ml-auto ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-2 xl:right-2 xl:ml-0'}`}>
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-primary opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-primary"></span>
                     </span>
                   )}
-                  {item.highlightAlert && <span className={`w-2 h-2 rounded-full bg-warning shadow-[0_0_8px_rgba(234,179,8,0.8)] ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-2 xl:right-2'}`}></span>}
+                  {!item.badgeAlert && item.highlightAlert && <span className={`w-2 h-2 rounded-full bg-warning shadow-[0_0_8px_rgba(234,179,8,0.8)] ml-auto ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-2 xl:right-2 xl:ml-0'}`}></span>}
                   
                   {/* Tooltip for collapsed state */}
                   {!desktopSidebarOpen && (
@@ -220,7 +260,9 @@ export const AppLayout = () => {
           <div className="flex items-center gap-3 sm:gap-4 shrink-0 pl-4">
             <button className="relative p-2 rounded-full text-text-secondary hover:text-text-main hover:bg-surface-hover transition-colors focus:outline-none hidden sm:block">
               <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-danger border-2 border-surface-sidebar"></span>
+              {activeIncidents > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-danger border-2 border-surface-sidebar"></span>
+              )}
             </button>
             
             <button className="p-2 rounded-full text-text-secondary hover:text-text-main hover:bg-surface-hover transition-colors focus:outline-none hidden sm:block">
