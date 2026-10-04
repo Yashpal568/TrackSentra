@@ -186,7 +186,7 @@ export function AdminCompanies() {
           <p className="text-text-secondary mt-1">Monitor, search, and manage all tenant companies on TrackSentra.</p>
         </div>
         <Button 
-          onClick={() => alert('Create company modal coming soon')}
+          onClick={() => window.open('/register', '_blank')}
           className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-5 py-2.5 rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.25)] border-0 flex items-center gap-2"
         >
           <Plus size={18} strokeWidth={3} /> Create Company
@@ -358,8 +358,8 @@ export function AdminCompanies() {
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <p className="text-sm font-bold text-text-main">{hasPlan ? company.subscription.planSnapshot.name : 'No Plan'}</p>
-                        <p className="text-xs text-text-muted mt-0.5">{hasPlan ? `₹${(price / 100).toFixed(2)}/month` : '—'}</p>
+                        <p className="text-sm font-bold text-text-main">{hasPlan ? (company.subscription?.planSnapshot?.name || company.plan?.name || 'Unknown Plan') : 'No Plan'}</p>
+                        <p className="text-xs text-text-muted mt-0.5">{hasPlan ? `₹${((company.subscription?.planSnapshot?.price || 0) / 100).toFixed(2)}/month` : '—'}</p>
                       </td>
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-1.5 text-sm text-text-secondary">

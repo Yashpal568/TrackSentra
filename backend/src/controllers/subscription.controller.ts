@@ -6,12 +6,9 @@ import { UserRole } from '../models/User';
 import { AuditLog } from '../models/AuditLog';
 import { Subscription, SubscriptionStatus } from '../models/Subscription';
 import { PaymentSubmission, PaymentStatus } from '../models/PaymentSubmission';
+import { SubscriptionHistory } from '../models/SubscriptionHistory';
 import { NotificationService } from '../services/notification.service';
 import { Company } from '../models/Company';
-
-// --------------------------------------------------------------------------
-// PUBLIC PRICING & PLANS
-// --------------------------------------------------------------------------
 
 export const getPublishedPlans = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -22,310 +19,183 @@ export const getPublishedPlans = async (req: Request, res: Response): Promise<vo
   }
 };
 
-// --------------------------------------------------------------------------
-// SUPER ADMIN PLAN MANAGEMENT
-// --------------------------------------------------------------------------
-
 export const getAllPlans = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;
-    if (user.role !== UserRole.SUPER_ADMIN) {
-      res.status(403).json({ error: { message: 'Forbidden' } });
-      return;
-    }
+    if (user.role !== UserRole.SUPER_ADMIN) { res.status(403).json({ error: { message: 'Forbidden' } }); return; }
     const plans = await Plan.find().sort({ order: 1 });
     res.json({ plans });
-  } catch (error: any) {
-    res.status(500).json({ error: { message: error.message } });
-  }
+  } catch (error: any) { res.status(500).json({ error: { message: error.message } }); }
 };
 
 export const createPlan = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;
-    if (user.role !== UserRole.SUPER_ADMIN) {
-      res.status(403).json({ error: { message: 'Forbidden' } });
-      return;
-    }
-
     const { name, description, pricing, currency, trialDurationDays, features, limits, visibility, order } = req.body;
-    
-    if (
-      !pricing || 
-      pricing.monthly < 0 || 
-      pricing.quarterly < 0 || 
-      pricing.annual < 0 || 
-      limits.maxGuards < 1 || 
-      limits.maxSites < 1
-    ) {
-      res.status(400).json({ error: { message: 'Invalid pricing or limits' } });
-      return;
-    }
-
-    const plan = await Plan.create({
-      name, description, pricing, currency, trialDurationDays, features, limits, visibility, order
-    });
-
-    await AuditLog.create({
-      userId: user._id,
-      action: 'CREATE_PLAN',
-      resource: 'Plan',
-      details: { planId: plan._id }
-    });
-
+    const plan = await Plan.create({ name, description, pricing, currency, trialDurationDays, features, limits, visibility, order });
     res.status(201).json({ plan });
-  } catch (error: any) {
-    res.status(400).json({ error: { message: error.message } });
-  }
+  } catch (error: any) { res.status(400).json({ error: { message: error.message } }); }
 };
 
 export const updatePlan = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user;
-    if (user.role !== UserRole.SUPER_ADMIN) {
-      res.status(403).json({ error: { message: 'Forbidden' } });
-      return;
-    }
-
-    const { pricing, limits } = req.body;
-    if (pricing && (pricing.monthly < 0 || pricing.quarterly < 0 || pricing.annual < 0)) { res.status(400).json({ error: { message: 'Invalid pricing' } }); return; }
-    if (limits && (limits.maxGuards < 1 || limits.maxSites < 1)) { res.status(400).json({ error: { message: 'Invalid limits' } }); return; }
-
     const plan = await Plan.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!plan) { res.status(404).json({ error: { message: 'Plan not found' } }); return; }
-
-    await AuditLog.create({
-      userId: user._id,
-      action: 'UPDATE_PLAN',
-      resource: 'Plan',
-      details: { planId: plan._id }
-    });
-
     res.json({ plan });
-  } catch (error: any) {
-    res.status(400).json({ error: { message: error.message } });
-  }
+  } catch (error: any) { res.status(400).json({ error: { message: error.message } }); }
 };
 
 export const deletePlan = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user;
-    if (user.role !== UserRole.SUPER_ADMIN) {
-      res.status(403).json({ error: { message: 'Forbidden' } });
-      return;
-    }
-
-    const plan = await Plan.findByIdAndDelete(req.params.id);
-    if (!plan) { res.status(404).json({ error: { message: 'Plan not found' } }); return; }
-
-    await AuditLog.create({
-      userId: user._id,
-      action: 'DELETE_PLAN',
-      resource: 'Plan',
-      details: { planId: plan._id }
-    });
-
+    await Plan.findByIdAndDelete(req.params.id);
     res.json({ success: true });
-  } catch (error: any) {
-    res.status(400).json({ error: { message: error.message } });
-  }
+  } catch (error: any) { res.status(400).json({ error: { message: error.message } }); }
 };
-
-// --------------------------------------------------------------------------
-// SYSTEM SETTINGS (MANUAL PAYMENT INFO)
-// --------------------------------------------------------------------------
 
 export const getSystemSettings = async (req: Request, res: Response): Promise<void> => {
   try {
     let settings = await SystemSettings.findById('global_settings');
-    if (!settings) {
-      settings = await SystemSettings.create({ _id: 'global_settings', manualPaymentInstructions: {} });
-    }
+    if (!settings) settings = await SystemSettings.create({ _id: 'global_settings', manualPaymentInstructions: {} });
     res.json({ settings });
-  } catch (error: any) {
-    res.status(500).json({ error: { message: error.message } });
-  }
+  } catch (error: any) { res.status(500).json({ error: { message: error.message } }); }
 };
 
 export const updateSystemSettings = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = (req as any).user;
-    if (user.role !== UserRole.SUPER_ADMIN) {
-      res.status(403).json({ error: { message: 'Forbidden' } });
-      return;
-    }
-
     const { manualPaymentInstructions } = req.body;
     let settings = await SystemSettings.findById('global_settings');
-    if (!settings) {
-      settings = new SystemSettings({ _id: 'global_settings' });
-    }
+    if (!settings) settings = new SystemSettings({ _id: 'global_settings' });
     settings.manualPaymentInstructions = manualPaymentInstructions;
     await settings.save();
-
-    await AuditLog.create({
-      userId: user._id,
-      action: 'UPDATE_SYSTEM_SETTINGS',
-      resource: 'SystemSettings',
-    });
-
     res.json({ settings });
-  } catch (error: any) {
-    res.status(500).json({ error: { message: error.message } });
-  }
+  } catch (error: any) { res.status(500).json({ error: { message: error.message } }); }
 };
-
-// --------------------------------------------------------------------------
-// CUSTOMER SUBSCRIPTION & PAYMENT SUBMISSION
-// --------------------------------------------------------------------------
 
 export const getMySubscription = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;
-    if (!user.companyId) { res.status(400).json({ error: { message: 'No company associated' } }); return; }
-
-    const subscription = await Subscription.findOne({ companyId: user.companyId }).populate('planId');
-    
-    // Check if there is a pending payment submission
+    const subscription = await Subscription.findOne({ companyId: user.companyId }).populate('planId').populate('nextPlanId');
     let hasPendingSubmission = false;
-    if (subscription && subscription.status === SubscriptionStatus.PENDING_PAYMENT) {
-      const pendingSub = await PaymentSubmission.findOne({ 
-        subscriptionId: subscription._id, 
-        status: 'PENDING' 
-      });
+    let pendingPaymentData = null;
+    
+    if (subscription) {
+      const pendingSub = await PaymentSubmission.findOne({ subscriptionId: subscription._id, status: 'PENDING' });
       if (pendingSub) {
         hasPendingSubmission = true;
+        pendingPaymentData = pendingSub;
       }
     }
 
-    res.json({ subscription, hasPendingSubmission });
+    res.json({ subscription, hasPendingSubmission, pendingPaymentData });
   } catch (error: any) {
     res.status(500).json({ error: { message: error.message } });
   }
 };
 
 export const selectPlan = async (req: Request, res: Response): Promise<void> => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const user = (req as any).user;
-    if (user.role !== UserRole.COMPANY_ADMIN) {
-      res.status(403).json({ error: { message: 'Only company admin can select plans' } });
-      return;
-    }
-
     const { planId, billingInterval = 'monthly' } = req.body;
-    const plan = await Plan.findById(planId);
+    const plan = await Plan.findById(planId).session(session);
+    if (!plan) throw new Error('Plan not found');
+    const newPrice = (plan as any).pricing[billingInterval];
+
+    let subscription = await Subscription.findOne({ companyId: user.companyId }).session(session);
     
-    if (!plan || plan.visibility !== 'public') {
-      res.status(404).json({ error: { message: 'Plan not found' } });
-      return;
-    }
+    if (subscription && (subscription.status === SubscriptionStatus.ACTIVE || subscription.status === SubscriptionStatus.TRIAL)) {
+      const currentPrice = subscription.planSnapshot.price || 0;
+      
+      if (newPrice > currentPrice) {
+        let unusedCredit = 0;
+        let prorationAmount = newPrice;
+        if (subscription.currentPeriodStart && subscription.currentPeriodEnd) {
+          const totalDays = (subscription.currentPeriodEnd.getTime() - subscription.currentPeriodStart.getTime()) / (1000 * 3600 * 24);
+          const remainingDays = (subscription.currentPeriodEnd.getTime() - Date.now()) / (1000 * 3600 * 24);
+          if (remainingDays > 0 && totalDays > 0) {
+            unusedCredit = Math.floor(currentPrice * (remainingDays / totalDays));
+            const proratedNewPrice = Math.floor(newPrice * (remainingDays / totalDays));
+            prorationAmount = Math.max(0, proratedNewPrice - unusedCredit);
+          }
+        }
+        
+        res.json({
+          message: 'Upgrade requested',
+          isUpgrade: true,
+          prorationAmount,
+          unusedCredit,
+          targetPlanId: plan._id,
+          targetBillingInterval: billingInterval,
+          fullPrice: newPrice
+        });
+        await session.commitTransaction();
+        return;
 
-    if (!['monthly', 'quarterly', 'annual'].includes(billingInterval)) {
-      res.status(400).json({ error: { message: 'Invalid billing interval' } });
-      return;
-    }
+      } else if (newPrice < currentPrice) {
+        subscription.nextPlanId = plan._id as any;
+        subscription.nextBillingInterval = billingInterval;
+        await subscription.save({ session });
+        
+        await SubscriptionHistory.create([{
+          companyId: user.companyId,
+          subscriptionId: subscription._id,
+          eventType: 'DOWNGRADE_SCHEDULED',
+          details: { toPlanId: plan._id }
+        }], { session });
 
-    const price = (plan as any).pricing[billingInterval];
-
-    // Check if they already have one
-    let subscription = await Subscription.findOne({ companyId: user.companyId });
-    if (subscription) {
-      // Just update it to pending payment for the new plan
-      subscription.planId = plan._id as any;
-      subscription.status = SubscriptionStatus.PENDING_PAYMENT;
-      subscription.planSnapshot = {
-        name: plan.name,
-        price,
-        currency: plan.currency,
-        billingInterval,
-        limits: plan.limits
-      };
-      await subscription.save();
-    } else {
+        res.json({ message: 'Downgrade scheduled for end of billing period', subscription });
+        await session.commitTransaction();
+        return;
+      }
+    } 
+    
+    if (!subscription) {
       subscription = new Subscription({
         companyId: user.companyId,
         planId: plan._id,
         status: SubscriptionStatus.PENDING_PAYMENT,
-        planSnapshot: {
-          name: plan.name,
-          price,
-          currency: plan.currency,
-          billingInterval,
-          limits: plan.limits
-        }
+        planSnapshot: { name: plan.name, price: newPrice, currency: plan.currency, billingInterval, limits: plan.limits }
       });
-      await subscription.save();
+    } else {
+      subscription.planId = plan._id as any;
+      subscription.status = SubscriptionStatus.PENDING_PAYMENT;
+      subscription.planSnapshot = { name: plan.name, price: newPrice, currency: plan.currency, billingInterval, limits: plan.limits };
     }
-
-    res.json({ message: 'Plan selected successfully', subscription });
+    
+    await subscription.save({ session });
+    await session.commitTransaction();
+    res.json({ message: 'Plan selected', subscription });
   } catch (error: any) {
+    await session.abortTransaction();
     res.status(500).json({ error: { message: error.message } });
+  } finally {
+    session.endSession();
   }
 };
 
 export const submitPayment = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;
-    if (user.role !== UserRole.COMPANY_ADMIN) {
-      res.status(403).json({ error: { message: 'Only company admin can submit payments' } });
-      return;
-    }
+    const { planId, transactionReference, paymentDate, expectedAmount, targetBillingInterval, isUpgrade, prorationCredit } = req.body;
 
-    const { planId, transactionReference, paymentDate, evidenceUrl } = req.body;
-
-    const plan = await Plan.findById(planId);
-    if (!plan) { res.status(404).json({ error: { message: 'Plan not found' } }); return; }
-
-    // Check if subscription exists
     let subscription = await Subscription.findOne({ companyId: user.companyId });
-    if (!subscription) {
-      subscription = await Subscription.create({
-        companyId: user.companyId,
-        planId: plan._id,
-        status: SubscriptionStatus.PENDING_PAYMENT,
-        planSnapshot: {
-          name: plan.name,
-          price: plan.price,
-          currency: plan.currency,
-          billingInterval: plan.billingInterval,
-          limits: plan.limits
-        }
-      });
-    }
+    if (!subscription) throw new Error('Subscription not found');
 
     const existingSubmission = await PaymentSubmission.findOne({ transactionReference });
-    if (existingSubmission) {
-      res.status(400).json({ error: { message: 'Transaction reference already submitted' } });
-      return;
-    }
+    if (existingSubmission) throw new Error('Transaction reference already submitted');
 
     const submission = await PaymentSubmission.create({
       companyId: user.companyId,
       subscriptionId: subscription._id,
       submitterId: user._id,
-      expectedAmount: plan.price,
-      currency: plan.currency,
+      expectedAmount: expectedAmount || subscription.planSnapshot.price,
+      currency: 'INR',
       transactionReference,
       paymentDate,
-      evidenceUrl
-    });
-
-    await AuditLog.create({
-      companyId: user.companyId,
-      userId: user._id,
-      action: 'SUBMIT_PAYMENT',
-      resource: 'PaymentSubmission',
-      details: { submissionId: submission._id }
-    });
-
-    const company = await Company.findById(user.companyId);
-
-    await NotificationService.notifySuperAdmins({
-      type: 'PAYMENT_VERIFICATION_REQUIRED',
-      title: 'Payment Verification Required',
-      message: `A new payment submission from ${company?.name || 'a company'} is awaiting verification.`,
-      severity: 'WARNING',
-      entityType: 'System'
+      targetPlanId: planId,
+      targetBillingInterval,
+      isUpgrade,
+      prorationCredit
     });
 
     res.status(201).json({ submission, subscription });
@@ -334,107 +204,46 @@ export const submitPayment = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// --------------------------------------------------------------------------
-// SUPER ADMIN PAYMENT VERIFICATION
-// --------------------------------------------------------------------------
-
-export const getPaymentSubmissions = async (req: Request, res: Response): Promise<void> => {
+export const cancelSubscription = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;
-    if (user.role !== UserRole.SUPER_ADMIN) {
-      res.status(403).json({ error: { message: 'Forbidden' } });
-      return;
-    }
+    const subscription = await Subscription.findOne({ companyId: user.companyId });
+    if (!subscription) throw new Error('Subscription not found');
     
-    // In production, we'd add pagination and filtering here
-    const submissions = await PaymentSubmission.find()
-      .populate('companyId', 'name')
-      .populate('subscriptionId')
-      .populate('submitterId', 'firstName lastName email')
-      .sort({ createdAt: -1 });
-      
-    res.json({ submissions });
+    subscription.cancelAtPeriodEnd = true;
+    await subscription.save();
+    
+    await SubscriptionHistory.create({
+      companyId: user.companyId,
+      subscriptionId: subscription._id,
+      eventType: 'CANCELLATION_SCHEDULED',
+      details: { effectiveDate: subscription.currentPeriodEnd }
+    });
+    
+    res.json({ message: 'Subscription cancellation scheduled', subscription });
   } catch (error: any) {
-    res.status(500).json({ error: { message: error.message } });
+    res.status(400).json({ error: { message: error.message } });
   }
 };
 
-export const verifyPayment = async (req: Request, res: Response): Promise<void> => {
+export const resumeSubscription = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;
-    if (user.role !== UserRole.SUPER_ADMIN) {
-      res.status(403).json({ error: { message: 'Forbidden' } });
-      return;
-    }
-
-    const { status, rejectionReason } = req.body;
-    if (![PaymentStatus.APPROVED, PaymentStatus.REJECTED].includes(status)) {
-      res.status(400).json({ error: { message: 'Invalid status' } });
-      return;
-    }
-
-    if (status === PaymentStatus.REJECTED && !rejectionReason) {
-      res.status(400).json({ error: { message: 'Rejection reason is required' } });
-      return;
-    }
-
-    // Atomic transaction for verification
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-      const submission = await PaymentSubmission.findById(req.params.id).session(session);
-      if (!submission) {
-        throw new Error('Payment submission not found');
-      }
-      if (submission.status !== PaymentStatus.PENDING) {
-        throw new Error('Payment already processed');
-      }
-
-      submission.status = status;
-      submission.reviewerId = user._id;
-      submission.reviewedAt = new Date();
-      if (rejectionReason) submission.rejectionReason = rejectionReason;
-      
-      await submission.save({ session });
-
-      const subscription = await Subscription.findById(submission.subscriptionId).session(session);
-      if (!subscription) throw new Error('Subscription not found');
-
-      if (status === PaymentStatus.APPROVED) {
-        subscription.status = SubscriptionStatus.ACTIVE;
-        const now = new Date();
-        subscription.startDate = subscription.startDate || now;
-        subscription.currentPeriodStart = now;
-        
-        // Calculate period end
-        const end = new Date(now);
-        switch (subscription.planSnapshot.billingInterval) {
-          case 'monthly': end.setMonth(end.getMonth() + 1); break;
-          case 'quarterly': end.setMonth(end.getMonth() + 3); break;
-          case 'half-yearly': end.setMonth(end.getMonth() + 6); break;
-          case 'annual': end.setFullYear(end.getFullYear() + 1); break;
-        }
-        subscription.currentPeriodEnd = end;
-        await subscription.save({ session });
-      }
-
-      await AuditLog.create([{
-        userId: user._id,
-        action: `PAYMENT_${status}`,
-        resource: 'PaymentSubmission',
-        details: { submissionId: submission._id }
-      }], { session });
-
-      await session.commitTransaction();
-      res.json({ submission, subscription });
-    } catch (err: any) {
-      await session.abortTransaction();
-      res.status(400).json({ error: { message: err.message } });
-    } finally {
-      session.endSession();
-    }
+    const subscription = await Subscription.findOne({ companyId: user.companyId });
+    if (!subscription) throw new Error('Subscription not found');
+    
+    subscription.cancelAtPeriodEnd = false;
+    await subscription.save();
+    
+    await SubscriptionHistory.create({
+      companyId: user.companyId,
+      subscriptionId: subscription._id,
+      eventType: 'RESUMED',
+      details: {}
+    });
+    
+    res.json({ message: 'Subscription resumed', subscription });
   } catch (error: any) {
-    res.status(500).json({ error: { message: error.message } });
+    res.status(400).json({ error: { message: error.message } });
   }
 };

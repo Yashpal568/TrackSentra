@@ -15,6 +15,7 @@ export const Guards = () => {
   const [error, setError] = useState('');
   
   const [isCreating, setIsCreating] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ 
     firstName: '', lastName: '', email: '', employeeId: '', phone: '' 
   });
@@ -38,6 +39,9 @@ export const Guards = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setError('');
     try {
       const res = await api.post('/guards', formData);
       setGuards([res.data.guard, ...guards]);
@@ -45,6 +49,8 @@ export const Guards = () => {
       setFormData({ firstName: '', lastName: '', email: '', employeeId: '', phone: '' });
     } catch (err: any) {
       setError(err.userMessage || 'Failed to create guard.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -126,7 +132,9 @@ export const Guards = () => {
             </div>
             <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-border-subtle">
               <Button type="button" variant="outline" onClick={() => setIsCreating(false)}>Cancel</Button>
-              <Button type="submit" className="flex items-center gap-2"><Plus size={16}/> Onboard Guard</Button>
+              <Button type="submit" disabled={isSubmitting} className="flex items-center gap-2">
+                <Plus size={16}/> {isSubmitting ? 'Onboarding...' : 'Onboard Guard'}
+              </Button>
             </div>
           </form>
         </Card>

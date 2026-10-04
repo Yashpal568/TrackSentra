@@ -22,9 +22,7 @@ router.put('/settings', requireSuperAdmin, subController.updateSystemSettings);
 router.get('/my', subController.getMySubscription);
 router.post('/my', subController.selectPlan);
 router.post('/pay', subController.submitPayment);
-
-// Payment Verification
-router.get('/payments', requireSuperAdmin, subController.getPaymentSubmissions);
-router.post('/payments/:id/verify', requireSuperAdmin, subController.verifyPayment);
+router.post('/cancel', subController.cancelSubscription);
+router.post('/resume', subController.resumeSubscription);
 
 export default router;

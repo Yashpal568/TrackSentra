@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export enum SubscriptionStatus {
+  TRIAL = 'TRIAL',
   PENDING_PAYMENT = 'PENDING_PAYMENT',
   ACTIVE = 'ACTIVE',
   PAST_DUE = 'PAST_DUE',
@@ -29,7 +30,13 @@ export interface ISubscription extends Document {
   startDate?: Date;
   currentPeriodStart?: Date;
   currentPeriodEnd?: Date;
+  gracePeriodEnd?: Date; // For PAST_DUE
+  
   cancelAtPeriodEnd: boolean;
+  
+  // For Scheduled Downgrades
+  nextPlanId?: mongoose.Types.ObjectId;
+  nextBillingInterval?: string;
   
   createdAt: Date;
   updatedAt: Date;
@@ -55,7 +62,11 @@ const SubscriptionSchema: Schema = new Schema(
     startDate: { type: Date },
     currentPeriodStart: { type: Date },
     currentPeriodEnd: { type: Date },
+    gracePeriodEnd: { type: Date },
     cancelAtPeriodEnd: { type: Boolean, default: false },
+    
+    nextPlanId: { type: Schema.Types.ObjectId, ref: 'Plan' },
+    nextBillingInterval: { type: String },
   },
   { timestamps: true }
 );

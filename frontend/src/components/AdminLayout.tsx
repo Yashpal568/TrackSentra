@@ -75,6 +75,7 @@ export const AdminLayout = () => {
       items: [
         { name: 'Plans & Pricing', path: '/admin/plans', icon: FileText },
         { name: 'Subscriptions', path: '/admin/subscriptions', icon: CreditCard, badge: notifications.pendingPayments > 0 ? notifications.pendingPayments : undefined, badgeColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+        { name: 'Payments', path: '/admin/payments', icon: CreditCard },
         { name: 'Revenue', path: '/admin/revenue', icon: PieChart },
       ]
     },

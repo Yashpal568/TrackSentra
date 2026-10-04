@@ -64,11 +64,23 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         if (plan && plan.visibility === 'public') {
           const validInterval = ['monthly', 'quarterly', 'annual'].includes(billingInterval) ? billingInterval : 'monthly';
           const price = (plan as any).pricing[validInterval];
+          
+          const isTrial = plan.trialDurationDays > 0;
+          const status = isTrial ? SubscriptionStatus.TRIAL : SubscriptionStatus.PENDING_PAYMENT;
+          const currentPeriodStart = new Date();
+          const currentPeriodEnd = new Date();
+          
+          if (isTrial) {
+            currentPeriodEnd.setDate(currentPeriodEnd.getDate() + plan.trialDurationDays);
+          }
 
           const subscription = new Subscription({
             companyId: company._id,
             planId: plan._id,
-            status: SubscriptionStatus.PENDING_PAYMENT,
+            status,
+            startDate: currentPeriodStart,
+            currentPeriodStart,
+            currentPeriodEnd: isTrial ? currentPeriodEnd : undefined,
             planSnapshot: {
               name: plan.name,
               price,
@@ -90,9 +102,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       });
       await audit.save({ session });
 
-      await session.commitTransaction();
-
-      await session.commitTransaction();
+      // Transaction continues
 
       // M17: Email Verification
       const rawToken = crypto.randomBytes(32).toString('hex');
@@ -105,13 +115,16 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       });
       
       const verifyUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${rawToken}&email=${encodeURIComponent(user.email)}`;
-      await sendEmail(
-        user.email,
-        'Verify your TrackSentra Account',
-        `Please verify your email by clicking the following link:\n\n${verifyUrl}`
-      );
+      try {
+        await sendEmail(
+          user.email,
+          'Verify your TrackSentra Account',
+          `Please verify your email by clicking the following link:\n\n${verifyUrl}`
+        );
+      } catch (e) { console.error('Failed to send verification email:', e); }
 
       // Notify Super Admins
+      /*
       await NotificationService.notifySuperAdmins({
         type: 'NEW_COMPANY_REGISTRATION',
         title: 'New Company Registered',
@@ -119,6 +132,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         severity: 'INFO',
         entityType: 'System'
       });
+      */
 
       const { accessToken, refreshToken } = generateTokens(user);
 
@@ -141,6 +155,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       if (planId) {
         (userObj as any).subscription = { status: SubscriptionStatus.PENDING_PAYMENT, planId };
       }
+      
+      await session.commitTransaction();
       res.status(201).json({ message: 'Registration successful', user: userObj, accessToken });
     } catch (err: any) {
       await session.abortTransaction();
@@ -148,8 +164,9 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     } finally {
       session.endSession();
     }
-  } catch (error) {
-    res.status(500).json({ error: { message: 'Internal server error' } });
+  } catch (error: any) {
+    console.error('Register error:', error);
+    res.status(500).json({ error: { message: 'Internal server error: ' + error.message } });
   }
 };
 

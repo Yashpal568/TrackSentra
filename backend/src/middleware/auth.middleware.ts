@@ -34,6 +34,12 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     //   return;
     // }
 
+    if ((decoded as any).impersonating) {
+      user.role = (decoded as any).role;
+      user.companyId = (decoded as any).companyId;
+      (user as any).isImpersonating = true;
+    }
+
     // Attach user to request
     (req as any).user = user;
     next();

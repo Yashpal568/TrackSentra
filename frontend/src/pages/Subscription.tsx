@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/axios';
 import { Button } from '../components/ui/Button';
 import { QRCodeSVG } from 'qrcode.react';
-import { CreditCard, ShieldCheck, Zap, Clock } from 'lucide-react';
+import { CreditCard, ShieldCheck, Zap, Clock, AlertTriangle, Calendar, ArrowDownCircle } from 'lucide-react';
 
 export function Subscription() {
   const navigate = useNavigate();
@@ -33,6 +33,12 @@ export function Subscription() {
     };
     fetchData();
   }, []);
+
+  const getDaysRemaining = (endDateStr: string) => {
+    if (!endDateStr) return 0;
+    const diff = new Date(endDateStr).getTime() - Date.now();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  };
 
   const handleSubmitPayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +111,30 @@ export function Subscription() {
                 <span className="text-sm ml-1">/ {subscription.planSnapshot.billingInterval}</span>
               </div>
               
+              {subscription.status === 'TRIAL' && (
+                <div className="mb-8 p-4 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-start gap-3">
+                  <Calendar className="text-blue-400 shrink-0 mt-0.5" size={18} />
+                  <div>
+                    <h4 className="text-sm font-bold text-blue-400">Free Trial Active</h4>
+                    <p className="text-xs text-blue-400/80 mt-1">
+                      You have <span className="font-bold">{getDaysRemaining(subscription.currentPeriodEnd)} days</span> remaining in your trial. Please verify payment to avoid service interruption.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
+              {subscription.nextPlanId && (
+                <div className="mb-8 p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-start gap-3">
+                  <ArrowDownCircle className="text-orange-400 shrink-0 mt-0.5" size={18} />
+                  <div>
+                    <h4 className="text-sm font-bold text-orange-400">Downgrade Scheduled</h4>
+                    <p className="text-xs text-orange-400/80 mt-1">
+                      Your plan will switch to <span className="font-bold">{subscription.nextPlanId.name || 'a lower tier'}</span> at the end of the current billing cycle.
+                    </p>
+                  </div>
+                </div>
+              )}
+              
               <div className="space-y-4">
                 <h4 className="text-sm font-bold text-text-main border-b border-border-subtle pb-2">Plan Allowances</h4>
                 <div className="flex items-center justify-between text-sm group">
@@ -119,14 +149,22 @@ export function Subscription() {
             </div>
           </div>
 
-          {subscription.status === 'PENDING_PAYMENT' && (
-            <div className="bg-surface-card p-8 rounded-2xl shadow-xl border border-orange-500/30 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+          {(subscription.status === 'PENDING_PAYMENT' || subscription.status === 'PAST_DUE' || subscription.status === 'TRIAL') && (
+            <div className={`bg-surface-card p-8 rounded-2xl shadow-xl border relative overflow-hidden ${subscription.status === 'PAST_DUE' ? 'border-red-500/30' : 'border-orange-500/30'}`}>
+              <div className={`absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none ${subscription.status === 'PAST_DUE' ? 'bg-red-500/10' : 'bg-orange-500/10'}`} />
               <div className="relative z-10">
-                <h2 className="text-xl font-bold mb-4 text-orange-400 flex items-center gap-2">
-                  <Zap size={20} className="text-orange-500" />
-                  Payment Required
+                <h2 className={`text-xl font-bold mb-4 flex items-center gap-2 ${subscription.status === 'PAST_DUE' ? 'text-red-400' : 'text-orange-400'}`}>
+                  {subscription.status === 'PAST_DUE' ? <AlertTriangle size={20} className="text-red-500" /> : <Zap size={20} className="text-orange-500" />}
+                  {subscription.status === 'PAST_DUE' ? 'Payment Past Due' : 'Payment Required'}
                 </h2>
+                
+                {subscription.status === 'PAST_DUE' && subscription.gracePeriodEnd && (
+                   <div className="mb-6 bg-red-500/10 border border-red-500/30 p-4 rounded-xl text-red-400 text-sm">
+                     <span className="font-bold block mb-1">Service Disconnection Warning</span>
+                     Your account is past due and will be automatically suspended in <span className="font-bold underline">{getDaysRemaining(subscription.gracePeriodEnd)} days</span>. Please submit payment immediately.
+                   </div>
+                )}
+                
                 <div className="mb-6 bg-surface-main border border-border-subtle p-5 rounded-xl text-sm flex flex-col items-center">
                   <p className="font-bold text-text-main mb-3 uppercase tracking-wider text-xs w-full text-center">Scan with any UPI App</p>
                   

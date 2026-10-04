@@ -3,7 +3,8 @@ import mongoose, { Schema, Document } from 'mongoose';
 export enum PaymentStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED'
+  REJECTED = 'REJECTED',
+  REFUNDED = 'REFUNDED'
 }
 
 export interface IPaymentSubmission extends Document {
@@ -14,15 +15,20 @@ export interface IPaymentSubmission extends Document {
   expectedAmount: number;
   currency: string;
   
-  transactionReference: string; // e.g. UPI ID or bank ref
+  transactionReference: string;
   paymentDate: Date;
-  evidenceUrl?: string; // Optional URL for uploaded proof
+  evidenceUrl?: string;
 
   status: PaymentStatus;
   
   reviewerId?: mongoose.Types.ObjectId;
   reviewedAt?: Date;
   rejectionReason?: string;
+  
+  targetPlanId?: mongoose.Types.ObjectId;
+  targetBillingInterval?: string;
+  isUpgrade?: boolean;
+  prorationCredit?: number;
 
   createdAt: Date;
   updatedAt: Date;
@@ -46,11 +52,15 @@ const PaymentSubmissionSchema: Schema = new Schema(
     reviewerId: { type: Schema.Types.ObjectId, ref: 'User' },
     reviewedAt: { type: Date },
     rejectionReason: { type: String },
+
+    targetPlanId: { type: Schema.Types.ObjectId, ref: 'Plan' },
+    targetBillingInterval: { type: String },
+    isUpgrade: { type: Boolean, default: false },
+    prorationCredit: { type: Number, default: 0 }
   },
   { timestamps: true }
 );
 
-// Ensure no duplicate processing
 PaymentSubmissionSchema.index({ transactionReference: 1 }, { unique: true });
 
 export const PaymentSubmission = mongoose.model<IPaymentSubmission>('PaymentSubmission', PaymentSubmissionSchema);

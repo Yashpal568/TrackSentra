@@ -33,10 +33,10 @@ export function AdminRevenue() {
   };
 
   const stats = data ? [
-    { title: 'Monthly Recurring Revenue', value: formatCurrency(data.stats.mrr), change: '+12.5%', isPositive: true, icon: DollarSign },
-    { title: 'Annual Run Rate', value: formatCurrency(data.stats.arr), change: '+15.2%', isPositive: true, icon: TrendingUp },
-    { title: 'Active Paid Tenants', value: data.stats.activeTenants.toString(), change: '+3', isPositive: true, icon: Users },
-    { title: 'Churn Rate', value: `${data.stats.churnRate}%`, change: '-0.4%', isPositive: true, icon: ArrowDownRight },
+    { title: 'Monthly Recurring Revenue', value: formatCurrency(data.stats?.mrr || 0), change: '+12.5%', isPositive: true, icon: DollarSign },
+    { title: 'Annual Run Rate', value: formatCurrency(data.stats?.arr || 0), change: '+15.2%', isPositive: true, icon: TrendingUp },
+    { title: 'Active Paid Tenants', value: (data.stats?.activeTenants || 0).toString(), change: '+3', isPositive: true, icon: Users },
+    { title: 'Churn Rate', value: `${data.stats?.churnRate || 0}%`, change: '-0.4%', isPositive: true, icon: ArrowDownRight },
   ] : [
     { title: 'Monthly Recurring Revenue', value: '...', change: '...', isPositive: true, icon: DollarSign },
     { title: 'Annual Run Rate', value: '...', change: '...', isPositive: true, icon: TrendingUp },

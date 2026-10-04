@@ -44,6 +44,7 @@ const AdminUsers = lazy(() => import('./pages/AdminUsers').then(module => ({ def
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
 const AdminPlaceholder = lazy(() => import('./pages/AdminPlaceholder').then(module => ({ default: module.AdminPlaceholder })));
 const AdminSubscriptions = lazy(() => import('./pages/AdminSubscriptions').then(module => ({ default: module.AdminSubscriptions })));
+const AdminPayments = lazy(() => import('./pages/AdminPayments').then(module => ({ default: module.AdminPayments })));
 const AdminRevenue = lazy(() => import('./pages/AdminRevenue').then(module => ({ default: module.AdminRevenue })));
 const AdminSystemHealth = lazy(() => import('./pages/AdminSystemHealth').then(module => ({ default: module.AdminSystemHealth })));
 const AdminNotifications = lazy(() => import('./pages/AdminNotifications').then(module => ({ default: module.AdminNotifications })));
@@ -129,6 +130,7 @@ function App() {
             
             {/* Admin Routes */}
             <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
+            <Route path="/admin/payments" element={<AdminPayments />} />
             <Route path="/admin/revenue" element={<AdminRevenue />} />
             <Route path="/admin/health" element={<AdminSystemHealth />} />
             <Route path="/admin/notifications" element={<AdminNotifications />} />

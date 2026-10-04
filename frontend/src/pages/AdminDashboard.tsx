@@ -172,7 +172,7 @@ export function AdminDashboard() {
           </div>
           <div className="flex items-baseline gap-2">
             <h3 className="text-3xl font-black text-emerald-400">
-              {data.kpis?.mrr ? `₹${data.kpis.mrr.toLocaleString('en-IN')}` : 'Not available'}
+              {data.kpis?.mrr !== undefined ? `₹${data.kpis.mrr.toLocaleString('en-IN')}` : 'Not available'}
             </h3>
           </div>
         </Card>
