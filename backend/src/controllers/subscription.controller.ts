@@ -182,6 +182,58 @@ export const getMySubscription = async (req: Request, res: Response): Promise<vo
   }
 };
 
+export const selectPlan = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const user = (req as any).user;
+    if (user.role !== UserRole.COMPANY_ADMIN) {
+      res.status(403).json({ error: { message: 'Only company admin can select plans' } });
+      return;
+    }
+
+    const { planId } = req.body;
+    const plan = await Plan.findById(planId);
+    
+    if (!plan || plan.visibility !== 'public') {
+      res.status(404).json({ error: { message: 'Plan not found' } });
+      return;
+    }
+
+    // Check if they already have one
+    let subscription = await Subscription.findOne({ companyId: user.companyId });
+    if (subscription) {
+      // Just update it to pending payment for the new plan
+      subscription.planId = plan._id as any;
+      subscription.status = SubscriptionStatus.PENDING_PAYMENT;
+      subscription.planSnapshot = {
+        name: plan.name,
+        price: plan.price,
+        currency: plan.currency,
+        billingInterval: plan.billingInterval,
+        limits: plan.limits
+      };
+      await subscription.save();
+    } else {
+      subscription = new Subscription({
+        companyId: user.companyId,
+        planId: plan._id,
+        status: SubscriptionStatus.PENDING_PAYMENT,
+        planSnapshot: {
+          name: plan.name,
+          price: plan.price,
+          currency: plan.currency,
+          billingInterval: plan.billingInterval,
+          limits: plan.limits
+        }
+      });
+      await subscription.save();
+    }
+
+    res.json({ message: 'Plan selected successfully', subscription });
+  } catch (error: any) {
+    res.status(500).json({ error: { message: error.message } });
+  }
+};
+
 export const submitPayment = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;

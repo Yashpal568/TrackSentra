@@ -293,39 +293,40 @@ export const LandingPage = () => {
         ) : (
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {plans.slice(0, 3).map((plan, index) => (
-              <Card key={plan._id} className={`w-full rounded-2xl border ${index === 1 ? 'border-emerald-500 shadow-xl shadow-emerald-500/10 relative scale-105 z-10' : 'border-border-subtle shadow-sm'} bg-surface-sidebar flex flex-col p-8 transition-all`}>
+              <Card key={plan._id} className={`w-full rounded-2xl border ${index === 1 ? 'border-emerald-500 shadow-xl shadow-emerald-500/10 relative scale-105 z-10' : 'border-border-subtle shadow-sm'} bg-surface-sidebar flex flex-col p-6 transition-all`}>
                 {index === 1 && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-text-main px-4 py-1 rounded-full text-xs font-bold tracking-wider uppercase shadow-sm">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-text-main px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-sm">
                     Most Popular
                   </div>
                 )}
-                <div className="mb-6">
-                  <h3 className="text-2xl font-bold text-text-main">{plan.name}</h3>
-                  <p className="text-sm text-text-secondary mt-2 min-h-10">{plan.description}</p>
+                <div className="mb-5 text-center">
+                  <h3 className="text-xl font-bold tracking-tight text-text-main">{plan.name}</h3>
+                  <p className="text-xs text-text-secondary mt-1.5 min-h-[32px] px-1">{plan.description}</p>
                 </div>
                 
-                <div className="mb-8 pb-8 border-b border-border-subtle">
-                  <div className="flex items-baseline">
-                    <span className="text-5xl font-black tracking-tight text-text-main">${(plan.price / 100).toFixed(0)}</span>
-                    <span className="text-sm font-bold text-text-secondary ml-2">/{plan.billingInterval}</span>
+                <div className="mb-5 pb-5 border-b border-border-subtle text-center">
+                  <div className="flex items-baseline justify-center">
+                    <span className="text-4xl font-black tracking-tight text-text-main">₹{(plan.price / 100).toFixed(0)}</span>
+                    <span className="text-xs font-bold text-text-secondary ml-1">/{plan.billingInterval}</span>
                   </div>
                 </div>
                 
-                <ul className="space-y-4 mb-8 flex-1">
-                  <li className="flex items-center text-sm font-bold text-text-main">
-                    <Shield className="w-5 h-5 mr-3 text-emerald-500" />
+                <ul className="space-y-3 mb-6 flex-1">
+                  <li className="flex items-center text-xs font-bold text-text-main bg-background p-2.5 rounded-lg border border-border-subtle">
+                    <Shield className="w-4 h-4 mr-2.5 text-emerald-500 shrink-0" />
                     Up to {plan.limits?.maxGuards || 'Unlimited'} Guards
                   </li>
+                  <div className="h-1"></div>
                   {plan.features.slice(0, 5).map((feature, idx) => (
-                    <li key={idx} className="flex items-start text-sm text-text-secondary font-medium">
-                      <CheckCircle2 className="w-5 h-5 mr-3 text-text-muted shrink-0" />
+                    <li key={idx} className="flex items-start text-xs text-text-secondary font-medium">
+                      <CheckCircle2 className="w-4 h-4 mr-2.5 text-green-500 shrink-0" />
                       {feature}
                     </li>
                   ))}
                 </ul>
 
                 <Link to={`/register?planId=${plan._id}`} className="mt-auto w-full">
-                  <Button className={`w-full h-12 text-base font-bold ${index === 1 ? 'bg-emerald-600 hover:bg-emerald-500 border-0 text-text-main' : 'bg-[var(--color-border-subtle)] hover:bg-[var(--color-border-subtle)] text-text-main border-0'}`}>
+                  <Button className={`w-full h-12 text-sm font-bold ${index === 1 ? 'bg-emerald-600 hover:bg-emerald-500 border-0 text-text-main shadow-lg shadow-emerald-500/25' : 'bg-surface-sidebar hover:bg-surface-main text-text-main border border-border-subtle shadow-sm'}`}>
                     Get Started
                   </Button>
                 </Link>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/axios';
+import { useAuthStore } from '../store/authStore';
 import { CheckCircle2, Building2, Users } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
@@ -21,7 +22,9 @@ export function Pricing() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isVisible, setIsVisible] = useState(false);
+  const [selectingPlan, setSelectingPlan] = useState<string | null>(null);
   const navigate = useNavigate();
+  const user = useAuthStore(state => state.user);
 
   useEffect(() => {
     setIsVisible(true);
@@ -40,6 +43,23 @@ export function Pricing() {
     };
     fetchPlans();
   }, []);
+
+  const handleSelectPlan = async (planId: string) => {
+    if (!user) {
+      navigate(`/register?planId=${planId}`);
+      return;
+    }
+    
+    // User is logged in, select plan directly
+    try {
+      setSelectingPlan(planId);
+      await api.post('/subscriptions/my', { planId });
+      navigate('/subscription');
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || 'Failed to select plan');
+      setSelectingPlan(null);
+    }
+  };
 
   return (
     <div className="bg-background min-h-screen font-sans selection:bg-emerald-500/30 pb-24">
@@ -86,54 +106,55 @@ export function Pricing() {
             </div>
           </div>
         ) : (
-          <div className="flex flex-wrap justify-center items-end gap-8">
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto items-stretch">
             {plans.map((plan, index) => {
               const isPopular = index === 1; // Highlight the middle plan usually
               return (
-                <div key={plan._id} className={`w-full max-w-md transition-all duration-700 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}`} style={{ transitionDelay: `${index * 150}ms` }}>
-                  <Card className={`rounded-3xl bg-surface-sidebar flex flex-col p-8 transition-all duration-300 ${isPopular ? 'border-2 border-emerald-500 shadow-2xl shadow-emerald-500/10 scale-100 md:scale-105 z-10 relative' : 'border border-border-subtle shadow-xl hover:shadow-2xl hover:-translate-y-1'}`}>
+                <div key={plan._id} className={`w-full transition-all duration-700 transform ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0'}`} style={{ transitionDelay: `${index * 150}ms` }}>
+                  <Card className={`rounded-3xl h-full bg-surface-sidebar flex flex-col p-6 transition-all duration-300 ${isPopular ? 'border-2 border-emerald-500 shadow-2xl shadow-emerald-500/10 scale-100 md:scale-105 z-10 relative' : 'border border-border-subtle shadow-xl hover:shadow-2xl hover:-translate-y-1'}`}>
                     {isPopular && (
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-text-main px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-lg">
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-text-main px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">
                         Most Popular
                       </div>
                     )}
                     
-                    <div className="mb-8 text-center">
-                      <h3 className="text-2xl font-bold tracking-tight text-text-main mb-2">{plan.name}</h3>
-                      <p className="text-sm text-text-secondary min-h-10 px-4">{plan.description}</p>
+                    <div className="mb-5 text-center">
+                      <h3 className="text-xl font-bold tracking-tight text-text-main mb-1.5">{plan.name}</h3>
+                      <p className="text-xs text-text-secondary min-h-[32px] px-1">{plan.description}</p>
                     </div>
                     
-                    <div className="text-center mb-8 pb-8 border-b border-border-subtle">
+                    <div className="text-center mb-5 pb-5 border-b border-border-subtle">
                       <div className="flex items-baseline justify-center">
-                        <span className="text-6xl font-black tracking-tight text-text-main">₹{(plan.price / 100).toFixed(0)}</span>
-                        <span className="text-base font-bold text-text-secondary ml-2">/{plan.billingInterval}</span>
+                        <span className="text-4xl font-black tracking-tight text-text-main">₹{(plan.price / 100).toFixed(0)}</span>
+                        <span className="text-xs font-bold text-text-secondary ml-1">/{plan.billingInterval}</span>
                       </div>
                     </div>
                     
-                    <ul className="space-y-4 flex-1 mb-8">
-                      <li className="flex items-center text-sm font-bold text-text-main bg-background p-3 rounded-lg border border-border-subtle">
-                        <Users className="w-5 h-5 mr-3 text-emerald-600" />
+                    <ul className="space-y-3 flex-1 mb-6">
+                      <li className="flex items-center text-xs font-bold text-text-main bg-background p-2.5 rounded-lg border border-border-subtle">
+                        <Users className="w-4 h-4 mr-2.5 text-emerald-600" />
                         Up to {plan.limits.maxGuards} Active Guards
                       </li>
-                      <li className="flex items-center text-sm font-bold text-text-main bg-background p-3 rounded-lg border border-border-subtle">
-                        <Building2 className="w-5 h-5 mr-3 text-emerald-600" />
+                      <li className="flex items-center text-xs font-bold text-text-main bg-background p-2.5 rounded-lg border border-border-subtle">
+                        <Building2 className="w-4 h-4 mr-2.5 text-emerald-600" />
                         Up to {plan.limits.maxSites} Managed Sites
                       </li>
-                      <div className="h-4"></div>
-                      <li className="text-xs font-bold text-text-muted uppercase tracking-wider pl-1 mb-2">Included Features</li>
+                      <div className="h-2"></div>
+                      <li className="text-[10px] font-bold text-text-muted uppercase tracking-wider pl-1 mb-1.5">Included Features</li>
                       {plan.features.map((feature, i) => (
-                        <li key={i} className="flex items-start text-sm text-text-secondary font-medium">
-                          <CheckCircle2 className="w-5 h-5 mr-3 text-green-500 shrink-0" />
+                        <li key={i} className="flex items-start text-xs text-text-secondary font-medium">
+                          <CheckCircle2 className="w-4 h-4 mr-2.5 text-green-500 shrink-0" />
                           {feature}
                         </li>
                       ))}
                     </ul>
                     
                     <button
-                      onClick={() => navigate(`/register?planId=${plan._id}`)}
-                      className={`inline-flex items-center justify-center whitespace-nowrap rounded-xl text-base font-bold transition-all h-14 px-8 w-full mt-auto shadow-sm ${isPopular ? 'bg-emerald-600 text-text-main hover:bg-emerald-500 shadow-lg shadow-emerald-500/25' : 'bg-surface-sidebar text-text-main hover:bg-surface-main'}`}
+                      disabled={selectingPlan === plan._id}
+                      onClick={() => handleSelectPlan(plan._id)}
+                      className={`inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-bold transition-all h-12 px-6 w-full mt-auto shadow-sm ${isPopular ? 'bg-emerald-600 text-text-main hover:bg-emerald-500 shadow-lg shadow-emerald-500/25' : 'bg-surface-sidebar text-text-main hover:bg-surface-main border border-border-subtle'} ${selectingPlan === plan._id ? 'opacity-50 cursor-wait' : ''}`}
                     >
-                      Choose {plan.name}
+                      {selectingPlan === plan._id ? 'Processing...' : user ? `Select ${plan.name}` : `Choose ${plan.name}`}
                     </button>
                   </Card>
                 </div>

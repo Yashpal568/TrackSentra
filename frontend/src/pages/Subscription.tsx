@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/axios';
 import { Button } from '../components/ui/Button';
 import { QRCodeSVG } from 'qrcode.react';
 import { CreditCard, ShieldCheck, Zap } from 'lucide-react';
 
 export function Subscription() {
+  const navigate = useNavigate();
   const [subscription, setSubscription] = useState<any>(null);
   const [settings, setSettings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -74,8 +76,8 @@ export function Subscription() {
           <p className="text-text-secondary max-w-md mx-auto mb-8 relative z-10">
             You currently do not have an active billing plan. Contact your administrator or sales representative to activate your organization's subscription.
           </p>
-          <Button disabled className="relative z-10 bg-surface-main border border-border-subtle text-text-muted cursor-not-allowed px-8 py-2.5 rounded-full">
-            Upgrade Plan
+          <Button onClick={() => navigate('/pricing')} className="relative z-10 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-8 py-2.5 rounded-full shadow-lg shadow-emerald-500/25 border-0">
+            Select a Plan
           </Button>
         </div>
       ) : (

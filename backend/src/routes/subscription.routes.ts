@@ -20,6 +20,7 @@ router.put('/settings', requireSuperAdmin, subController.updateSystemSettings);
 
 // Customer endpoints
 router.get('/my', subController.getMySubscription);
+router.post('/my', subController.selectPlan);
 router.post('/pay', subController.submitPayment);
 
 // Payment Verification

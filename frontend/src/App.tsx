@@ -43,6 +43,14 @@ const AdminPayments = lazy(() => import('./pages/AdminPayments').then(module => 
 const AdminCompanies = lazy(() => import('./pages/AdminCompanies').then(module => ({ default: module.AdminCompanies })));
 const AdminUsers = lazy(() => import('./pages/AdminUsers').then(module => ({ default: module.AdminUsers })));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
+const AdminPlaceholder = lazy(() => import('./pages/AdminPlaceholder').then(module => ({ default: module.AdminPlaceholder })));
+const AdminSubscriptions = lazy(() => import('./pages/AdminSubscriptions').then(module => ({ default: module.AdminSubscriptions })));
+const AdminRevenue = lazy(() => import('./pages/AdminRevenue').then(module => ({ default: module.AdminRevenue })));
+const AdminSystemHealth = lazy(() => import('./pages/AdminSystemHealth').then(module => ({ default: module.AdminSystemHealth })));
+const AdminNotifications = lazy(() => import('./pages/AdminNotifications').then(module => ({ default: module.AdminNotifications })));
+const AdminAudit = lazy(() => import('./pages/AdminAudit').then(module => ({ default: module.AdminAudit })));
+const AdminSecurity = lazy(() => import('./pages/AdminSecurity').then(module => ({ default: module.AdminSecurity })));
+const AdminSettings = lazy(() => import('./pages/AdminSettings').then(module => ({ default: module.AdminSettings })));
 
 const SupportTickets = lazy(() => import('./pages/SupportTickets').then(module => ({ default: module.SupportTickets })));
 const SupportTicketDetails = lazy(() => import('./pages/SupportTicketDetails').then(module => ({ default: module.SupportTicketDetails })));
@@ -54,13 +62,13 @@ const AdminHelpCenter = lazy(() => import('./pages/AdminHelpCenter').then(module
 const SuspenseFallback = () => <div className="flex min-h-screen items-center justify-center">Loading component...</div>;
 
 function App() {
-  const { checkAuth, isLoading } = useAuthStore();
+  const { checkAuth, isCheckingAuth } = useAuthStore();
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  if (isLoading) {
+  if (isCheckingAuth) {
     return <div className="flex min-h-screen items-center justify-center">Loading application...</div>;
   }
 
@@ -86,9 +94,11 @@ function App() {
           </Route>
           
           <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/company" element={<CompanyProfile />} />
+            <Route path="/subscription" element={<Subscription />} />
+            
             <Route element={<RequireSubscription />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/company" element={<CompanyProfile />} />
               <Route path="/sites" element={<Sites />} />
               <Route path="/sites/:id" element={<SiteDetails />} />
               <Route path="/checkpoints" element={<Checkpoints />} />
@@ -103,7 +113,6 @@ function App() {
             </Route>
             <Route path="/audit" element={<AuditLogs />} />
             <Route path="/profile" element={<GuardProfile />} />
-            <Route path="/subscription" element={<Subscription />} />
             <Route path="/tickets" element={<SupportTickets />} />
             <Route path="/tickets/:id" element={<SupportTicketDetails />} />
             <Route path="/help" element={<HelpCenter />} />
@@ -118,6 +127,16 @@ function App() {
             <Route path="/admin/tickets" element={<AdminTickets />} />
             <Route path="/admin/tickets/:id" element={<SupportTicketDetails />} />
             <Route path="/admin/help" element={<AdminHelpCenter />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
+            <Route path="/admin/revenue" element={<AdminRevenue />} />
+            <Route path="/admin/health" element={<AdminSystemHealth />} />
+            <Route path="/admin/notifications" element={<AdminNotifications />} />
+            <Route path="/admin/support" element={<AdminPlaceholder title="Support Center" description="Centralized view for managing priority tickets and SLA compliance." />} />
+            <Route path="/admin/audit" element={<AdminAudit />} />
+            <Route path="/admin/security" element={<AdminSecurity />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
           </Route>
           
           <Route path="*" element={<Navigate to="/" replace />} />

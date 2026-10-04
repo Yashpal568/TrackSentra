@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { api } from '../lib/axios';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Building2, Search, AlertTriangle, CheckCircle2, Ban } from 'lucide-react';
 
 export function AdminCompanies() {
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialSearch = searchParams.get('search') || '';
+
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
 
   useEffect(() => {
     fetchCompanies();

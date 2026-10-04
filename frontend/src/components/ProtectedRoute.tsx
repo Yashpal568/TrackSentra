@@ -5,10 +5,10 @@ import { GuardLayout } from './GuardLayout';
 import { AdminLayout } from './AdminLayout';
 
 export const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: string[] }) => {
-  const { user, isLoading } = useAuthStore();
+  const { user, isCheckingAuth } = useAuthStore();
   const location = useLocation();
 
-  if (isLoading) {
+  if (isCheckingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-surface-main">
         <div className="flex flex-col items-center gap-4">
