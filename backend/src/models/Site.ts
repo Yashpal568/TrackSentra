@@ -4,6 +4,12 @@ export interface ISite extends Document {
   companyId: mongoose.Types.ObjectId;
   name: string;
   address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
   timezone: string;
   status: 'active' | 'inactive' | 'archived';
   settings: Record<string, any>;
@@ -16,7 +22,13 @@ const SiteSchema: Schema = new Schema(
     companyId: { type: Schema.Types.ObjectId, ref: 'Company', required: true, index: true },
     name: { type: String, required: true, trim: true },
     address: { type: String, trim: true },
-    timezone: { type: String, default: 'UTC' },
+    city: { type: String, trim: true },
+    state: { type: String, trim: true },
+    country: { type: String, trim: true, default: 'India' },
+    latitude: { type: Number },
+    longitude: { type: Number },
+    radius: { type: Number, default: 100 },
+    timezone: { type: String, default: 'Asia/Kolkata' },
     status: { type: String, enum: ['active', 'inactive', 'archived'], default: 'active' },
     settings: { type: Schema.Types.Mixed, default: {} },
   },

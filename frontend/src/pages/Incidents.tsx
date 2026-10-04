@@ -176,15 +176,15 @@ export const Incidents = () => {
           <form onSubmit={handleSubmit} className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-text-main mb-1">Incident Title <span className="text-red-500">*</span></label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Incident Title <span className="text-red-500">*</span></label>
                 <input required value={title} onChange={(e) => setTitle(e.target.value)} type="text" className="w-full rounded-md border-border-subtle shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border" placeholder="Brief summary of the incident" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-text-main mb-1">Detailed Description <span className="text-red-500">*</span></label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Detailed Description <span className="text-red-500">*</span></label>
                 <textarea required value={description} onChange={(e) => setDescription(e.target.value)} rows={4} className="w-full rounded-md border-border-subtle shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border" placeholder="Provide as much detail as possible about what occurred, individuals involved, and immediate actions taken." />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-text-main mb-1">Category</label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Category</label>
                 <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full rounded-md border-border-subtle shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border bg-surface-card">
                   <option value="Security">Security Breach / Suspicious Activity</option>
                   <option value="Maintenance">Maintenance / Facility Damage</option>
@@ -193,7 +193,7 @@ export const Incidents = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-text-main mb-1">Severity Level</label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Severity Level</label>
                 <select value={severity} onChange={(e) => setSeverity(e.target.value)} className="w-full rounded-md border-border-subtle shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border bg-surface-card">
                   <option value="Low">Low - Minor issue, no immediate threat</option>
                   <option value="Medium">Medium - Requires attention, moderate impact</option>
@@ -203,7 +203,7 @@ export const Incidents = () => {
               </div>
               {user?.role !== 'GUARD' && (
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-text-main mb-1">Location / Site <span className="text-red-500">*</span></label>
+                  <label className="flex text-sm font-semibold text-text-main mb-1">Location / Site <span className="text-red-500">*</span></label>
                   <select value={siteId} onChange={(e) => setSiteId(e.target.value)} className="w-full rounded-md border-border-subtle shadow-sm focus:border-orange-500 focus:ring-orange-500 px-4 py-2 border bg-surface-card">
                     <option value="">Select a site</option>
                     {sites.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
@@ -349,7 +349,7 @@ export const Incidents = () => {
 
                   {(newStatus === 'Resolved' || newStatus === 'Closed') && (
                     <div className="mb-4 animate-in fade-in slide-in-from-top-2">
-                      <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Resolution Details <span className="text-red-500">*</span></label>
+                      <label className="flex text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Resolution Details <span className="text-red-500">*</span></label>
                       <textarea 
                         required
                         value={resolutionDetails}

@@ -6,7 +6,7 @@ import { checkResourceLimit } from '../utils/entitlements';
 export const createSite = async (req: Request, res: Response): Promise<void> => {
   try {
     const user = (req as any).user;
-    const { name, address, timezone } = req.body;
+    const { name, address, city, state, country, latitude, longitude, radius, timezone, status } = req.body;
 
     // Entitlement Check
     const currentSiteCount = await Site.countDocuments({ companyId: user.companyId });
@@ -20,7 +20,14 @@ export const createSite = async (req: Request, res: Response): Promise<void> => 
       companyId: user.companyId, // Force tenant boundary
       name,
       address,
-      timezone,
+      city,
+      state,
+      country: country || 'India',
+      latitude: latitude ? parseFloat(latitude) : undefined,
+      longitude: longitude ? parseFloat(longitude) : undefined,
+      radius: radius ? parseFloat(radius) : 100,
+      timezone: timezone || 'Asia/Kolkata',
+      status: status || 'active'
     });
 
     await AuditLog.create({

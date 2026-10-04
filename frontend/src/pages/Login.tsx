@@ -34,6 +34,11 @@ export const Login = () => {
       if (destination.startsWith('/guard/scan') && currentUser?.role !== 'GUARD') {
         destination = '/dashboard';
       }
+      
+      // If SUPER_ADMIN logs in without a specific destination, send them to the admin panel
+      if (currentUser?.role === 'SUPER_ADMIN' && destination === '/dashboard') {
+        destination = '/admin/dashboard';
+      }
 
       navigate(destination, { replace: true });
     } catch (err) {
@@ -116,7 +121,7 @@ export const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="block text-sm font-bold text-text-main">{t('login.email')}</label>
+              <label className="flex text-sm font-bold text-text-main">{t('login.email')}</label>
               <input
                 type="email"
                 required
@@ -130,7 +135,7 @@ export const Login = () => {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-bold text-text-main">{t('login.password')}</label>
+                <label className="flex text-sm font-bold text-text-main">{t('login.password')}</label>
                 <Link to="/forgot-password" className="text-sm font-bold text-emerald-600 hover:text-emerald-400 transition-colors">
                   Forgot password?
                 </Link>
@@ -169,9 +174,9 @@ export const Login = () => {
             </Button>
             
             <div className="relative flex items-center py-2">
-              <div className="flex-grow border-t border-border-subtle"></div>
-              <span className="flex-shrink-0 mx-4 text-text-muted text-sm">Or</span>
-              <div className="flex-grow border-t border-border-subtle"></div>
+              <div className="grow border-t border-border-subtle"></div>
+              <span className="shrink-0 mx-4 text-text-muted text-sm">Or</span>
+              <div className="grow border-t border-border-subtle"></div>
             </div>
 
             <Button 
@@ -186,6 +191,9 @@ export const Login = () => {
                   }
                   if (destination.startsWith('/guard/scan') && currentUser?.role !== 'GUARD') {
                     destination = '/dashboard';
+                  }
+                  if (currentUser?.role === 'SUPER_ADMIN' && destination === '/dashboard') {
+                    destination = '/admin/dashboard';
                   }
                   navigate(destination, { replace: true });
                 } catch (e) {

@@ -108,7 +108,7 @@ export const SupportTickets = () => {
                     </Link>
                   </td>
                   <td className="p-5">
-                    <Link to={`/tickets/${ticket._id}`} className="block text-text-main font-semibold mb-1 group-hover:text-emerald-primary transition-colors">
+                    <Link to={`/tickets/${ticket._id}`} className="flex text-text-main font-semibold mb-1 group-hover:text-emerald-primary transition-colors">
                       {ticket.subject}
                     </Link>
                     <span className="text-xs font-medium text-text-muted uppercase tracking-wider">{ticket.category}</span>
@@ -137,7 +137,7 @@ export const SupportTickets = () => {
             <h2 className="text-2xl font-black text-text-main mb-6">Create Support Ticket</h2>
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Category</label>
+                <label className="flex text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Category</label>
                 <select 
                   className="w-full bg-surface-main border border-border-subtle rounded-xl px-4 py-3 text-text-main focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary outline-none transition-all cursor-pointer" 
                   value={form.category} 
@@ -150,7 +150,7 @@ export const SupportTickets = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Subject</label>
+                <label className="flex text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Subject</label>
                 <input 
                   required 
                   className="w-full bg-surface-main border border-border-subtle rounded-xl px-4 py-3 text-text-main focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary outline-none transition-all placeholder-text-muted" 
@@ -160,7 +160,7 @@ export const SupportTickets = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Description</label>
+                <label className="flex text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Description</label>
                 <textarea 
                   required 
                   className="w-full bg-surface-main border border-border-subtle rounded-xl px-4 py-3 text-text-main focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary outline-none transition-all min-h-35 resize-y placeholder-text-muted" 

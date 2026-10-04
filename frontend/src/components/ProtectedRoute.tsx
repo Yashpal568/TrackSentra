@@ -2,6 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { AppLayout } from './AppLayout';
 import { GuardLayout } from './GuardLayout';
+import { AdminLayout } from './AdminLayout';
 
 export const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: string[] }) => {
   const { user, isLoading } = useAuthStore();
@@ -26,8 +27,24 @@ export const ProtectedRoute = ({ allowedRoles }: { allowedRoles?: string[] }) =>
     return <Navigate to="/unauthorized" replace />;
   }
 
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  // Prevent non-super-admins from accessing /admin/* routes
+  if (isAdminRoute && user.role !== 'SUPER_ADMIN') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Prevent super-admins from accessing company routes
+  if (!isAdminRoute && user.role === 'SUPER_ADMIN') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
   if (user.role === 'GUARD') {
     return <GuardLayout />;
+  }
+
+  if (user.role === 'SUPER_ADMIN') {
+    return <AdminLayout />;
   }
 
   return <AppLayout />;

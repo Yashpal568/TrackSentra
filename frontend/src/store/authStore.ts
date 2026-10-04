@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { api } from '../lib/axios';
+import { useNotificationStore } from './notificationStore';
 
 interface User {
   id: string;
@@ -78,6 +79,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       await api.post('/auth/logout');
     } finally {
+      // Clear notifications on logout
+      useNotificationStore.getState().clear();
       set({ user: null, isLoading: false });
       window.location.href = '/login';
     }

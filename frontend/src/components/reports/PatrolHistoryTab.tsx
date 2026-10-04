@@ -116,7 +116,7 @@ export const PatrolHistoryTab: React.FC<PatrolHistoryProps> = ({ dateRange, site
                 placeholder="Search patrol..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 pr-4 py-2 bg-surface-main border border-border-subtle rounded-lg text-sm text-text-main focus:outline-none focus:border-emerald-500 min-w-[200px]"
+                className="pl-9 pr-4 py-2 bg-surface-main border border-border-subtle rounded-lg text-sm text-text-main focus:outline-none focus:border-emerald-500 min-w-50"
               />
             </div>
           </div>

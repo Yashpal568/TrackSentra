@@ -303,7 +303,7 @@ export const Reports = () => {
       </div>
 
       {/* Content */}
-      <div className="min-h-[400px] pt-4">
+      <div className="min-h-100 pt-4">
         {error ? (
           <div className="flex flex-col items-center justify-center py-20 bg-surface-sidebar border border-border-subtle rounded-2xl shadow-sm text-center">
             <ShieldAlert size={48} className="text-red-500 mb-4" />

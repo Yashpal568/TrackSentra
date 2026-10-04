@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../lib/axios';
 import { Button } from '../components/ui/Button';
+import { QRCodeSVG } from 'qrcode.react';
 import { CreditCard, ShieldCheck, Zap } from 'lucide-react';
 
 export function Subscription() {
@@ -93,7 +94,7 @@ export function Subscription() {
                 <h3 className="text-4xl font-black text-text-main">{subscription.planSnapshot.name}</h3>
               </div>
               <div className="flex items-baseline gap-1 text-text-secondary mb-8">
-                <span className="text-2xl font-bold text-text-main">${(subscription.planSnapshot.price / 100).toFixed(2)}</span>
+                <span className="text-2xl font-bold text-text-main">₹{(subscription.planSnapshot.price / 100).toFixed(2)}</span>
                 <span className="text-sm uppercase tracking-wider">{subscription.planSnapshot.currency}</span>
                 <span className="text-sm ml-1">/ {subscription.planSnapshot.billingInterval}</span>
               </div>
@@ -120,26 +121,31 @@ export function Subscription() {
                   <Zap size={20} className="text-orange-500" />
                   Payment Required
                 </h2>
-                <div className="mb-6 bg-surface-main border border-border-subtle p-5 rounded-xl text-sm">
-                  <p className="font-bold text-text-main mb-3 uppercase tracking-wider text-xs">Wire Transfer Instructions</p>
-                  <div className="space-y-2 text-text-secondary">
+                <div className="mb-6 bg-surface-main border border-border-subtle p-5 rounded-xl text-sm flex flex-col items-center">
+                  <p className="font-bold text-text-main mb-3 uppercase tracking-wider text-xs w-full text-center">Scan with any UPI App</p>
+                  
+                  {settings?.manualPaymentInstructions?.upiId && (
+                    <div className="bg-white p-4 rounded-xl shadow-sm mb-4">
+                      <QRCodeSVG 
+                        value={`upi://pay?pa=${settings.manualPaymentInstructions.upiId}&pn=${encodeURIComponent(settings.manualPaymentInstructions.accountName || 'TrackSentra')}&am=${(subscription.planSnapshot.price / 100).toFixed(2)}&cu=INR`} 
+                        size={200}
+                        level="M"
+                      />
+                    </div>
+                  )}
+
+                  <div className="space-y-2 text-text-secondary w-full">
                     {settings?.manualPaymentInstructions?.upiId && (
-                      <div className="flex justify-between"><span className="text-text-muted">UPI ID:</span> <span className="font-mono text-text-main">{settings.manualPaymentInstructions.upiId}</span></div>
+                      <div className="flex justify-between border-b border-border-subtle pb-2"><span className="text-text-muted">UPI ID:</span> <span className="font-mono font-bold text-emerald-primary">{settings.manualPaymentInstructions.upiId}</span></div>
                     )}
-                    {settings?.manualPaymentInstructions?.bankName && (
-                      <>
-                        <div className="flex justify-between"><span className="text-text-muted">Bank Name:</span> <span className="text-text-main font-medium">{settings.manualPaymentInstructions.bankName}</span></div>
-                        <div className="flex justify-between"><span className="text-text-muted">Account Name:</span> <span className="text-text-main">{settings.manualPaymentInstructions.accountName}</span></div>
-                        <div className="flex justify-between"><span className="text-text-muted">Account No:</span> <span className="font-mono text-text-main">{settings.manualPaymentInstructions.accountNumber}</span></div>
-                        <div className="flex justify-between"><span className="text-text-muted">IFSC Code:</span> <span className="font-mono text-text-main">{settings.manualPaymentInstructions.ifsc}</span></div>
-                      </>
-                    )}
+                    <div className="flex justify-between border-b border-border-subtle pb-2"><span className="text-text-muted">Amount to Pay:</span> <span className="font-bold text-text-main">₹{(subscription.planSnapshot.price / 100).toFixed(2)}</span></div>
                   </div>
+                  <p className="text-xs text-text-muted mt-4 w-full text-center">After successful payment, please enter your UTR / UPI Reference Number below.</p>
                 </div>
                 
                 <form onSubmit={handleSubmitPayment} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Transaction Reference</label>
+                    <label className="flex text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Transaction Reference</label>
                     <input
                       required
                       value={transactionRef}

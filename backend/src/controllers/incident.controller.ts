@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Incident } from '../models/Incident';
 import { UserRole } from '../models/User';
 import { patrolEventEmitter } from './patrol.controller';
+import { NotificationService } from '../services/notification.service';
 
 export const createIncident = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -24,6 +25,17 @@ export const createIncident = async (req: Request, res: Response): Promise<void>
       companyId: user.companyId,
       type: 'INCIDENT_REPORTED',
       incident
+    });
+
+    NotificationService.createNotification({
+      companyId: user.companyId,
+      type: 'INCIDENT_REPORTED',
+      title: severity === 'Critical' ? 'Critical Incident Reported' : 'New Incident Reported',
+      message: `${title}`,
+      severity: severity === 'Critical' ? 'CRITICAL' : (severity === 'High' ? 'WARNING' : 'INFO'),
+      entityType: 'Incident',
+      entityId: incident._id,
+      siteId
     });
 
     res.status(201).json(incident);

@@ -7,6 +7,7 @@ import { Guard } from '../models/Guard';
 import { AuditLog } from '../models/AuditLog';
 import { Site } from '../models/Site';
 import { EventEmitter } from 'events';
+import { NotificationService } from '../services/notification.service';
 
 export const patrolEventEmitter = new EventEmitter();
 
@@ -232,6 +233,19 @@ export const startPatrolSession = async (req: Request, res: Response): Promise<v
     type: 'SESSION_STARTED',
     session: session
   });
+
+  NotificationService.createNotification({
+    companyId: user.companyId,
+    type: 'PATROL_STARTED',
+    title: 'Patrol Started',
+    message: `Guard ${guard.employeeId || 'Unknown'} started a patrol at ${route.name}`,
+    severity: 'INFO',
+    entityType: 'Patrol',
+    entityId: session._id,
+    siteId,
+    patrolId: session._id,
+    guardId: guard._id
+  });
 };
 
 export const scanCheckpoint = async (req: Request, res: Response): Promise<void> => {
@@ -281,6 +295,19 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
       type: 'SCAN_RECORDED',
       scan: { status: 'rejected', failureReason: 'Invalid QR payload', sessionId: session._id, guardId: guard._id }
     });
+    
+    NotificationService.createNotification({
+      companyId: user.companyId,
+      type: 'CHECKPOINT_REJECTED',
+      title: 'Invalid QR Scan',
+      message: `Guard ${guard.employeeId || 'Unknown'} attempted to scan an invalid QR code.`,
+      severity: 'WARNING',
+      entityType: 'Patrol',
+      entityId: session._id,
+      patrolId: session._id,
+      guardId: guard._id,
+      siteId: session.siteId
+    });
     return;
   }
 
@@ -314,6 +341,20 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
       failureReason: 'Checkpoint already scanned in this session',
     });
     res.status(409).json({ error: { message: 'Checkpoint already scanned' } });
+
+    NotificationService.createNotification({
+      companyId: user.companyId,
+      type: 'CHECKPOINT_DUPLICATE',
+      title: 'Duplicate Scan Attempt',
+      message: `Guard ${guard.employeeId || 'Unknown'} scanned checkpoint ${checkpoint.name} again.`,
+      severity: 'WARNING',
+      entityType: 'Checkpoint',
+      entityId: checkpoint._id,
+      checkpointId: checkpoint._id,
+      patrolId: session._id,
+      guardId: guard._id,
+      siteId: session.siteId
+    });
     return;
   }
 
@@ -398,6 +439,20 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
         locationVerified: false,
       });
       res.status(400).json({ error: { message: `Out of range. Distance: ${Math.round(distanceToCheckpoint)}m, Required: ${radius}m` } });
+
+      NotificationService.createNotification({
+        companyId: user.companyId,
+        type: 'GPS_VIOLATION',
+        title: 'GPS Range Violation',
+        message: `Guard ${guard.employeeId || 'Unknown'} was ${Math.round(distanceToCheckpoint)}m away from ${checkpoint.name} (Max: ${radius}m).`,
+        severity: 'CRITICAL',
+        entityType: 'Checkpoint',
+        entityId: checkpoint._id,
+        checkpointId: checkpoint._id,
+        patrolId: session._id,
+        guardId: guard._id,
+        siteId: session.siteId
+      });
       return;
     }
     locationVerified = true;
@@ -431,6 +486,19 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
 
   if (expectedNextCheckpointId !== checkpoint._id.toString()) {
     scanStatus = 'out_of_sequence';
+    NotificationService.createNotification({
+      companyId: user.companyId,
+      type: 'OUT_OF_SEQUENCE',
+      title: 'Out of Sequence Scan',
+      message: `Guard ${guard.employeeId || 'Unknown'} scanned ${checkpoint.name} out of order.`,
+      severity: 'WARNING',
+      entityType: 'Patrol',
+      entityId: session._id,
+      checkpointId: checkpoint._id,
+      patrolId: session._id,
+      guardId: guard._id,
+      siteId: session.siteId
+    });
   }
 
   const scan = await CheckpointScan.create({
@@ -470,6 +538,18 @@ export const scanCheckpoint = async (req: Request, res: Response): Promise<void>
       companyId: user.companyId,
       type: 'SESSION_COMPLETED',
       session: session
+    });
+    NotificationService.createNotification({
+      companyId: user.companyId,
+      type: 'PATROL_COMPLETED',
+      title: 'Patrol Completed',
+      message: `Guard ${guard.employeeId || 'Unknown'} successfully completed the patrol.`,
+      severity: 'SUCCESS',
+      entityType: 'Patrol',
+      entityId: session._id,
+      patrolId: session._id,
+      guardId: guard._id,
+      siteId: session.siteId
     });
   }
 };
@@ -514,6 +594,18 @@ export const completePatrolSession = async (req: Request, res: Response): Promis
     companyId: user.companyId,
     type: 'SESSION_COMPLETED',
     session: session
+  });
+  
+  NotificationService.createNotification({
+    companyId: user.companyId,
+    type: 'PATROL_COMPLETED',
+    title: 'Patrol Manually Completed',
+    message: `Patrol session was completed by admin.`,
+    severity: 'INFO',
+    entityType: 'Patrol',
+    entityId: session._id,
+    patrolId: session._id,
+    siteId: session.siteId
   });
 };
 

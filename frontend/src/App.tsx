@@ -22,6 +22,7 @@ const Login = lazy(() => import('./pages/Login').then(module => ({ default: modu
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
 const CompanyProfile = lazy(() => import('./pages/CompanyProfile').then(module => ({ default: module.CompanyProfile })));
 const Sites = lazy(() => import('./pages/Sites').then(module => ({ default: module.Sites })));
+const SiteDetails = lazy(() => import('./pages/SiteDetails').then(module => ({ default: module.SiteDetails })));
 const Guards = lazy(() => import('./pages/Guards').then(module => ({ default: module.Guards })));
 const Shifts = lazy(() => import('./pages/Shifts').then(module => ({ default: module.Shifts })));
 const Checkpoints = lazy(() => import('./pages/Checkpoints').then(module => ({ default: module.Checkpoints })));
@@ -39,6 +40,9 @@ const Register = lazy(() => import('./pages/Register').then(module => ({ default
 const Subscription = lazy(() => import('./pages/Subscription').then(module => ({ default: module.Subscription })));
 const AdminPlans = lazy(() => import('./pages/AdminPlans').then(module => ({ default: module.AdminPlans })));
 const AdminPayments = lazy(() => import('./pages/AdminPayments').then(module => ({ default: module.AdminPayments })));
+const AdminCompanies = lazy(() => import('./pages/AdminCompanies').then(module => ({ default: module.AdminCompanies })));
+const AdminUsers = lazy(() => import('./pages/AdminUsers').then(module => ({ default: module.AdminUsers })));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
 
 const SupportTickets = lazy(() => import('./pages/SupportTickets').then(module => ({ default: module.SupportTickets })));
 const SupportTicketDetails = lazy(() => import('./pages/SupportTicketDetails').then(module => ({ default: module.SupportTicketDetails })));
@@ -86,6 +90,7 @@ function App() {
             <Route path="/company" element={<CompanyProfile />} />
             <Route element={<RequireSubscription />}>
               <Route path="/sites" element={<Sites />} />
+              <Route path="/sites/:id" element={<SiteDetails />} />
               <Route path="/checkpoints" element={<Checkpoints />} />
               <Route path="/guards" element={<Guards />} />
               <Route path="/shifts" element={<Shifts />} />
@@ -105,8 +110,11 @@ function App() {
             <Route path="/help/:slug" element={<HelpArticleView />} />
             
             {/* Admin Routes */}
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/plans" element={<AdminPlans />} />
             <Route path="/admin/payments" element={<AdminPayments />} />
+            <Route path="/admin/companies" element={<AdminCompanies />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/tickets" element={<AdminTickets />} />
             <Route path="/admin/tickets/:id" element={<SupportTicketDetails />} />
             <Route path="/admin/help" element={<AdminHelpCenter />} />

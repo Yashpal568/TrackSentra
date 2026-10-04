@@ -58,15 +58,15 @@ export const ActivateGuard = () => {
               <div className="bg-red-50 text-red-800 p-3 rounded-md text-sm">{message}</div>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-700">Email</label>
+              <label className="flex text-sm font-medium text-gray-700">Email</label>
               <input type="email" disabled value={email} className="mt-1 block w-full rounded border px-3 py-2 bg-surface-hover text-text-secondary" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Set Password</label>
+              <label className="flex text-sm font-medium text-gray-700">Set Password</label>
               <input type="password" required value={password} onChange={e => setPassword(e.target.value)} minLength={8} className="mt-1 block w-full rounded border px-3 py-2" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Confirm Password</label>
+              <label className="flex text-sm font-medium text-gray-700">Confirm Password</label>
               <input type="password" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} minLength={8} className="mt-1 block w-full rounded border px-3 py-2" />
             </div>
             <Button type="submit" disabled={status === 'submitting'} className="w-full mt-4">

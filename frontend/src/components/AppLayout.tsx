@@ -6,9 +6,10 @@ import {
   LayoutDashboard, MapPin, QrCode, Users, CalendarClock, 
   Radio, BarChart3, AlertTriangle, Shield, HelpCircle, 
   MessageSquare, Building2, Menu, LogOut, ChevronDown, 
-  X, Bell, Search, Settings, PanelLeftClose, PanelLeftOpen
+  X, Search, Settings, PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import { Badge } from './ui/Badge';
+import { NotificationBell } from './NotificationBell';
 
 export const AppLayout = () => {
   const { user, logout } = useAuthStore();
@@ -83,13 +84,6 @@ export const AppLayout = () => {
   if (user?.role === 'COMPANY_ADMIN') {
     menuItems.push({ name: 'Billing', path: '/subscription', icon: Building2 });
     menuItems.push({ name: 'Support', path: '/tickets', icon: MessageSquare });
-  }
-
-  if (user?.role === 'SUPER_ADMIN') {
-    menuItems.push({ name: 'Plans', path: '/admin/plans', icon: LayoutDashboard });
-    menuItems.push({ name: 'Payments', path: '/admin/payments', icon: Shield });
-    menuItems.push({ name: 'Admin Tickets', path: '/admin/tickets', icon: MessageSquare });
-    menuItems.push({ name: 'Manage Help', path: '/admin/help', icon: HelpCircle });
   }
 
   return (
@@ -258,12 +252,7 @@ export const AppLayout = () => {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4 shrink-0 pl-4">
-            <button className="relative p-2 rounded-full text-text-secondary hover:text-text-main hover:bg-surface-hover transition-colors focus:outline-none hidden sm:block">
-              <Bell size={20} />
-              {activeIncidents > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-danger border-2 border-surface-sidebar"></span>
-              )}
-            </button>
+            <NotificationBell className="hidden sm:block text-text-secondary" />
             
             <button className="p-2 rounded-full text-text-secondary hover:text-text-main hover:bg-surface-hover transition-colors focus:outline-none hidden sm:block">
               <Settings size={20} />

@@ -133,7 +133,7 @@ export const GuardAnalyticsTab: React.FC<GuardAnalyticsProps> = ({ dateRange, si
               placeholder="Search guards..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-surface-main border border-border-subtle rounded-lg text-sm text-text-main focus:outline-none focus:border-emerald-500 min-w-[240px]"
+              className="pl-9 pr-4 py-2 bg-surface-main border border-border-subtle rounded-lg text-sm text-text-main focus:outline-none focus:border-emerald-500 min-w-60"
             />
           </div>
         </div>

@@ -164,7 +164,7 @@ export const GuardPatrols = () => {
 
       {activeSession ? (
         <div className="space-y-6">
-          <Card className="bg-gradient-to-br from-emerald-900/80 to-emerald-950 border border-emerald-500/50 shadow-lg rounded-2xl overflow-hidden relative group">
+          <Card className="bg-linear-to-br from-emerald-900/80 to-emerald-950 border border-emerald-500/50 shadow-lg rounded-2xl overflow-hidden relative group">
             <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(16,185,129,0.05)_50%,transparent_75%,transparent_100%)] bg-size-[20px_20px]"></div>
             <div className="p-6 relative z-10">
               <div className="flex items-center justify-between mb-5">

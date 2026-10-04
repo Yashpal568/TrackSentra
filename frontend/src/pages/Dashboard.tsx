@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../lib/axios';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Users, Activity, CheckCircle2, AlertTriangle, RefreshCw, ArrowRight, ArrowUpRight, ArrowDownRight, Radio, MapPin, Calendar, CheckSquare } from 'lucide-react';
@@ -43,7 +43,7 @@ const AreaChart = ({ data }: { data: any[] }) => {
   // Calculate points for SVG
   const getPoints = (key: 'total' | 'completed') => {
     return data.map((d, i) => {
-      const x = (i / (data.length - 1)) * 100;
+      const x = data.length > 1 ? (i / (data.length - 1)) * 100 : 50;
       const y = 100 - (d[key] / yMax) * 100;
       return `${x},${y}`;
     }).join(' ');
@@ -73,7 +73,7 @@ const AreaChart = ({ data }: { data: any[] }) => {
           {/* Total Line (subtle) */}
           <polyline points={totalPoints} fill="none" className="stroke-text-muted opacity-50" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
           {data.map((d, i) => {
-             const x = (i / (data.length - 1)) * 100;
+             const x = data.length > 1 ? (i / (data.length - 1)) * 100 : 50;
              const y = 100 - (d.total / yMax) * 100;
              return <circle key={`t-${i}`} cx={x} cy={y} r="1" className="fill-text-muted opacity-50" />
           })}
@@ -83,7 +83,7 @@ const AreaChart = ({ data }: { data: any[] }) => {
           <polygon points={`0,100 ${completedPoints} 100,100`} className="fill-emerald-primary/10" />
           <polyline points={completedPoints} fill="none" className="stroke-emerald-primary" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
           {data.map((d, i) => {
-             const x = (i / (data.length - 1)) * 100;
+             const x = data.length > 1 ? (i / (data.length - 1)) * 100 : 50;
              const y = 100 - (d.completed / yMax) * 100;
              return <circle key={`c-${i}`} cx={x} cy={y} r="2" className="fill-emerald-primary" />
           })}
@@ -116,6 +116,10 @@ export const Dashboard = () => {
 
   if (user?.role === 'GUARD') {
     return <GuardDashboard />;
+  }
+
+  if (user?.role === 'SUPER_ADMIN') {
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   const fetchSites = async () => {
@@ -289,7 +293,7 @@ export const Dashboard = () => {
         <>
           {/* 1. KPI Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="p-5 flex flex-col justify-between border-border-subtle bg-gradient-to-br from-surface-sidebar to-surface-card overflow-hidden relative group">
+            <Card className="p-5 flex flex-col justify-between border-border-subtle bg-linear-to-br from-surface-sidebar to-surface-card overflow-hidden relative group">
               <div className="absolute right-0 bottom-0 opacity-10 text-emerald-primary translate-x-4 translate-y-4 group-hover:-translate-x-2 group-hover:-translate-y-2 transition-transform duration-500">
                 <Users size={80} />
               </div>
@@ -315,7 +319,7 @@ export const Dashboard = () => {
               </div>
             </Card>
 
-            <Card className="p-5 flex flex-col justify-between border-border-subtle bg-gradient-to-br from-surface-sidebar to-surface-card overflow-hidden relative group">
+            <Card className="p-5 flex flex-col justify-between border-border-subtle bg-linear-to-br from-surface-sidebar to-surface-card overflow-hidden relative group">
               <div className="absolute right-0 bottom-0 opacity-10 text-info translate-x-4 translate-y-4 group-hover:-translate-x-2 group-hover:-translate-y-2 transition-transform duration-500">
                 <Activity size={80} />
               </div>
@@ -341,7 +345,7 @@ export const Dashboard = () => {
               </div>
             </Card>
 
-            <Card className="p-5 flex flex-col justify-between border-border-subtle bg-gradient-to-br from-surface-sidebar to-surface-card overflow-hidden relative group">
+            <Card className="p-5 flex flex-col justify-between border-border-subtle bg-linear-to-br from-surface-sidebar to-surface-card overflow-hidden relative group">
               <div className="absolute right-0 bottom-0 opacity-10 text-emerald-500 translate-x-4 translate-y-4 group-hover:-translate-x-2 group-hover:-translate-y-2 transition-transform duration-500">
                 <CheckCircle2 size={80} />
               </div>
@@ -367,7 +371,7 @@ export const Dashboard = () => {
               </div>
             </Card>
 
-            <Card className="p-5 flex flex-col justify-between border-danger/20 bg-gradient-to-br from-surface-sidebar to-surface-card overflow-hidden relative group shadow-[0_0_15px_rgba(248,113,113,0.05)]">
+            <Card className="p-5 flex flex-col justify-between border-danger/20 bg-linear-to-br from-surface-sidebar to-surface-card overflow-hidden relative group shadow-[0_0_15px_rgba(248,113,113,0.05)]">
               <div className="absolute right-0 bottom-0 opacity-10 text-danger translate-x-4 translate-y-4 group-hover:-translate-x-2 group-hover:-translate-y-2 transition-transform duration-500">
                 <AlertTriangle size={80} />
               </div>
@@ -398,7 +402,7 @@ export const Dashboard = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             
             {/* Live Patrol Activity */}
-            <Card className="lg:col-span-3 p-0 border-border-subtle flex flex-col h-[400px]">
+            <Card className="lg:col-span-3 p-0 border-border-subtle flex flex-col h-100">
               <div className="p-5 border-b border-border-subtle flex items-center justify-between">
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
@@ -474,7 +478,7 @@ export const Dashboard = () => {
             </Card>
 
             {/* Site Status */}
-            <Card className="lg:col-span-2 p-0 border-border-subtle flex flex-col h-[400px]">
+            <Card className="lg:col-span-2 p-0 border-border-subtle flex flex-col h-100">
                <div className="p-5 border-b border-border-subtle flex items-center justify-between">
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">

@@ -79,7 +79,7 @@ export const VerifyEmail = () => {
                   Resend Verification Email
                 </Button>
               )}
-              <Link to="/login" className="block">
+              <Link to="/login" className="flex">
                 <Button className="w-full">Back to Login</Button>
               </Link>
             </div>

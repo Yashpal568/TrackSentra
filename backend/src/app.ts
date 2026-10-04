@@ -22,6 +22,8 @@ import onboardingRoutes from './routes/onboarding.routes';
 import ticketRoutes from './routes/ticket.routes';
 import helpCenterRoutes from './routes/helpCenter.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import notificationRoutes from './routes/notification.routes';
+import adminRoutes from './routes/admin.routes';
 const app = express();
 
 app.use(cors({
@@ -35,6 +37,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(globalLimiter);
 
+app.use('/api/admin', adminRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/sites', siteRoutes);
@@ -50,6 +53,7 @@ app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/help-center', helpCenterRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });

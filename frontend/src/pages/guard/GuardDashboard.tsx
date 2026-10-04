@@ -52,7 +52,7 @@ export const GuardDashboard = () => {
       
       {/* Greeting Section */}
       <div className="bg-surface-card p-6 rounded-2xl border border-border-subtle shadow-sm relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[40px] rounded-full pointer-events-none transition-all group-hover:bg-emerald-500/20"></div>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-2xl rounded-full pointer-events-none transition-all group-hover:bg-emerald-500/20"></div>
         <h1 className="text-3xl font-black text-text-main mb-1 leading-tight tracking-tight">
           {t('dashboard.greeting') || 'Hello'}, <br/>
           <span className="text-emerald-500">{user?.firstName}</span>
@@ -72,7 +72,7 @@ export const GuardDashboard = () => {
 
       {/* Main Action Area */}
       {activeSession ? (
-        <Card className="bg-gradient-to-br from-emerald-900/80 to-emerald-950 border border-emerald-500/50 shadow-lg rounded-2xl overflow-hidden relative group">
+        <Card className="bg-linear-to-br from-emerald-900/80 to-emerald-950 border border-emerald-500/50 shadow-lg rounded-2xl overflow-hidden relative group">
           <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(16,185,129,0.05)_50%,transparent_75%,transparent_100%)] bg-size-[20px_20px]"></div>
           <div className="p-6 relative z-10">
             <div className="flex items-center gap-2 mb-5">
@@ -132,7 +132,7 @@ export const GuardDashboard = () => {
           )}
           
           {routes.length > 2 && (
-            <Link to="/patrols" className="block text-center font-bold text-sm text-emerald-500 py-3 hover:text-emerald-400 transition-colors">
+            <Link to="/patrols" className="flex text-center font-bold text-sm text-emerald-500 py-3 hover:text-emerald-400 transition-colors">
               {t('dashboard.view_all') || 'View all assignments'} &rarr;
             </Link>
           )}

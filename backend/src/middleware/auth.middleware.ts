@@ -19,6 +19,15 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
+    if (user.companyId) {
+      const { Company } = await import('../models/Company');
+      const company = await Company.findById(user.companyId);
+      if (company && company.status === 'suspended') {
+        res.status(403).json({ error: { message: 'Your company account has been suspended by the administrator.' } });
+        return;
+      }
+    }
+
     // Demo user write protection (disabled for testing)
     // if (user.isDemoUser && req.method !== 'GET' && !req.originalUrl.includes('/auth/demo') && !req.originalUrl.includes('/auth/logout')) {
     //   res.status(403).json({ error: { message: 'Write operations are disabled in demo mode.' } });
@@ -34,4 +43,12 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
+export const requireSuperAdmin = (req: Request, res: Response, next: NextFunction): void => {
+  const user = (req as any).user;
+  if (!user || user.role !== 'SUPER_ADMIN') {
+    res.status(403).json({ error: { message: 'Super Admin access required' } });
+    return;
+  }
+  next();
+};
 

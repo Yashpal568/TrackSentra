@@ -198,22 +198,22 @@ export const Checkpoints = () => {
           <form onSubmit={handleCreate} className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-text-main mb-1">Assigned Site <span className="text-red-500">*</span></label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Assigned Site <span className="text-red-500">*</span></label>
                 <select required value={formData.siteId} onChange={e => setFormData({...formData, siteId: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border bg-surface-card">
                   <option value="">Select a site</option>
                   {sites.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-text-main mb-1">Checkpoint Name <span className="text-red-500">*</span></label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Checkpoint Name <span className="text-red-500">*</span></label>
                 <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" placeholder="e.g. North Gate Entrance" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-text-main mb-1">Description</label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Description</label>
                 <input type="text" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" placeholder="e.g. Near the main entrance pillar" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-text-main mb-1">Installation Instructions</label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Installation Instructions</label>
                 <input type="text" value={formData.installationInstructions} onChange={e => setFormData({...formData, installationInstructions: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" placeholder="e.g. Mount on wall at 1.5m height" />
               </div>
               <div className="md:col-span-2 flex items-center justify-between pt-2">
@@ -223,11 +223,11 @@ export const Checkpoints = () => {
                 </Button>
               </div>
               <div>
-                <label className="block text-sm font-semibold text-text-main mb-1">Latitude</label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Latitude</label>
                 <input type="number" step="any" value={formData.latitude} onChange={e => setFormData({...formData, latitude: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" placeholder="e.g. 40.7128" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-text-main mb-1">Longitude</label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Longitude</label>
                 <input type="number" step="any" value={formData.longitude} onChange={e => setFormData({...formData, longitude: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" placeholder="e.g. -74.0060" />
               </div>
               {formData.accuracy && (
@@ -237,15 +237,15 @@ export const Checkpoints = () => {
                 </div>
               )}
               <div>
-                <label className="block text-sm font-semibold text-text-main mb-1">Validation Radius (meters)</label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Validation Radius (meters)</label>
                 <input type="number" min="5" value={formData.radius} onChange={e => setFormData({...formData, radius: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-text-main mb-1">Required Accuracy Threshold (meters)</label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Required Accuracy Threshold (meters)</label>
                 <input type="number" min="1" value={formData.gpsAccuracyThreshold} onChange={e => setFormData({...formData, gpsAccuracyThreshold: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-text-main mb-1">Location Notes / Instructions</label>
+                <label className="flex text-sm font-semibold text-text-main mb-1">Location Notes / Instructions</label>
                 <input type="text" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full rounded-md border-border-subtle shadow-sm focus:border-emerald-primary focus:ring-emerald-primary px-4 py-2 border" placeholder="e.g. Scan QR located behind the main front desk monitor." />
               </div>
             </div>

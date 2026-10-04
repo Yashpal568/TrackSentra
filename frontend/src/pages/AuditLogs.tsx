@@ -190,22 +190,22 @@ export const AuditLogs = () => {
               <div className="space-y-6 animate-in fade-in">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Event ID</span>
+                    <span className="flex text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Event ID</span>
                     <span className="text-sm font-mono text-text-main break-all bg-surface-main p-1.5 rounded border border-border-subtle block">{selectedLog._id}</span>
                   </div>
                   <div>
-                    <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">IP Address</span>
+                    <span className="flex text-xs font-bold text-text-muted uppercase tracking-wider mb-1">IP Address</span>
                     <span className="text-sm font-mono text-text-main break-all bg-surface-main p-1.5 rounded border border-border-subtle block">{selectedLog.ipAddress || 'Unknown'}</span>
                   </div>
                 </div>
 
                 <div className="bg-surface-main p-4 rounded-lg border border-border-subtle space-y-4">
                   <div>
-                    <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Timestamp</span>
+                    <span className="flex text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Timestamp</span>
                     <span className="text-sm text-text-main font-medium">{new Date(selectedLog.createdAt).toISOString()}</span>
                   </div>
                   <div>
-                    <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Actor</span>
+                    <span className="flex text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Actor</span>
                     <span className="text-sm text-text-main font-bold">
                       {selectedLog.userId ? `${selectedLog.userId.firstName} ${selectedLog.userId.lastName}` : 'System'}
                     </span>
@@ -215,20 +215,20 @@ export const AuditLogs = () => {
 
                 <div className="flex gap-4">
                   <div className="flex-1">
-                    <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Action</span>
+                    <span className="flex text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Action</span>
                     <Badge variant={selectedLog.action.includes('FAILED') ? 'destructive' : 'default'} className="uppercase">
                       {selectedLog.action}
                     </Badge>
                   </div>
                   <div className="flex-1">
-                    <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Resource</span>
+                    <span className="flex text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Resource</span>
                     <span className="text-sm text-text-main font-bold">{selectedLog.resource}</span>
                   </div>
                 </div>
 
                 {selectedLog.details && Object.keys(selectedLog.details).length > 0 && (
                   <div>
-                    <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2 flex items-center justify-between">
+                    <span className="flex text-xs font-bold text-text-muted uppercase tracking-wider mb-2 flex items-center justify-between">
                       Metadata Payload
                       <div className="h-px bg-border-subtle flex-1 ml-3"></div>
                     </span>

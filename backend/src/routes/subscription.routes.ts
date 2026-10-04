@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as subController from '../controllers/subscription.controller';
-import { authenticate } from '../middleware/auth.middleware';
+import { authenticate, requireSuperAdmin } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -12,18 +12,18 @@ router.get('/settings/payment-instructions', subController.getSystemSettings);
 router.use(authenticate);
 
 // Super Admin
-router.get('/plans', subController.getAllPlans);
-router.post('/plans', subController.createPlan);
-router.put('/plans/:id', subController.updatePlan);
-router.delete('/plans/:id', subController.deletePlan);
-router.put('/settings', subController.updateSystemSettings);
+router.get('/plans', requireSuperAdmin, subController.getAllPlans);
+router.post('/plans', requireSuperAdmin, subController.createPlan);
+router.put('/plans/:id', requireSuperAdmin, subController.updatePlan);
+router.delete('/plans/:id', requireSuperAdmin, subController.deletePlan);
+router.put('/settings', requireSuperAdmin, subController.updateSystemSettings);
 
 // Customer endpoints
 router.get('/my', subController.getMySubscription);
 router.post('/pay', subController.submitPayment);
 
 // Payment Verification
-router.get('/payments', subController.getPaymentSubmissions);
-router.post('/payments/:id/verify', subController.verifyPayment);
+router.get('/payments', requireSuperAdmin, subController.getPaymentSubmissions);
+router.post('/payments/:id/verify', requireSuperAdmin, subController.verifyPayment);
 
 export default router;

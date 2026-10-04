@@ -119,20 +119,20 @@ export const AdminHelpCenter = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Title</label>
+                  <label className="flex text-sm font-medium mb-1">Title</label>
                   <input required className="w-full border p-2 rounded" value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Slug (URL)</label>
+                  <label className="flex text-sm font-medium mb-1">Slug (URL)</label>
                   <input required className="w-full border p-2 rounded" value={form.slug} onChange={e => setForm({...form, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})} />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Category</label>
+                <label className="flex text-sm font-medium mb-1">Category</label>
                 <input required className="w-full border p-2 rounded" value={form.category} onChange={e => setForm({...form, category: e.target.value})} />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Content (Markdown supported in rendering)</label>
+                <label className="flex text-sm font-medium mb-1">Content (Markdown supported in rendering)</label>
                 <textarea required className="w-full border p-2 rounded min-h-75" value={form.content} onChange={e => setForm({...form, content: e.target.value})} />
               </div>
               <div className="flex items-center gap-2">

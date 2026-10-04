@@ -154,7 +154,7 @@ export const GuardProfile = () => {
 
       {/* Profile Summary Card */}
       <div className="bg-[#0f1715] border border-border-subtle rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6 relative overflow-hidden shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-transparent pointer-events-none"></div>
+        <div className="absolute inset-0 bg-linear-to-r from-emerald-500/5 to-transparent pointer-events-none"></div>
         
         {/* Avatar */}
         <div className="relative shrink-0">
@@ -194,7 +194,7 @@ export const GuardProfile = () => {
         </div>
 
         {/* Status and Action */}
-        <div className="flex flex-col items-center sm:items-end justify-between h-full min-w-[200px] shrink-0 border-t sm:border-t-0 sm:border-l border-border-subtle pt-6 sm:pt-0 sm:pl-6">
+        <div className="flex flex-col items-center sm:items-end justify-between h-full min-w-50 shrink-0 border-t sm:border-t-0 sm:border-l border-border-subtle pt-6 sm:pt-0 sm:pl-6">
           <div className="w-full flex sm:flex-col justify-between items-center sm:items-end gap-4 mb-4 sm:mb-0">
             <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-emerald-500/20 border border-emerald-400/20">
               <Camera size={14} /> Edit Profile
@@ -232,7 +232,7 @@ export const GuardProfile = () => {
                 <Icon size={16} />
                 {tab.label}
                 {isActive && (
-                  <span className="absolute bottom-0 left-0 w-full h-[2px] bg-emerald-500 shadow-[0_-2px_10px_rgba(16,185,129,0.5)]"></span>
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-emerald-500 shadow-[0_-2px_10px_rgba(16,185,129,0.5)]"></span>
                 )}
               </button>
             );
@@ -450,7 +450,7 @@ export const GuardProfile = () => {
                {loadingActivities ? (
                   <div className="flex justify-center p-8"><Loader2 className="animate-spin text-emerald-500" /></div>
                 ) : (
-                  <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border-subtle before:to-transparent">
+                  <div className="space-y-4 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-linear-to-b before:from-transparent before:via-border-subtle before:to-transparent">
                     {activities.map((act, i) => (
                       <div key={act._id || i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                          <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-[#0f1715] bg-surface-main text-emerald-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
