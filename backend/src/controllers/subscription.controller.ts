@@ -48,15 +48,22 @@ export const createPlan = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const { name, description, price, currency, billingInterval, trialDurationDays, features, limits, visibility, order } = req.body;
+    const { name, description, pricing, currency, trialDurationDays, features, limits, visibility, order } = req.body;
     
-    if (price < 0 || limits.maxGuards < 1 || limits.maxSites < 1) {
+    if (
+      !pricing || 
+      pricing.monthly < 0 || 
+      pricing.quarterly < 0 || 
+      pricing.annual < 0 || 
+      limits.maxGuards < 1 || 
+      limits.maxSites < 1
+    ) {
       res.status(400).json({ error: { message: 'Invalid pricing or limits' } });
       return;
     }
 
     const plan = await Plan.create({
-      name, description, price, currency, billingInterval, trialDurationDays, features, limits, visibility, order
+      name, description, pricing, currency, trialDurationDays, features, limits, visibility, order
     });
 
     await AuditLog.create({
@@ -80,8 +87,8 @@ export const updatePlan = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const { price, limits } = req.body;
-    if (price !== undefined && price < 0) { res.status(400).json({ error: { message: 'Invalid pricing' } }); return; }
+    const { pricing, limits } = req.body;
+    if (pricing && (pricing.monthly < 0 || pricing.quarterly < 0 || pricing.annual < 0)) { res.status(400).json({ error: { message: 'Invalid pricing' } }); return; }
     if (limits && (limits.maxGuards < 1 || limits.maxSites < 1)) { res.status(400).json({ error: { message: 'Invalid limits' } }); return; }
 
     const plan = await Plan.findByIdAndUpdate(req.params.id, req.body, { new: true });
@@ -205,13 +212,20 @@ export const selectPlan = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const { planId } = req.body;
+    const { planId, billingInterval = 'monthly' } = req.body;
     const plan = await Plan.findById(planId);
     
     if (!plan || plan.visibility !== 'public') {
       res.status(404).json({ error: { message: 'Plan not found' } });
       return;
     }
+
+    if (!['monthly', 'quarterly', 'annual'].includes(billingInterval)) {
+      res.status(400).json({ error: { message: 'Invalid billing interval' } });
+      return;
+    }
+
+    const price = (plan as any).pricing[billingInterval];
 
     // Check if they already have one
     let subscription = await Subscription.findOne({ companyId: user.companyId });
@@ -221,9 +235,9 @@ export const selectPlan = async (req: Request, res: Response): Promise<void> => 
       subscription.status = SubscriptionStatus.PENDING_PAYMENT;
       subscription.planSnapshot = {
         name: plan.name,
-        price: plan.price,
+        price,
         currency: plan.currency,
-        billingInterval: plan.billingInterval,
+        billingInterval,
         limits: plan.limits
       };
       await subscription.save();
@@ -234,9 +248,9 @@ export const selectPlan = async (req: Request, res: Response): Promise<void> => 
         status: SubscriptionStatus.PENDING_PAYMENT,
         planSnapshot: {
           name: plan.name,
-          price: plan.price,
+          price,
           currency: plan.currency,
-          billingInterval: plan.billingInterval,
+          billingInterval,
           limits: plan.limits
         }
       });

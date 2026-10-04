@@ -3,9 +3,12 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IPlan extends Document {
   name: string;
   description: string;
-  price: number; // Stored in minor units (e.g., cents/paise)
+  pricing: {
+    monthly: number;
+    quarterly: number;
+    annual: number;
+  }; // Stored in minor units (e.g., cents/paise)
   currency: string;
-  billingInterval: 'monthly' | 'quarterly' | 'half-yearly' | 'annual';
   trialDurationDays: number;
   features: string[];
   limits: {
@@ -22,9 +25,12 @@ const PlanSchema: Schema = new Schema(
   {
     name: { type: String, required: true, trim: true },
     description: { type: String, required: true, trim: true },
-    price: { type: Number, required: true, min: 0 },
+    pricing: {
+      monthly: { type: Number, required: true, min: 0, default: 0 },
+      quarterly: { type: Number, required: true, min: 0, default: 0 },
+      annual: { type: Number, required: true, min: 0, default: 0 }
+    },
     currency: { type: String, required: true, default: 'USD', uppercase: true, trim: true },
-    billingInterval: { type: String, enum: ['monthly', 'quarterly', 'half-yearly', 'annual'], required: true },
     trialDurationDays: { type: Number, default: 0, min: 0 },
     features: [{ type: String }],
     limits: {

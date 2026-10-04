@@ -30,7 +30,7 @@ const generateTokens = (user: IUser) => {
 };
 
 export const register = async (req: Request, res: Response): Promise<void> => {
-  const { companyName, firstName, lastName, email, password, planId } = req.body;
+  const { companyName, firstName, lastName, email, password, planId, billingInterval = 'monthly' } = req.body;
   const ipAddress = req.ip || req.socket.remoteAddress;
 
   try {
@@ -62,15 +62,18 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       if (planId) {
         const plan = await Plan.findById(planId).session(session);
         if (plan && plan.visibility === 'public') {
+          const validInterval = ['monthly', 'quarterly', 'annual'].includes(billingInterval) ? billingInterval : 'monthly';
+          const price = (plan as any).pricing[validInterval];
+
           const subscription = new Subscription({
             companyId: company._id,
             planId: plan._id,
             status: SubscriptionStatus.PENDING_PAYMENT,
             planSnapshot: {
               name: plan.name,
-              price: plan.price,
+              price,
               currency: plan.currency,
-              billingInterval: plan.billingInterval,
+              billingInterval: validInterval,
               limits: plan.limits
             }
           });

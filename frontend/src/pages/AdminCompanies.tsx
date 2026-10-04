@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../lib/axios';
+import { useAuthStore } from '../store/authStore';
 import { Button } from '../components/ui/Button';
 import { 
   Building2, Search, MoreHorizontal, ChevronLeft, ChevronRight, 
@@ -10,6 +11,7 @@ import {
 
 export function AdminCompanies() {
   const navigate = useNavigate();
+  const { checkAuth } = useAuthStore();
   const [companies, setCompanies] = useState<any[]>([]);
   const [kpis, setKpis] = useState<any>({ total: 0, active: 0, trial: 0, pending: 0, suspended: 0 });
   const [loading, setLoading] = useState(true);
@@ -29,6 +31,10 @@ export function AdminCompanies() {
   
   // Action Menu
   const [openActionId, setOpenActionId] = useState<string | null>(null);
+  
+  // View Details Modal
+  const [viewCompanyId, setViewCompanyId] = useState<string | null>(null);
+  const viewCompany = useMemo(() => companies.find(c => c._id === viewCompanyId), [companies, viewCompanyId]);
 
   // Search Debounce
   useEffect(() => {
@@ -131,12 +137,35 @@ export function AdminCompanies() {
   const handleSuspendCompany = async (id: string) => {
     if (!confirm('Are you sure you want to suspend this company? This will revoke all access.')) return;
     try {
-      await api.put(`/admin/subscriptions/${id}/suspend`); // Actually the route expects subscription ID, not company ID! Let's just mock or do an API call to company suspend
-      await api.put(`/companies/${id}`, { status: 'suspended' });
+      await api.put(`/admin/companies/${id}/suspend`);
+      setOpenActionId(null);
       fetchCompanies();
     } catch (err) {
       console.error('Failed to suspend company', err);
       alert('Failed to suspend company');
+    }
+  };
+
+  const handleImpersonateCompany = async (id: string) => {
+    try {
+      await api.post(`/admin/companies/${id}/impersonate`);
+      await checkAuth(); // Refresh auth state to load the impersonation token
+      window.location.href = '/dashboard'; // Force full reload to reset all states just in case
+    } catch (err) {
+      console.error('Impersonation failed:', err);
+      alert('Failed to impersonate company.');
+    }
+  };
+
+  const handleDeleteCompany = async (id: string) => {
+    if (!confirm('Are you sure you want to DELETE this company? This action is permanent and destroys all associated data.')) return;
+    try {
+      await api.delete(`/admin/companies/${id}`);
+      setOpenActionId(null);
+      fetchCompanies();
+    } catch (err) {
+      console.error('Failed to delete company', err);
+      alert('Failed to delete company');
     }
   };
 
@@ -363,26 +392,26 @@ export function AdminCompanies() {
                         {/* DROPDOWN MENU */}
                         {openActionId === company._id && (
                           <div className="absolute right-8 top-10 w-48 bg-surface-sidebar border border-border-subtle rounded-xl shadow-2xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100">
-                            <button className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2">
+                            <button onClick={() => { setViewCompanyId(company._id); setOpenActionId(null); }} className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2">
                               <Search size={14} /> View Details
                             </button>
-                            <button className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2">
+                            <button onClick={() => handleImpersonateCompany(company._id)} className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2">
                               <Building size={14} /> Open Company
                             </button>
-                            <button className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2">
+                            <button onClick={() => navigate(`/admin/users?company=${company._id}`)} className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2">
                               <Users size={14} /> Manage Users
                             </button>
-                            <button className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2">
+                            <button onClick={() => navigate(`/admin/subscriptions?search=${encodeURIComponent(company.name)}`)} className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2">
                               <Zap size={14} /> Subscription
                             </button>
-                            <button className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2 border-b border-border-subtle pb-3 mb-1">
+                            <button onClick={() => navigate(`/admin/payments?search=${encodeURIComponent(company.name)}`)} className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2 border-b border-border-subtle pb-3 mb-1">
                               <CreditCard size={14} /> Payments
                             </button>
                             
                             <button onClick={() => handleSuspendCompany(company._id)} className="w-full px-4 py-2 text-left text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2 transition-colors">
                               <Ban size={14} /> Suspend Company
                             </button>
-                            <button className="w-full px-4 py-2 text-left text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2 transition-colors">
+                            <button onClick={() => handleDeleteCompany(company._id)} className="w-full px-4 py-2 text-left text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2 transition-colors">
                               <X size={14} /> Delete Company
                             </button>
                           </div>
@@ -435,6 +464,86 @@ export function AdminCompanies() {
               </div>
             </div>
           )}
+        </div>
+      )}
+      
+      {/* View Company Details Modal */}
+      {viewCompany && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-center items-center p-4">
+          <div className="bg-surface-sidebar border border-border-subtle rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-border-subtle flex justify-between items-center bg-surface-main">
+              <div>
+                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                  <Building2 className="text-emerald-500" />
+                  {viewCompany.name}
+                </h2>
+                <p className="text-xs text-text-muted mt-1 font-mono">ID: {viewCompany._id}</p>
+              </div>
+              <button onClick={() => setViewCompanyId(null)} className="p-2 hover:bg-surface-hover rounded-full text-text-muted transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto custom-scrollbar">
+              <div className="grid grid-cols-2 gap-6 mb-8">
+                <div className="bg-surface-main p-4 rounded-2xl border border-border-subtle">
+                  <div className="text-xs text-text-muted font-bold uppercase tracking-wider mb-1">Status</div>
+                  {getStatusPill(viewCompany.effectiveStatus)}
+                </div>
+                <div className="bg-surface-main p-4 rounded-2xl border border-border-subtle">
+                  <div className="text-xs text-text-muted font-bold uppercase tracking-wider mb-1">Created</div>
+                  <div className="text-white font-medium">{formatDate(viewCompany.createdAt)}</div>
+                </div>
+                <div className="bg-surface-main p-4 rounded-2xl border border-border-subtle">
+                  <div className="text-xs text-text-muted font-bold uppercase tracking-wider mb-1">Users</div>
+                  <div className="text-white font-medium text-xl">{viewCompany.userCount}</div>
+                </div>
+                <div className="bg-surface-main p-4 rounded-2xl border border-border-subtle">
+                  <div className="text-xs text-text-muted font-bold uppercase tracking-wider mb-1">Sites</div>
+                  <div className="text-white font-medium text-xl">{viewCompany.siteCount}</div>
+                </div>
+              </div>
+              
+              <h3 className="text-sm font-bold text-text-muted uppercase tracking-wider mb-4 border-b border-border-subtle pb-2">Subscription Snapshot</h3>
+              {viewCompany.subscription ? (
+                <div className="bg-surface-main p-5 rounded-2xl border border-border-subtle">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className="text-lg font-bold text-emerald-400">{viewCompany.subscription.planSnapshot?.name || 'Unknown Plan'}</div>
+                      <div className="text-xs text-text-secondary capitalize">{viewCompany.subscription.planSnapshot?.billingInterval} Billing</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-black text-white flex items-center justify-end">
+                        <span className="text-sm text-text-muted mr-1 font-normal">MRR:</span>
+                        ₹{viewCompany.mrr ? (viewCompany.mrr / 100).toLocaleString() : 0}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border-subtle">
+                    <div>
+                      <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Guard Limit</div>
+                      <div className="text-sm text-white font-medium">{viewCompany.subscription.planSnapshot?.limits?.maxGuards || 'Unlimited'}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Site Limit</div>
+                      <div className="text-sm text-white font-medium">{viewCompany.subscription.planSnapshot?.limits?.maxSites || 'Unlimited'}</div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-surface-main p-6 rounded-2xl border border-border-subtle text-center text-text-secondary">
+                  No active subscription found.
+                </div>
+              )}
+            </div>
+            
+            <div className="p-6 border-t border-border-subtle bg-surface-main flex justify-end gap-3 mt-auto">
+              <Button onClick={() => setViewCompanyId(null)} variant="secondary">Close</Button>
+              <Button onClick={() => handleImpersonateCompany(viewCompany._id)} className="bg-emerald-600 hover:bg-emerald-500">
+                <Building size={16} className="mr-2" /> Open Company Dashboard
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

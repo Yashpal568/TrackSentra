@@ -5,6 +5,8 @@ import { User } from '../models/User';
 import { Subscription, SubscriptionStatus } from '../models/Subscription';
 import { PaymentSubmission } from '../models/PaymentSubmission';
 import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
+import { UserRole } from '../models/User';
 
 export const getAdminNotificationsSummary = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -408,5 +410,68 @@ export const getPlatformCompanies = async (req: Request, res: Response): Promise
   } catch (error) {
     console.error('Error fetching platform companies:', error);
     res.status(500).json({ error: { message: 'Failed to fetch platform companies' } });
+  }
+};
+
+export const suspendCompany = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const company = await Company.findByIdAndUpdate(id, { status: 'SUSPENDED' }, { new: true });
+    if (!company) {
+      return res.status(404).json({ error: { message: 'Company not found' } });
+    }
+    // Update active subscriptions to suspended
+    await Subscription.updateMany({ companyId: id, status: 'ACTIVE' }, { status: 'SUSPENDED' });
+    res.json({ message: 'Company suspended successfully', data: company });
+  } catch (error) {
+    console.error('Error suspending company:', error);
+    res.status(500).json({ error: { message: 'Failed to suspend company' } });
+  }
+};
+
+export const deleteCompany = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const company = await Company.findByIdAndDelete(id);
+    if (!company) {
+      return res.status(404).json({ error: { message: 'Company not found' } });
+    }
+    await Subscription.deleteMany({ companyId: id });
+    await User.deleteMany({ companyId: id });
+    res.json({ message: 'Company deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting company:', error);
+    res.status(500).json({ error: { message: 'Failed to delete company' } });
+  }
+};
+
+export const impersonateCompany = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const company = await Company.findById(id);
+    if (!company) {
+      res.status(404).json({ error: { message: 'Company not found' } });
+      return;
+    }
+
+    const user = (req as any).user;
+    
+    // Generate an impersonation token
+    const accessToken = jwt.sign(
+      { userId: user._id, companyId: id, role: UserRole.COMPANY_ADMIN, impersonating: true },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '1h' }
+    );
+    
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 1000 // 1 hour for impersonation
+    });
+
+    res.json({ message: 'Impersonating company' });
+  } catch (error: any) {
+    res.status(500).json({ error: { message: error.message } });
   }
 };

@@ -206,84 +206,88 @@ export function AdminSubscriptions() {
       {/* Subscription Details Modal */}
       {selectedSub && !showSuspendModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setSelectedSub(null)}></div>
-          <div className="bg-surface-card border border-border-subtle rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative z-10 animate-in fade-in zoom-in-95 shadow-2xl">
-            <div className="p-6 border-b border-border-subtle flex justify-between items-start bg-surface-main/30 sticky top-0 backdrop-blur-md z-20">
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setSelectedSub(null)}></div>
+          <div className="bg-[#0f1513] border border-border-subtle rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto relative z-10 animate-in fade-in zoom-in-95 shadow-2xl">
+            <div className="p-6 flex justify-between items-start sticky top-0 bg-[#0f1513]/95 backdrop-blur-md z-20">
                <div>
                   <h2 className="text-2xl font-black text-white flex items-center gap-3">
-                     {selectedSub.companyId?.name} <Badge variant={getStatusColor(selectedSub.status)} className="uppercase text-[10px] tracking-wider">{selectedSub.status}</Badge>
+                     {selectedSub.companyId?.name} 
+                     {selectedSub.status?.toUpperCase() === 'PENDING_PAYMENT' && (
+                       <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                         PENDING PAYMENT
+                       </div>
+                     )}
                   </h2>
-                  <p className="text-sm font-medium text-text-muted mt-1">{selectedSub.companyId?.email} • {selectedSub.companyId?.phone}</p>
                </div>
-               <button onClick={() => setSelectedSub(null)} className="p-2 rounded-full hover:bg-surface-hover text-slate-400 hover:text-white transition-colors">
+               <button onClick={() => setSelectedSub(null)} className="p-2 rounded-full hover:bg-surface-hover text-text-muted hover:text-white transition-colors">
                   <X size={20} />
                </button>
             </div>
             
-            <div className="p-6 space-y-8">
+            <div className="p-6 space-y-8 pt-2">
                {/* Overview */}
                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-surface-main rounded-xl p-4 border border-border-subtle">
-                     <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Plan</p>
+                  <div className="bg-[#151c1a] rounded-xl p-4 border border-border-subtle shadow-sm">
+                     <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2">Plan</p>
                      <p className="text-sm font-bold text-white">{selectedSub.planSnapshot?.name}</p>
                   </div>
-                  <div className="bg-surface-main rounded-xl p-4 border border-border-subtle">
-                     <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Price</p>
+                  <div className="bg-[#151c1a] rounded-xl p-4 border border-border-subtle shadow-sm">
+                     <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2">Price</p>
                      <p className="text-sm font-bold text-white">₹{((selectedSub.planSnapshot?.price || 0) / 100).toLocaleString('en-IN')}/{selectedSub.planSnapshot?.billingInterval}</p>
                   </div>
-                  <div className="bg-surface-main rounded-xl p-4 border border-border-subtle">
-                     <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Guards Limit</p>
+                  <div className="bg-[#151c1a] rounded-xl p-4 border border-border-subtle shadow-sm">
+                     <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2">Guards Limit</p>
                      <p className="text-sm font-bold text-white">{selectedSub.planSnapshot?.limits?.maxGuards || 'Unlimited'}</p>
                   </div>
-                  <div className="bg-surface-main rounded-xl p-4 border border-border-subtle">
-                     <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Sites Limit</p>
+                  <div className="bg-[#151c1a] rounded-xl p-4 border border-border-subtle shadow-sm">
+                     <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2">Sites Limit</p>
                      <p className="text-sm font-bold text-white">{selectedSub.planSnapshot?.limits?.maxSites || 'Unlimited'}</p>
                   </div>
                </div>
 
                {/* Payment Verification Block */}
                {selectedSub.status?.toUpperCase() === 'PENDING_PAYMENT' && (
-                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 relative overflow-hidden">
-                   <div className="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
-                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                 <div className="bg-[#1a1f1a] border border-[#2a3028] rounded-xl p-6 relative overflow-hidden shadow-sm">
+                   <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500 rounded-l-xl"></div>
+                   <div className="flex flex-col md:flex-row justify-between gap-6 pl-2">
                      <div className="flex-1">
-                       <h3 className="text-lg font-black text-amber-500 mb-2">
+                       <h3 className="text-lg font-black text-amber-500 mb-6">
                          {selectedSub.paymentSubmission ? 'Payment Verification Required' : 'Awaiting Payment Submission'}
                        </h3>
                        {selectedSub.paymentSubmission ? (
-                         <div className="space-y-2 mt-4">
-                           <div className="flex items-center gap-2">
-                             <span className="text-sm font-bold text-text-muted w-32">UTR / Ref No:</span>
-                             <span className="text-sm font-mono bg-black/40 text-white px-2 py-1 rounded select-all">{selectedSub.paymentSubmission.transactionReference}</span>
+                         <div className="space-y-3">
+                           <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                             <span className="text-sm font-bold text-text-muted">UTR / Ref No:</span>
+                             <span className="text-sm font-bold text-white">{selectedSub.paymentSubmission.transactionReference}</span>
                            </div>
-                           <div className="flex items-center gap-2">
-                             <span className="text-sm font-bold text-text-muted w-32">Submitted On:</span>
+                           <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                             <span className="text-sm font-bold text-text-muted">Submitted On:</span>
                              <span className="text-sm font-bold text-white">{new Date(selectedSub.paymentSubmission.paymentDate || selectedSub.paymentSubmission.createdAt).toLocaleString()}</span>
                            </div>
-                           <div className="flex items-center gap-2">
-                             <span className="text-sm font-bold text-text-muted w-32">Expected Amt:</span>
+                           <div className="grid grid-cols-[120px_1fr] items-center gap-4">
+                             <span className="text-sm font-bold text-text-muted">Expected Amt:</span>
                              <span className="text-sm font-bold text-white">₹{((selectedSub.paymentSubmission.expectedAmount || 0) / 100).toLocaleString('en-IN')}</span>
                            </div>
                          </div>
                        ) : (
                          <p className="text-sm text-text-secondary font-medium mt-2">
-                           This company has not yet submitted a UTR or payment reference. You can manually approve if payment was verified out-of-band.
+                           This company has not yet submitted a UTR or payment reference.
                          </p>
                        )}
                      </div>
-                     <div className="flex flex-col gap-3 shrink-0">
+                     <div className="flex flex-col gap-3 shrink-0 min-w-[200px] justify-center pt-2 md:pt-8">
                        <Button 
-                         className="bg-emerald-600 hover:bg-emerald-500 text-white border-0 w-full"
+                         className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2.5 rounded-lg w-full"
                          onClick={() => { handleApprovePayment(selectedSub._id, selectedSub.companyId?._id); setSelectedSub(null); }}
                        >
-                         <CheckCircle2 size={16} className="mr-2" /> Approve Payment
+                         <CheckCircle2 size={18} className="mr-2" /> Approve Payment
                        </Button>
                        <Button 
-                         variant="destructive" 
-                         className="w-full"
+                         variant="ghost" 
+                         className="text-white hover:bg-surface-hover font-bold py-2.5 rounded-lg w-full border border-transparent"
                          onClick={() => { handleRejectPayment(selectedSub._id, selectedSub.companyId?._id); setSelectedSub(null); }}
                        >
-                         <Ban size={16} className="mr-2" /> Reject
+                         <Ban size={18} className="mr-2 text-text-muted" /> Reject
                        </Button>
                      </div>
                    </div>
@@ -291,25 +295,25 @@ export function AdminSubscriptions() {
                )}
 
                {/* Timeline History */}
-               <div>
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">
-                     <History size={16} className="text-emerald-500" /> Subscription Timeline & History
+               <div className="pt-2 pb-4">
+                  <h3 className="text-[11px] font-bold text-white uppercase tracking-wider mb-6 flex items-center gap-2">
+                     <History size={16} className="text-emerald-500" /> SUBSCRIPTION TIMELINE & HISTORY
                   </h3>
                   
-                  <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border-subtle before:to-transparent">
+                  <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-px before:bg-border-subtle">
                      {selectedSub.history?.map((evt: any, i: number) => (
                         <div key={i} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                            {/* Marker */}
-                           <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-surface-card bg-emerald-500 text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 relative">
+                           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500 text-white shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 relative ring-4 ring-[#0f1513]">
                               <CheckCircle2 size={16} />
                            </div>
                            
-                           <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-surface-main p-4 rounded-xl border border-border-subtle shadow-sm">
+                           <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2rem)] bg-[#151c1a] p-4 rounded-xl shadow-sm">
                               <div className="flex items-center justify-between mb-1">
                                  <h4 className="font-bold text-sm text-white">{evt.event}</h4>
-                                 <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider bg-surface-sidebar px-2 py-0.5 rounded">{new Date(evt.date).toLocaleDateString()}</span>
+                                 <span className="text-[10px] text-text-muted">{new Date(evt.date).toLocaleDateString()}</span>
                               </div>
-                              <p className="text-xs text-text-secondary font-medium">{evt.details}</p>
+                              <p className="text-xs text-text-secondary">{evt.details}</p>
                            </div>
                         </div>
                      ))}
@@ -317,10 +321,12 @@ export function AdminSubscriptions() {
                </div>
             </div>
             
-            <div className="p-6 border-t border-border-subtle bg-surface-main/30 flex justify-end gap-3 rounded-b-3xl">
-               <Button variant="secondary" onClick={() => setSelectedSub(null)}>Close</Button>
+            <div className="p-6 border-t border-border-subtle bg-[#0f1513] flex justify-end gap-3 rounded-b-2xl sticky bottom-0 z-20">
+               <Button variant="ghost" onClick={() => setSelectedSub(null)} className="text-white hover:bg-surface-hover font-bold border border-transparent">
+                 Close
+               </Button>
                <Button 
-                 className="bg-emerald-600 hover:bg-emerald-500 border-0 text-white"
+                 className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold"
                  onClick={() => {
                    setSelectedSub(null);
                    navigate(`/admin/companies?search=${encodeURIComponent(selectedSub.companyId.name)}`);

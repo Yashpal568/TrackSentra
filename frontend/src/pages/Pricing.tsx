@@ -10,9 +10,12 @@ interface Plan {
   _id: string;
   name: string;
   description: string;
-  price: number;
+  pricing: {
+    monthly: number;
+    quarterly: number;
+    annual: number;
+  };
   currency: string;
-  billingInterval: string;
   features: string[];
   limits: { maxGuards: number; maxSites: number };
 }
@@ -23,6 +26,7 @@ export function Pricing() {
   const [error, setError] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const [selectingPlan, setSelectingPlan] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'quarterly' | 'annual'>('monthly');
   const navigate = useNavigate();
   const { user, checkAuth } = useAuthStore();
 
@@ -46,14 +50,14 @@ export function Pricing() {
 
   const handleSelectPlan = async (planId: string) => {
     if (!user) {
-      navigate(`/register?planId=${planId}`);
+      navigate(`/register?planId=${planId}&billingInterval=${billingInterval}`);
       return;
     }
     
     // User is logged in, select plan directly
     try {
       setSelectingPlan(planId);
-      await api.post('/subscriptions/my', { planId });
+      await api.post('/subscriptions/my', { planId, billingInterval });
       await checkAuth(); // Refresh the user state so RequireSubscription knows they have a plan
       navigate('/subscription');
     } catch (err: any) {
@@ -78,9 +82,35 @@ export function Pricing() {
             Security pricing that <br/>
             <span className="text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-emerald-300">scales with you.</span>
           </h1>
-          <p className="text-xl text-text-muted leading-relaxed font-light max-w-2xl mx-auto">
+          <p className="text-xl text-text-muted leading-relaxed font-light max-w-2xl mx-auto mb-10">
             Choose the plan that fits your security operation. No hidden fees. Upgrade or downgrade at any time.
           </p>
+          
+          {/* Billing Toggle */}
+          <div className="flex justify-center mt-8">
+            <div className="bg-surface-main p-1.5 rounded-2xl inline-flex items-center border border-border-subtle shadow-inner">
+              <button 
+                onClick={() => setBillingInterval('monthly')}
+                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${billingInterval === 'monthly' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'text-text-secondary hover:text-white hover:bg-surface-hover'}`}
+              >
+                Monthly
+              </button>
+              <button 
+                onClick={() => setBillingInterval('quarterly')}
+                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${billingInterval === 'quarterly' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'text-text-secondary hover:text-white hover:bg-surface-hover'}`}
+              >
+                Quarterly
+                <span className="ml-2 text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full relative -top-0.5">Save 10%</span>
+              </button>
+              <button 
+                onClick={() => setBillingInterval('annual')}
+                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${billingInterval === 'annual' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30' : 'text-text-secondary hover:text-white hover:bg-surface-hover'}`}
+              >
+                Annually
+                <span className="ml-2 text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full relative -top-0.5">Save 20%</span>
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -126,8 +156,10 @@ export function Pricing() {
                     
                     <div className="text-center mb-5 pb-5 border-b border-border-subtle">
                       <div className="flex items-baseline justify-center">
-                        <span className="text-4xl font-black tracking-tight text-text-main">₹{(plan.price / 100).toFixed(0)}</span>
-                        <span className="text-xs font-bold text-text-secondary ml-1">/{plan.billingInterval}</span>
+                        <span className="text-4xl font-black tracking-tight text-text-main">₹{((plan.pricing?.[billingInterval] || 0) / 100).toFixed(0)}</span>
+                        <span className="text-xs font-bold text-text-secondary ml-1">
+                          /{billingInterval === 'monthly' ? 'mo' : billingInterval === 'quarterly' ? 'qtr' : 'yr'}
+                        </span>
                       </div>
                     </div>
                     

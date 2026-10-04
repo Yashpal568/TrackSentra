@@ -13,9 +13,12 @@ export function AdminPlans() {
   const defaultForm = {
     name: '',
     description: '',
-    price: 0,
+    pricing: {
+      monthly: 0,
+      quarterly: 0,
+      annual: 0
+    },
     currency: 'INR',
-    billingInterval: 'monthly',
     trialDurationDays: 14,
     features: '',
     limits: { maxGuards: 1, maxSites: 1 },
@@ -49,7 +52,11 @@ export function AdminPlans() {
     setEditingPlan(plan);
     setFormData({
       ...plan,
-      price: plan.price / 100, // Convert from cents back to readable
+      pricing: {
+        monthly: (plan.pricing?.monthly || 0) / 100,
+        quarterly: (plan.pricing?.quarterly || 0) / 100,
+        annual: (plan.pricing?.annual || 0) / 100
+      },
       features: plan.features.join(', '),
       currency: 'INR'
     });
@@ -63,7 +70,11 @@ export function AdminPlans() {
       const payload = {
         ...formData,
         features: featuresArray,
-        price: Number(formData.price) * 100 // Convert to cents
+        pricing: {
+          monthly: Number(formData.pricing.monthly) * 100,
+          quarterly: Number(formData.pricing.quarterly) * 100,
+          annual: Number(formData.pricing.annual) * 100
+        }
       };
 
       if (editingPlan) {
@@ -145,9 +156,9 @@ export function AdminPlans() {
               <div className="flex items-end gap-1 mb-6">
                 <span className="text-4xl font-black text-white flex items-center">
                   <IndianRupee size={32} className="mr-1 opacity-80" />
-                  {(plan.price / 100).toLocaleString('en-IN')}
+                  {((plan.pricing?.monthly || 0) / 100).toLocaleString('en-IN')}
                 </span>
-                <span className="text-text-muted font-medium mb-1">/{plan.billingInterval}</span>
+                <span className="text-text-muted font-medium mb-1">/mo</span>
               </div>
 
               {/* Limits */}
@@ -252,19 +263,27 @@ export function AdminPlans() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Price (INR)</label>
+                    <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Monthly Price (INR)</label>
                     <div className="relative">
                       <IndianRupee size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-                      <input required type="number" min="0" step="1" className="w-full bg-surface-main border border-border-subtle p-3 pl-10 rounded-xl text-white placeholder-text-muted focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary transition-all" value={formData.price} onChange={e => setFormData({...formData, price: Number(e.target.value)})} placeholder="4999" />
+                      <input required type="number" min="0" step="1" className="w-full bg-surface-main border border-border-subtle p-3 pl-10 rounded-xl text-white placeholder-text-muted focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary transition-all" value={formData.pricing.monthly} onChange={e => setFormData({...formData, pricing: {...formData.pricing, monthly: Number(e.target.value)}})} placeholder="4999" />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Billing Interval</label>
-                    <select className="w-full bg-surface-main border border-border-subtle p-3 rounded-xl text-white focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary transition-all" value={formData.billingInterval} onChange={e => setFormData({...formData, billingInterval: e.target.value})}>
-                      <option value="monthly">Monthly</option>
-                      <option value="annual">Annually</option>
-                    </select>
+                    <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Quarterly Price (INR)</label>
+                    <div className="relative">
+                      <IndianRupee size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                      <input required type="number" min="0" step="1" className="w-full bg-surface-main border border-border-subtle p-3 pl-10 rounded-xl text-white placeholder-text-muted focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary transition-all" value={formData.pricing.quarterly} onChange={e => setFormData({...formData, pricing: {...formData.pricing, quarterly: Number(e.target.value)}})} placeholder="14000" />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Annual Price (INR)</label>
+                    <div className="relative">
+                      <IndianRupee size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+                      <input required type="number" min="0" step="1" className="w-full bg-surface-main border border-border-subtle p-3 pl-10 rounded-xl text-white placeholder-text-muted focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary transition-all" value={formData.pricing.annual} onChange={e => setFormData({...formData, pricing: {...formData.pricing, annual: Number(e.target.value)}})} placeholder="50000" />
+                    </div>
                   </div>
 
                   <div>
