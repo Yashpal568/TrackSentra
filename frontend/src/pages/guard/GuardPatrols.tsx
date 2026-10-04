@@ -115,7 +115,7 @@ export const GuardPatrols = () => {
       setActiveSession(res.data);
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to start session');
+      setError(err.userMessage || 'Failed to start session');
     }
   };
 

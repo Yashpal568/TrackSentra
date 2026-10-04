@@ -60,7 +60,7 @@ export const SiteDetails = () => {
       setFormData({ name: '', latitude: '', longitude: '', accuracy: '', radius: '50', gpsAccuracyThreshold: '20', description: '', installationInstructions: '', notes: '' });
       setError('');
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to create checkpoint.');
+      setError(err.userMessage || 'Failed to create checkpoint.');
     }
   };
 
@@ -90,7 +90,7 @@ export const SiteDetails = () => {
       await api.post(`/checkpoints/${cpId}/verify`);
       fetchData();
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to verify checkpoint.');
+      setError(err.userMessage || 'Failed to verify checkpoint.');
     }
   };
 

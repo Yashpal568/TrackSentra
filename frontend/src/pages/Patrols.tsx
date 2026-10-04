@@ -55,7 +55,7 @@ const AdminPatrolView = () => {
       const res = await api.get('/patrols/sessions');
       setSessions(res.data);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to load patrol history');
+      setError(err.userMessage || 'Failed to load patrol history');
     } finally {
       setLoading(false);
     }

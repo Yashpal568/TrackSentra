@@ -116,7 +116,7 @@ export const GuardQRScanner = () => {
         setMessage(t('scanner.offline'));
         setTimeout(() => navigate('/patrols'), 2000);
       } else {
-        setError(err.response?.data?.error?.message || t('scanner.error'));
+        setError(err.userMessage || t('scanner.error'));
       }
     }
   };

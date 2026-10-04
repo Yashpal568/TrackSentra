@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/axios';
 import { Button } from '../components/ui/Button';
 import { QRCodeSVG } from 'qrcode.react';
-import { CreditCard, ShieldCheck, Zap } from 'lucide-react';
+import { CreditCard, ShieldCheck, Zap, Clock } from 'lucide-react';
 
 export function Subscription() {
   const navigate = useNavigate();
@@ -12,6 +12,8 @@ export function Subscription() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [transactionRef, setTransactionRef] = useState('');
+  const [hasPendingSubmission, setHasPendingSubmission] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   
   useEffect(() => {
     const fetchData = async () => {
@@ -21,6 +23,7 @@ export function Subscription() {
           api.get('/subscriptions/settings/payment-instructions')
         ]);
         setSubscription(subRes.data.subscription);
+        setHasPendingSubmission(subRes.data.hasPendingSubmission || false);
         setSettings(setRes.data.settings);
       } catch (err) {
         console.error(err);
@@ -35,16 +38,17 @@ export function Subscription() {
     e.preventDefault();
     setSubmitting(true);
     try {
+      setErrorMsg('');
       await api.post('/subscriptions/pay', {
         planId: subscription.planId._id,
         transactionReference: transactionRef,
         paymentDate: new Date().toISOString(),
       });
-      alert('Payment submitted successfully. Please wait for Super Admin verification.');
       const subRes = await api.get('/subscriptions/my');
       setSubscription(subRes.data.subscription);
+      setHasPendingSubmission(subRes.data.hasPendingSubmission || true);
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to submit payment');
+      setErrorMsg(err.userMessage || 'Failed to submit payment');
     } finally {
       setSubmitting(false);
     }
@@ -145,21 +149,39 @@ export function Subscription() {
                   <p className="text-xs text-text-muted mt-4 w-full text-center">After successful payment, please enter your UTR / UPI Reference Number below.</p>
                 </div>
                 
-                <form onSubmit={handleSubmitPayment} className="space-y-4">
-                  <div>
-                    <label className="flex text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Transaction Reference</label>
-                    <input
-                      required
-                      value={transactionRef}
-                      onChange={(e) => setTransactionRef(e.target.value)}
-                      className="w-full bg-surface-main border border-border-subtle rounded-lg px-4 py-3 text-text-main focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary outline-none transition-all placeholder-text-muted"
-                      placeholder="e.g. UTR / Bank Ref No."
-                    />
+                {hasPendingSubmission ? (
+                  <div className="bg-emerald-500/10 border border-emerald-500/30 p-6 rounded-xl flex flex-col items-center justify-center text-center space-y-3">
+                    <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                      <Clock size={24} className="text-emerald-500 animate-pulse" />
+                    </div>
+                    <h3 className="text-lg font-bold text-emerald-400">Verification Pending</h3>
+                    <p className="text-sm text-text-muted">
+                      We have received your payment reference. Our team is currently verifying the transfer.
+                      This usually takes 1-2 hours during business days.
+                    </p>
                   </div>
-                  <Button type="submit" isLoading={submitting} className="w-full bg-orange-500 hover:bg-orange-600 text-white border-none py-3 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
-                    Verify Payment Transfer
-                  </Button>
-                </form>
+                ) : (
+                  <form onSubmit={handleSubmitPayment} className="space-y-4">
+                    {errorMsg && (
+                      <div className="bg-red-500/10 border border-red-500/30 p-3 rounded-lg text-red-400 text-sm font-medium text-center">
+                        {errorMsg}
+                      </div>
+                    )}
+                    <div>
+                      <label className="flex text-xs font-bold uppercase tracking-wider text-text-muted mb-2">Transaction Reference</label>
+                      <input
+                        required
+                        value={transactionRef}
+                        onChange={(e) => setTransactionRef(e.target.value)}
+                        className="w-full bg-surface-main border border-border-subtle rounded-lg px-4 py-3 text-text-main focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary outline-none transition-all placeholder-text-muted"
+                        placeholder="e.g. UTR / Bank Ref No."
+                      />
+                    </div>
+                    <Button type="submit" isLoading={submitting} className="w-full bg-orange-500 hover:bg-orange-600 text-white border-none py-3 shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+                      Verify Payment Transfer
+                    </Button>
+                  </form>
+                )}
               </div>
             </div>
           )}

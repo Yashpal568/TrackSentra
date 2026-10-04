@@ -6,7 +6,8 @@ import {
   LayoutDashboard, MapPin, QrCode, Users, CalendarClock, 
   Radio, BarChart3, AlertTriangle, Shield, HelpCircle, 
   MessageSquare, Building2, Menu, LogOut, ChevronDown, 
-  X, Search, Settings, PanelLeftClose, PanelLeftOpen
+  X, Search, Settings, PanelLeftClose, PanelLeftOpen,
+  Activity, DollarSign, CreditCard, Lock, Bell, Receipt
 } from 'lucide-react';
 import { Badge } from './ui/Badge';
 import { NotificationBell } from './NotificationBell';
@@ -66,24 +67,93 @@ export const AppLayout = () => {
     return () => clearInterval(interval);
   }, [user]);
 
-  const menuItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Sites', path: '/sites', icon: MapPin },
-    { name: 'Checkpoints', path: '/checkpoints', icon: QrCode },
-    { name: 'Guards', path: '/guards', icon: Users },
-    { name: 'Shifts', path: '/shifts', icon: CalendarClock },
-    { name: 'Patrols', path: '/patrols', icon: LayoutDashboard },
-    { name: 'Live', path: '/live', icon: Radio, highlight: activePatrols > 0, badge: activePatrols },
-    { name: 'Incidents', path: '/incidents', icon: AlertTriangle, highlightAlert: activeIncidents > 0, badgeAlert: activeIncidents },
-    { name: 'Reports', path: '/reports', icon: BarChart3 },
-    { name: 'Audit', path: '/audit', icon: Shield },
-    { name: 'Company', path: '/company', icon: Building2 },
-    { name: 'Help', path: '/help', icon: HelpCircle },
-  ];
+  type MenuItem = {
+    name: string;
+    path: string;
+    icon: any;
+    highlight?: boolean;
+    badge?: number;
+    highlightAlert?: boolean;
+    badgeAlert?: number;
+    badgeText?: string;
+  };
 
-  if (user?.role === 'COMPANY_ADMIN') {
-    menuItems.push({ name: 'Billing', path: '/subscription', icon: Building2 });
-    menuItems.push({ name: 'Support', path: '/tickets', icon: MessageSquare });
+  type MenuGroup = {
+    title?: string;
+    items: MenuItem[];
+  };
+
+  let menuGroups: MenuGroup[] = [];
+
+  if (user?.role === 'SUPER_ADMIN') {
+    menuGroups = [
+      {
+        title: 'OVERVIEW',
+        items: [
+          { name: 'Platform Overview', path: '/admin/dashboard', icon: LayoutDashboard }
+        ]
+      },
+      {
+        title: 'TENANT MANAGEMENT',
+        items: [
+          { name: 'Companies', path: '/admin/companies', icon: Building2, badge: 3 },
+          { name: 'Users', path: '/admin/users', icon: Users }
+        ]
+      },
+      {
+        title: 'MONETIZATION',
+        items: [
+          { name: 'Plans & Pricing', path: '/admin/plans', icon: Receipt },
+          { name: 'Subscriptions', path: '/admin/subscriptions', icon: CreditCard },
+          { name: 'Payments', path: '/admin/payments', icon: DollarSign, badgeAlert: 2 },
+          { name: 'Revenue', path: '/admin/revenue', icon: BarChart3 }
+        ]
+      },
+      {
+        title: 'PLATFORM',
+        items: [
+          { name: 'System Health', path: '/admin/health', icon: Activity },
+          { name: 'Notifications', path: '/admin/notifications', icon: Bell, badgeAlert: 5 },
+          { name: 'Support', path: '/admin/support', icon: MessageSquare }
+        ]
+      },
+      {
+        title: 'SECURITY',
+        items: [
+          { name: 'Platform Audit', path: '/admin/audit', icon: Shield },
+          { name: 'Security', path: '/admin/security', icon: Lock },
+          { name: 'Settings', path: '/admin/settings', icon: Settings }
+        ]
+      }
+    ];
+  } else {
+    const regularItems: MenuItem[] = [
+      { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+      { name: 'Sites', path: '/sites', icon: MapPin },
+      { name: 'Checkpoints', path: '/checkpoints', icon: QrCode },
+      { name: 'Guards', path: '/guards', icon: Users },
+      { name: 'Shifts', path: '/shifts', icon: CalendarClock },
+      { name: 'Patrols', path: '/patrols', icon: LayoutDashboard },
+      { name: 'Live', path: '/live', icon: Radio, highlight: activePatrols > 0, badge: activePatrols },
+      { name: 'Incidents', path: '/incidents', icon: AlertTriangle, highlightAlert: activeIncidents > 0, badgeAlert: activeIncidents },
+      { name: 'Reports', path: '/reports', icon: BarChart3 },
+      { name: 'Audit', path: '/audit', icon: Shield },
+      { name: 'Company', path: '/company', icon: Building2 },
+      { name: 'Help', path: '/help', icon: HelpCircle },
+    ];
+
+    if (user?.role === 'COMPANY_ADMIN') {
+      regularItems.push({ 
+        name: 'Billing', 
+        path: '/subscription', 
+        icon: Building2, 
+        badgeText: user?.subscription?.status === 'PENDING_PAYMENT' ? 'Pending' : undefined,
+        highlightAlert: user?.subscription?.status === 'PENDING_PAYMENT'
+      });
+      regularItems.push({ name: 'Support', path: '/tickets', icon: MessageSquare });
+    }
+
+    menuGroups = [{ items: regularItems }];
   }
 
   return (
@@ -117,59 +187,72 @@ export const AppLayout = () => {
         </div>
 
         <div className={`flex-1 overflow-y-auto py-6 scrollbar-thin scrollbar-thumb-surface-card overflow-x-hidden ${desktopSidebarOpen ? 'px-4' : 'px-4 xl:px-3'}`}>
-          <p className={`px-3 text-[10px] font-bold text-text-muted uppercase tracking-widest mb-3 whitespace-nowrap transition-opacity duration-300 ${desktopSidebarOpen ? 'opacity-100' : 'xl:opacity-0 xl:hidden'}`}>Main Navigation</p>
-          <div className="space-y-1 relative">
-            {menuItems.map((item) => {
-              const active = isActive(item.path);
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setSidebarOpen(false)}
-                  className={`group relative flex items-center px-3 py-2.5 text-sm font-bold rounded-lg transition-all ${
-                    active 
-                      ? 'bg-emerald-primary/10 text-emerald-primary shadow-sm border border-emerald-primary/20'
-                      : 'text-text-secondary hover:bg-surface-main hover:text-text-main border border-transparent hover:border-border-subtle'
-                  } ${desktopSidebarOpen ? '' : 'xl:justify-center xl:px-0'}`}
-                >
-                  <Icon 
-                    size={18} 
-                    className={`shrink-0 transition-colors ${desktopSidebarOpen ? 'mr-3' : 'mr-3 xl:mr-0'} ${
-                      active ? 'text-emerald-primary' : 'text-text-muted group-hover:text-text-main'
-                    } ${item.highlight ? 'text-emerald-primary' : ''} ${item.highlightAlert ? 'text-warning' : ''}`} 
-                  />
-                  <span className={`whitespace-nowrap transition-all duration-300 ${desktopSidebarOpen ? 'opacity-100 w-auto' : 'xl:opacity-0 xl:w-0 xl:hidden'}`}>{item.name}</span>
-                  
-                  {item.badge !== undefined && item.badge > 0 && (
-                    <span className={`ml-auto flex items-center justify-center bg-emerald-500/20 text-emerald-500 text-[10px] font-black px-1.5 py-0.5 rounded-full border border-emerald-500/30 min-w-5 h-5 ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-1 xl:right-1 xl:ml-0'}`}>
-                      {item.badge}
-                    </span>
-                  )}
-                  {item.badgeAlert !== undefined && item.badgeAlert > 0 && (
-                    <span className={`ml-auto flex items-center justify-center bg-danger/20 text-danger text-[10px] font-black px-1.5 py-0.5 rounded-full border border-danger/30 min-w-5 h-5 ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-1 xl:right-1 xl:ml-0'}`}>
-                      {item.badgeAlert}
-                    </span>
-                  )}
+          {menuGroups.map((group, gIdx) => (
+            <div key={gIdx} className={gIdx > 0 ? 'mt-6' : ''}>
+              {group.title && (
+                <p className={`px-3 text-[10px] font-bold text-text-muted uppercase tracking-widest mb-3 whitespace-nowrap transition-opacity duration-300 ${desktopSidebarOpen ? 'opacity-100' : 'xl:opacity-0 xl:hidden'}`}>
+                  {group.title}
+                </p>
+              )}
+              <div className="space-y-1 relative">
+                {group.items.map((item) => {
+                  const active = isActive(item.path);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`group relative flex items-center px-3 py-2.5 text-sm font-bold rounded-lg transition-all ${
+                        active 
+                          ? 'bg-emerald-500/10 text-emerald-500 shadow-sm border border-emerald-500/20'
+                          : 'text-text-secondary hover:bg-surface-main hover:text-text-main border border-transparent hover:border-border-subtle'
+                      } ${desktopSidebarOpen ? '' : 'xl:justify-center xl:px-0'}`}
+                    >
+                      <Icon 
+                        size={18} 
+                        className={`shrink-0 transition-colors ${desktopSidebarOpen ? 'mr-3' : 'mr-3 xl:mr-0'} ${
+                          active ? 'text-emerald-500' : 'text-text-muted group-hover:text-text-main'
+                        } ${item.highlight ? 'text-emerald-500' : ''} ${item.highlightAlert ? 'text-red-500' : ''}`} 
+                      />
+                      <span className={`whitespace-nowrap transition-all duration-300 ${desktopSidebarOpen ? 'opacity-100 w-auto' : 'xl:opacity-0 xl:w-0 xl:hidden'}`}>{item.name}</span>
+                      
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className={`ml-auto flex items-center justify-center bg-emerald-500/20 text-emerald-500 text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-5 h-5 ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-1 xl:right-1 xl:ml-0'}`}>
+                          {item.badge}
+                        </span>
+                      )}
+                      {item.badgeAlert !== undefined && item.badgeAlert > 0 && (
+                        <span className={`ml-auto flex items-center justify-center bg-red-500/20 text-red-500 text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-5 h-5 ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-1 xl:right-1 xl:ml-0'}`}>
+                          {item.badgeAlert}
+                        </span>
+                      )}
+                      {item.badgeText && (
+                        <span className={`ml-auto flex items-center justify-center bg-orange-500/20 text-orange-500 text-[10px] font-black px-1.5 py-0.5 rounded-full border border-orange-500/30 ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-1 xl:right-1 xl:ml-0'}`}>
+                          {item.badgeText}
+                        </span>
+                      )}
 
-                  {!item.badge && item.highlight && (
-                    <span className={`relative flex h-2.5 w-2.5 ml-auto ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-2 xl:right-2 xl:ml-0'}`}>
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-primary opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-primary"></span>
-                    </span>
-                  )}
-                  {!item.badgeAlert && item.highlightAlert && <span className={`w-2 h-2 rounded-full bg-warning shadow-[0_0_8px_rgba(234,179,8,0.8)] ml-auto ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-2 xl:right-2 xl:ml-0'}`}></span>}
-                  
-                  {/* Tooltip for collapsed state */}
-                  {!desktopSidebarOpen && (
-                     <div className="fixed left-21.25 hidden xl:group-hover:block xl:group-focus-visible:block px-2.5 py-1.5 bg-surface-sidebar text-text-main text-xs font-bold rounded border border-border-subtle shadow-xl whitespace-nowrap z-100 animate-in fade-in zoom-in-95 duration-200 pointer-events-none">
-                        {item.name}
-                     </div>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
+                      {!item.badge && !item.badgeText && item.highlight && (
+                        <span className={`relative flex h-2.5 w-2.5 ml-auto ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-2 xl:right-2 xl:ml-0'}`}>
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                      )}
+                      {!item.badgeAlert && item.highlightAlert && <span className={`w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] ml-auto ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-2 xl:right-2 xl:ml-0'}`}></span>}
+                      
+                      {/* Tooltip for collapsed state */}
+                      {!desktopSidebarOpen && (
+                        <div className="fixed left-21.25 hidden xl:group-hover:block xl:group-focus-visible:block px-2.5 py-1.5 bg-surface-sidebar text-text-main text-xs font-bold rounded border border-border-subtle shadow-xl whitespace-nowrap z-100 animate-in fade-in zoom-in-95 duration-200 pointer-events-none">
+                          {item.name}
+                        </div>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className={`p-4 border-t border-border-subtle shrink-0 bg-surface-sidebar transition-all ${desktopSidebarOpen ? '' : 'xl:p-3 xl:flex xl:justify-center'}`}>
@@ -234,7 +317,7 @@ export const AppLayout = () => {
               <Menu size={20} />
             </button>
             <h2 className="text-lg font-bold hidden sm:block text-text-main whitespace-nowrap">
-               {menuItems.find(i => i.path === location.pathname)?.name || 'TrackSentra SOC'}
+               Platform Control
             </h2>
 
             {/* Global Search (Visual Only for UI) */}

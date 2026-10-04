@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/axios';
-import { Shield, CreditCard, Clock, Activity, Building2, MoreVertical, Eye, Ban, History, X, CheckCircle2 } from 'lucide-react';
+import { CreditCard, Clock, Building2, Eye, Ban, History, X, CheckCircle2 } from 'lucide-react';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 
@@ -74,9 +74,37 @@ export function AdminSubscriptions() {
   );
 
   const handleSuspend = async (subId: string) => {
-    // Call API to suspend company/subscription
-    setSubscriptions(subscriptions.map(s => s._id === subId ? { ...s, status: 'suspended', history: [{ date: new Date().toISOString(), event: 'Account Suspended', details: 'Suspended by Super Admin' }, ...s.history] } : s));
+    try {
+      await api.put(`/admin/subscriptions/${subId}/suspend`);
+      setSubscriptions(subscriptions.map(s => s._id === subId ? { ...s, status: 'SUSPENDED' } : s));
+    } catch (err) {
+      alert('Failed to suspend');
+    }
     setShowSuspendModal(false);
+  };
+
+  const handleApprovePayment = async (subId: string, companyId: string) => {
+    try {
+      await api.post(`/admin/verify-payment`, {
+        companyId,
+        status: 'approved'
+      });
+      fetchSubscriptions(); // Refresh to get active status
+    } catch (err: any) {
+      alert(err.userMessage || 'Failed to approve');
+    }
+  };
+
+  const handleRejectPayment = async (subId: string, companyId: string) => {
+    try {
+      await api.post(`/admin/verify-payment`, {
+        companyId,
+        status: 'rejected'
+      });
+      fetchSubscriptions();
+    } catch (err: any) {
+      alert(err.userMessage || 'Failed to reject');
+    }
   };
 
   return (
@@ -94,11 +122,11 @@ export function AdminSubscriptions() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-surface-card border border-border-subtle p-6 rounded-2xl flex items-center gap-4 shadow-sm">
           <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500"><CreditCard size={24} /></div>
-          <div><p className="text-sm font-bold text-text-muted">Total Active</p><p className="text-2xl font-black text-white">{subscriptions.filter(s => s.status === 'active').length}</p></div>
+          <div><p className="text-sm font-bold text-text-muted">Total Active</p><p className="text-2xl font-black text-white">{subscriptions.filter(s => s.status?.toUpperCase() === 'ACTIVE').length}</p></div>
         </div>
         <div className="bg-surface-card border border-border-subtle p-6 rounded-2xl flex items-center gap-4 shadow-sm">
           <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500"><Clock size={24} /></div>
-          <div><p className="text-sm font-bold text-text-muted">Past Due</p><p className="text-2xl font-black text-white">{subscriptions.filter(s => s.status === 'past_due').length}</p></div>
+          <div><p className="text-sm font-bold text-text-muted">Past Due</p><p className="text-2xl font-black text-white">{subscriptions.filter(s => s.status?.toUpperCase() === 'PAST_DUE').length}</p></div>
         </div>
       </div>
 
@@ -139,16 +167,28 @@ export function AdminSubscriptions() {
                   </td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                       <button onClick={() => setSelectedSub(sub)} className="p-2 bg-surface-main hover:bg-surface-hover rounded-lg text-slate-400 hover:text-emerald-400 transition-colors tooltip-trigger" title="View Details & Timeline">
-                         <Eye size={16} />
-                       </button>
-                       <button 
-                         onClick={() => { setSelectedSub(sub); setShowSuspendModal(true); }} 
-                         className="p-2 bg-surface-main hover:bg-red-500/10 rounded-lg text-slate-400 hover:text-red-500 transition-colors tooltip-trigger" 
-                         title={sub.status === 'suspended' ? 'Unsuspend' : 'Suspend Company'}
-                       >
-                         <Ban size={16} />
-                       </button>
+                       {sub.status?.toUpperCase() === 'PENDING_PAYMENT' ? (
+                         <Button 
+                           size="sm" 
+                           onClick={() => setSelectedSub(sub)}
+                           className="bg-amber-600 hover:bg-amber-500 text-white border-0 text-xs py-1 h-7 flex items-center gap-1.5"
+                         >
+                           <Eye size={12} /> Review Payment
+                         </Button>
+                       ) : (
+                         <>
+                           <button onClick={() => setSelectedSub(sub)} className="p-2 bg-surface-main hover:bg-surface-hover rounded-lg text-slate-400 hover:text-emerald-400 transition-colors tooltip-trigger" title="View Details & Timeline">
+                             <Eye size={16} />
+                           </button>
+                           <button 
+                             onClick={() => { setSelectedSub(sub); setShowSuspendModal(true); }} 
+                             className="p-2 bg-surface-main hover:bg-red-500/10 rounded-lg text-slate-400 hover:text-red-500 transition-colors tooltip-trigger" 
+                             title={sub.status?.toUpperCase() === 'SUSPENDED' ? 'Unsuspend' : 'Suspend Company'}
+                           >
+                             <Ban size={16} />
+                           </button>
+                         </>
+                       )}
                     </div>
                   </td>
                 </tr>
@@ -200,6 +240,55 @@ export function AdminSubscriptions() {
                      <p className="text-sm font-bold text-white">{selectedSub.planSnapshot?.limits?.maxSites || 'Unlimited'}</p>
                   </div>
                </div>
+
+               {/* Payment Verification Block */}
+               {selectedSub.status?.toUpperCase() === 'PENDING_PAYMENT' && (
+                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 relative overflow-hidden">
+                   <div className="absolute top-0 left-0 w-1 h-full bg-amber-500"></div>
+                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                     <div className="flex-1">
+                       <h3 className="text-lg font-black text-amber-500 mb-2">
+                         {selectedSub.paymentSubmission ? 'Payment Verification Required' : 'Awaiting Payment Submission'}
+                       </h3>
+                       {selectedSub.paymentSubmission ? (
+                         <div className="space-y-2 mt-4">
+                           <div className="flex items-center gap-2">
+                             <span className="text-sm font-bold text-text-muted w-32">UTR / Ref No:</span>
+                             <span className="text-sm font-mono bg-black/40 text-white px-2 py-1 rounded select-all">{selectedSub.paymentSubmission.transactionReference}</span>
+                           </div>
+                           <div className="flex items-center gap-2">
+                             <span className="text-sm font-bold text-text-muted w-32">Submitted On:</span>
+                             <span className="text-sm font-bold text-white">{new Date(selectedSub.paymentSubmission.paymentDate || selectedSub.paymentSubmission.createdAt).toLocaleString()}</span>
+                           </div>
+                           <div className="flex items-center gap-2">
+                             <span className="text-sm font-bold text-text-muted w-32">Expected Amt:</span>
+                             <span className="text-sm font-bold text-white">₹{((selectedSub.paymentSubmission.expectedAmount || 0) / 100).toLocaleString('en-IN')}</span>
+                           </div>
+                         </div>
+                       ) : (
+                         <p className="text-sm text-text-secondary font-medium mt-2">
+                           This company has not yet submitted a UTR or payment reference. You can manually approve if payment was verified out-of-band.
+                         </p>
+                       )}
+                     </div>
+                     <div className="flex flex-col gap-3 shrink-0">
+                       <Button 
+                         className="bg-emerald-600 hover:bg-emerald-500 text-white border-0 w-full"
+                         onClick={() => { handleApprovePayment(selectedSub._id, selectedSub.companyId?._id); setSelectedSub(null); }}
+                       >
+                         <CheckCircle2 size={16} className="mr-2" /> Approve Payment
+                       </Button>
+                       <Button 
+                         variant="destructive" 
+                         className="w-full"
+                         onClick={() => { handleRejectPayment(selectedSub._id, selectedSub.companyId?._id); setSelectedSub(null); }}
+                       >
+                         <Ban size={16} className="mr-2" /> Reject
+                       </Button>
+                     </div>
+                   </div>
+                 </div>
+               )}
 
                {/* Timeline History */}
                <div>

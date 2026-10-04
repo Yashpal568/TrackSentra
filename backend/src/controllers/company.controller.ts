@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Company } from '../models/Company';
 import { UserRole } from '../models/User';
 import { AuditLog } from '../models/AuditLog';
+import { Subscription } from '../models/Subscription';
 
 // SUPER_ADMIN creates companies
 export const createCompany = async (req: Request, res: Response): Promise<void> => {
@@ -34,8 +35,18 @@ export const getCompanies = async (req: Request, res: Response): Promise<void> =
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
-    const companies = await Company.find(query).skip(skip).limit(limit).sort({ createdAt: -1 });
+    const companiesList = await Company.find(query).skip(skip).limit(limit).sort({ createdAt: -1 }).lean();
     const total = await Company.countDocuments(query);
+
+    const companies = await Promise.all(companiesList.map(async (c: any) => {
+      const sub = await Subscription.findOne({ companyId: c._id }).select('status planSnapshot.name').lean();
+      return {
+        ...c,
+        subscription: sub || null,
+        // Override company status visually if subscription is pending/suspended
+        displayStatus: sub ? sub.status : c.status
+      };
+    }));
 
     res.json({
       companies,

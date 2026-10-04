@@ -6,6 +6,8 @@ import { UserRole } from '../models/User';
 import { AuditLog } from '../models/AuditLog';
 import { Subscription, SubscriptionStatus } from '../models/Subscription';
 import { PaymentSubmission, PaymentStatus } from '../models/PaymentSubmission';
+import { NotificationService } from '../services/notification.service';
+import { Company } from '../models/Company';
 
 // --------------------------------------------------------------------------
 // PUBLIC PRICING & PLANS
@@ -176,7 +178,20 @@ export const getMySubscription = async (req: Request, res: Response): Promise<vo
     if (!user.companyId) { res.status(400).json({ error: { message: 'No company associated' } }); return; }
 
     const subscription = await Subscription.findOne({ companyId: user.companyId }).populate('planId');
-    res.json({ subscription });
+    
+    // Check if there is a pending payment submission
+    let hasPendingSubmission = false;
+    if (subscription && subscription.status === SubscriptionStatus.PENDING_PAYMENT) {
+      const pendingSub = await PaymentSubmission.findOne({ 
+        subscriptionId: subscription._id, 
+        status: 'PENDING' 
+      });
+      if (pendingSub) {
+        hasPendingSubmission = true;
+      }
+    }
+
+    res.json({ subscription, hasPendingSubmission });
   } catch (error: any) {
     res.status(500).json({ error: { message: error.message } });
   }
@@ -287,6 +302,16 @@ export const submitPayment = async (req: Request, res: Response): Promise<void> 
       action: 'SUBMIT_PAYMENT',
       resource: 'PaymentSubmission',
       details: { submissionId: submission._id }
+    });
+
+    const company = await Company.findById(user.companyId);
+
+    await NotificationService.notifySuperAdmins({
+      type: 'PAYMENT_VERIFICATION_REQUIRED',
+      title: 'Payment Verification Required',
+      message: `A new payment submission from ${company?.name || 'a company'} is awaiting verification.`,
+      severity: 'WARNING',
+      entityType: 'System'
     });
 
     res.status(201).json({ submission, subscription });

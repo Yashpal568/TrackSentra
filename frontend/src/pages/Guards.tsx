@@ -44,7 +44,7 @@ export const Guards = () => {
       setIsCreating(false);
       setFormData({ firstName: '', lastName: '', email: '', employeeId: '', phone: '' });
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to create guard.');
+      setError(err.userMessage || 'Failed to create guard.');
     }
   };
 

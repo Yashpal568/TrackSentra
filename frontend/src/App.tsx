@@ -39,7 +39,6 @@ const Pricing = lazy(() => import('./pages/Pricing').then(module => ({ default: 
 const Register = lazy(() => import('./pages/Register').then(module => ({ default: module.Register })));
 const Subscription = lazy(() => import('./pages/Subscription').then(module => ({ default: module.Subscription })));
 const AdminPlans = lazy(() => import('./pages/AdminPlans').then(module => ({ default: module.AdminPlans })));
-const AdminPayments = lazy(() => import('./pages/AdminPayments').then(module => ({ default: module.AdminPayments })));
 const AdminCompanies = lazy(() => import('./pages/AdminCompanies').then(module => ({ default: module.AdminCompanies })));
 const AdminUsers = lazy(() => import('./pages/AdminUsers').then(module => ({ default: module.AdminUsers })));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
@@ -58,6 +57,7 @@ const HelpCenter = lazy(() => import('./pages/HelpCenter').then(module => ({ def
 const HelpArticleView = lazy(() => import('./pages/HelpArticleView').then(module => ({ default: module.HelpArticleView })));
 const AdminTickets = lazy(() => import('./pages/AdminTickets').then(module => ({ default: module.AdminTickets })));
 const AdminHelpCenter = lazy(() => import('./pages/AdminHelpCenter').then(module => ({ default: module.AdminHelpCenter })));
+const NotFound = lazy(() => import('./pages/NotFound').then(module => ({ default: module.NotFound })));
 
 const SuspenseFallback = () => <div className="flex min-h-screen items-center justify-center">Loading component...</div>;
 
@@ -121,7 +121,6 @@ function App() {
             {/* Admin Routes */}
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/plans" element={<AdminPlans />} />
-            <Route path="/admin/payments" element={<AdminPayments />} />
             <Route path="/admin/companies" element={<AdminCompanies />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/tickets" element={<AdminTickets />} />
@@ -139,7 +138,7 @@ function App() {
             <Route path="/admin/settings" element={<AdminSettings />} />
           </Route>
           
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
       <GlobalAlerts />

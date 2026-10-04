@@ -8,26 +8,64 @@ export function AdminDashboard() {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState(false);
 
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/admin/dashboard');
+      setData(res.data);
+      setLastUpdated(new Date());
+      setError(false);
+    } catch (err) {
+      console.error('Failed to fetch admin dashboard', err);
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await api.get('/admin/dashboard');
-        setData(res.data);
-      } catch (err) {
-        console.error('Failed to fetch admin dashboard', err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, []);
 
-  if (loading) {
+  const renderSkeletonKPI = (title: string, icon: any) => (
+    <Card className="bg-[#121214] border-[#1e1e24] p-5">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{title}</p>
+        <div className="p-2 bg-[#1a1a1e] rounded-lg border border-[#2a2a32] text-slate-500">
+          {icon}
+        </div>
+      </div>
+      <div className="h-9 w-20 bg-[#1e1e24] rounded animate-pulse"></div>
+    </Card>
+  );
+
+  if (loading && !data) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[500px]">
-        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-slate-400 font-medium animate-pulse">Loading platform metrics...</p>
+      <div className="space-y-6 pb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#1e1e24]">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-3">Platform Overview</h1>
+            <p className="text-slate-400 mt-1">Loading metrics...</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          {renderSkeletonKPI('Total Companies', <Building2 size={16} />)}
+          {renderSkeletonKPI('Active Companies', <CheckCircle2 size={16} />)}
+          {renderSkeletonKPI('Trial Companies', <Activity size={16} />)}
+          {renderSkeletonKPI('Active Users', <Users size={16} />)}
+          {renderSkeletonKPI('MRR', <CreditCard size={16} />)}
+          {renderSkeletonKPI('Open Tickets', <AlertTriangle size={16} />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="bg-[#121214] border-[#1e1e24] p-5 min-h-[300px] flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-[#2a2a32] border-t-emerald-500 rounded-full animate-spin"></div>
+          </Card>
+          <Card className="bg-[#121214] border-[#1e1e24] p-5 min-h-[300px] flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-[#2a2a32] border-t-emerald-500 rounded-full animate-spin"></div>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -59,15 +97,19 @@ export function AdminDashboard() {
           <p className="text-slate-400 mt-1">Monitor TrackSentra's SaaS platform, customers, revenue and system health.</p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <select className="px-4 py-2 bg-[#121214] border border-[#2a2a32] rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors">
-            <option value="0">Today</option>
-            <option value="7">Last 7 Days</option>
-            <option value="30">Last 30 Days</option>
-          </select>
-          <button className="px-4 py-2 bg-[#1e1e24] border border-[#2a2a32] hover:bg-[#2a2a32] rounded-lg text-sm font-medium text-white transition-colors">
-            Refresh
-          </button>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={fetchData} 
+              disabled={loading}
+              className="px-4 py-2 bg-[#1e1e24] border border-[#2a2a32] hover:bg-[#2a2a32] disabled:opacity-50 rounded-lg text-sm font-medium text-white transition-colors"
+            >
+              {loading ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
+          {lastUpdated && (
+            <p className="text-xs text-slate-500 font-medium">Last updated {lastUpdated.toLocaleTimeString()}</p>
+          )}
         </div>
       </div>
 
@@ -143,7 +185,7 @@ export function AdminDashboard() {
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-3xl font-black text-white">{data.kpis?.openTickets || 0}</h3>
+            <h3 className="text-3xl font-black text-white">{data.kpis?.openTickets ?? 'Not available'}</h3>
           </div>
         </Card>
       </div>
@@ -179,7 +221,10 @@ export function AdminDashboard() {
                 </tbody>
               </table>
             ) : (
-              <div className="p-8 text-center text-slate-500">No recent companies.</div>
+              <div className="p-8 text-center">
+                <p className="text-slate-400 font-bold mb-1">No companies yet</p>
+                <p className="text-sm text-slate-500">Companies registered on the platform will appear here.</p>
+              </div>
             )}
           </div>
         </Card>
@@ -190,9 +235,10 @@ export function AdminDashboard() {
             <h3 className="text-lg font-bold text-white">System Health</h3>
           </div>
           <div className="p-5 space-y-4">
+            {/* API Health */}
             <div className="flex items-center justify-between p-4 bg-[#1a1a1e] rounded-lg border border-[#2a2a32]">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg">
+                <div className={`p-2 rounded-lg ${data.systemHealth?.api?.status === 'Healthy' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
                   <Activity size={18} />
                 </div>
                 <div>
@@ -200,14 +246,16 @@ export function AdminDashboard() {
                   <p className="text-xs text-slate-500">api.tracksentra.com</p>
                 </div>
               </div>
-              <span className="text-emerald-400 font-bold text-sm flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400"></span> Healthy
+              <span className={`font-bold text-sm flex items-center gap-2 ${data.systemHealth?.api?.status === 'Healthy' ? 'text-emerald-400' : 'text-red-400'}`}>
+                {data.systemHealth?.api?.status === 'Healthy' && <span className="w-2 h-2 rounded-full bg-emerald-400"></span>} 
+                {data.systemHealth?.api?.status || 'Unknown'}
               </span>
             </div>
 
+            {/* DB Health */}
             <div className="flex items-center justify-between p-4 bg-[#1a1a1e] rounded-lg border border-[#2a2a32]">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg">
+                <div className={`p-2 rounded-lg ${data.systemHealth?.database?.status === 'Healthy' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-orange-500/10 text-orange-400'}`}>
                   <Activity size={18} />
                 </div>
                 <div>
@@ -215,11 +263,18 @@ export function AdminDashboard() {
                   <p className="text-xs text-slate-500">MongoDB Cluster</p>
                 </div>
               </div>
-              <span className="text-emerald-400 font-bold text-sm flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400"></span> Healthy
-              </span>
+              <div className="text-right">
+                <span className={`font-bold text-sm flex items-center justify-end gap-2 ${data.systemHealth?.database?.status === 'Healthy' ? 'text-emerald-400' : 'text-orange-400'}`}>
+                  {data.systemHealth?.database?.status === 'Healthy' && <span className="w-2 h-2 rounded-full bg-emerald-400"></span>} 
+                  {data.systemHealth?.database?.status || 'Unknown'}
+                </span>
+                {data.systemHealth?.database?.latency !== undefined && (
+                  <p className="text-xs text-slate-500 mt-1">{data.systemHealth.database.latency}ms latency</p>
+                )}
+              </div>
             </div>
 
+            {/* Background Jobs */}
             <div className="flex items-center justify-between p-4 bg-[#1a1a1e] rounded-lg border border-[#2a2a32]">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-slate-800 text-slate-400 rounded-lg">
@@ -231,7 +286,7 @@ export function AdminDashboard() {
                 </div>
               </div>
               <span className="text-slate-400 font-bold text-sm">
-                Not monitored
+                {data.systemHealth?.backgroundJobs?.status || 'Not monitored'}
               </span>
             </div>
           </div>

@@ -109,7 +109,7 @@ export const GuardProfile = () => {
       }
       setSaveMessage({ type: 'success', text: 'Profile updated successfully.' });
     } catch (error: any) {
-      setSaveMessage({ type: 'error', text: error.response?.data?.error?.message || 'Unable to save changes. Try again.' });
+      setSaveMessage({ type: 'error', text: error.userMessage || 'Unable to save changes. Try again.' });
     } finally {
       setIsSaving(false);
     }

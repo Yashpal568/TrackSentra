@@ -38,7 +38,7 @@ export const ActivateGuard = () => {
       setMessage('Account activated successfully! You can now log in.');
     } catch (err: any) {
       setStatus('error');
-      setMessage(err.response?.data?.error?.message || 'Invalid or expired activation token.');
+      setMessage(err.userMessage || 'Invalid or expired activation token.');
     }
   };
 

@@ -49,7 +49,7 @@ export const LiveMonitoring = () => {
       const res = await api.get('/patrols/sessions?status=in_progress');
       setSessions(res.data);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to load active sessions');
+      setError(err.userMessage || 'Failed to load active sessions');
     } finally {
       setLoading(false);
     }

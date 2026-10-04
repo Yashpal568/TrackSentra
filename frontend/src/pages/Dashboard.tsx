@@ -6,6 +6,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Users, Activity, CheckCircle2, AlertTriangle, RefreshCw, ArrowRight, ArrowUpRight, ArrowDownRight, Radio, MapPin, Calendar, CheckSquare } from 'lucide-react';
 import { GuardDashboard } from './guard/GuardDashboard';
+import { ErrorState } from '../components/ErrorState';
 
 // Helper for Donut Chart
 const DonutChart = ({ percentage }: { percentage: number }) => {
@@ -273,11 +274,13 @@ export const Dashboard = () => {
       </div>
 
       {error && (
-        <Card className="p-8 text-center bg-danger/5 border-danger/20 flex flex-col items-center">
-          <AlertTriangle className="text-danger mb-2" size={32} />
-          <h3 className="text-lg font-bold text-danger mb-1">Unable to load dashboard data</h3>
-          <p className="text-text-secondary text-sm mb-4">There was a problem communicating with the server.</p>
-          <Button variant="outline" onClick={() => fetchDashboard()}>Retry</Button>
+        <Card className="border-border-subtle p-0 overflow-hidden">
+          <ErrorState 
+            type="global"
+            title="Unable to load dashboard data"
+            message="There was a problem communicating with the server."
+            onRetry={() => fetchDashboard()}
+          />
         </Card>
       )}
 

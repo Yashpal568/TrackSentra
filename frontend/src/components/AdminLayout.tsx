@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { api } from '../lib/axios';
 import { 
   LayoutDashboard, Users, Building2, CreditCard, PieChart, 
   Activity, Bell, LifeBuoy, Shield, Settings, LogOut, ChevronDown, 
   X, Search, PanelLeftClose, PanelLeftOpen, FileText, Lock
 } from 'lucide-react';
 import { Badge } from './ui/Badge';
+import { NotificationBell } from './NotificationBell';
 
 export const AdminLayout = () => {
   const { user, logout } = useAuthStore();
@@ -18,6 +20,24 @@ export const AdminLayout = () => {
     return saved !== null ? saved === 'true' : true;
   });
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [notifications, setNotifications] = useState({ pendingPayments: 0, newCompanies: 0, totalAlerts: 0 });
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        if (user && user.role === 'SUPER_ADMIN') {
+          const res = await api.get('/admin/notifications/summary');
+          setNotifications(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch admin notifications', err);
+      }
+    };
+    
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 30000); // 30s polling
+    return () => clearInterval(interval);
+  }, [user]);
 
   const toggleSidebar = () => {
     if (window.innerWidth >= 1280) {
@@ -46,7 +66,7 @@ export const AdminLayout = () => {
     {
       title: 'Tenant Management',
       items: [
-        { name: 'Companies', path: '/admin/companies', icon: Building2 },
+        { name: 'Companies', path: '/admin/companies', icon: Building2, badge: notifications.newCompanies > 0 ? notifications.newCompanies : undefined, badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
         { name: 'Users', path: '/admin/users', icon: Users },
       ]
     },
@@ -54,8 +74,7 @@ export const AdminLayout = () => {
       title: 'Monetization',
       items: [
         { name: 'Plans & Pricing', path: '/admin/plans', icon: FileText },
-        { name: 'Subscriptions', path: '/admin/subscriptions', icon: CreditCard },
-        { name: 'Payments', path: '/admin/payments', icon: CreditCard },
+        { name: 'Subscriptions', path: '/admin/subscriptions', icon: CreditCard, badge: notifications.pendingPayments > 0 ? notifications.pendingPayments : undefined, badgeColor: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
         { name: 'Revenue', path: '/admin/revenue', icon: PieChart },
       ]
     },
@@ -63,7 +82,7 @@ export const AdminLayout = () => {
       title: 'Platform',
       items: [
         { name: 'System Health', path: '/admin/health', icon: Activity },
-        { name: 'Notifications', path: '/admin/notifications', icon: Bell },
+        { name: 'Notifications', path: '/admin/notifications', icon: Bell, badge: notifications.totalAlerts > 0 ? notifications.totalAlerts : undefined, badgeColor: 'bg-red-500/20 text-red-400 border-red-500/30' },
         { name: 'Support', path: '/admin/support', icon: LifeBuoy },
       ]
     },
@@ -132,8 +151,14 @@ export const AdminLayout = () => {
                       } ${desktopSidebarOpen ? '' : 'xl:justify-center xl:px-0'}`}
                     >
                       <Icon size={18} className={`shrink-0 transition-colors ${desktopSidebarOpen ? 'mr-3' : 'mr-3 xl:mr-0'} ${active ? 'text-emerald-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
-                      <span className={`whitespace-nowrap transition-all duration-300 ${desktopSidebarOpen ? 'opacity-100 w-auto' : 'xl:opacity-0 xl:w-0 xl:hidden'}`}>{item.name}</span>
+                      <span className={`whitespace-nowrap transition-all duration-300 flex-1 ${desktopSidebarOpen ? 'opacity-100 w-auto' : 'xl:opacity-0 xl:w-0 xl:hidden'}`}>{item.name}</span>
                       
+                      {(item as any).badge !== undefined && (
+                        <span className={`ml-auto flex items-center justify-center text-[10px] font-black px-1.5 py-0.5 rounded-full border min-w-5 h-5 ${(item as any).badgeColor} ${desktopSidebarOpen ? '' : 'xl:absolute xl:top-1 xl:right-1 xl:ml-0'}`}>
+                          {(item as any).badge}
+                        </span>
+                      )}
+
                       {!desktopSidebarOpen && (
                          <div className="fixed left-21 hidden xl:group-hover:block px-2.5 py-1.5 bg-[#121214] text-white text-xs font-bold rounded border border-[#1e1e24] shadow-xl whitespace-nowrap z-50 animate-in fade-in zoom-in-95 pointer-events-none">
                             {item.name}
@@ -184,10 +209,7 @@ export const AdminLayout = () => {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-4 shrink-0 pl-4">
-            <button className="relative p-2 rounded-full text-slate-400 hover:text-white hover:bg-[#1e1e24] transition-colors">
-              <Bell size={20} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500"></span>
-            </button>
+            <NotificationBell className="text-slate-400 hover:text-white hover:bg-[#1e1e24]" />
             
             <button className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-[#1e1e24] transition-colors hidden sm:block">
               <Activity size={20} />

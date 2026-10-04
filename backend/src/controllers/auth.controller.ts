@@ -7,6 +7,7 @@ import { AuditLog } from '../models/AuditLog';
 import crypto from 'crypto';
 import { VerificationToken, TokenType } from '../models/VerificationToken';
 import { sendEmail } from '../utils/email';
+import { NotificationService } from '../services/notification.service';
 
 import { Company } from '../models/Company';
 import { Plan } from '../models/Plan';
@@ -106,6 +107,15 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         'Verify your TrackSentra Account',
         `Please verify your email by clicking the following link:\n\n${verifyUrl}`
       );
+
+      // Notify Super Admins
+      await NotificationService.notifySuperAdmins({
+        type: 'NEW_COMPANY_REGISTRATION',
+        title: 'New Company Registered',
+        message: `${company.name} has just registered on the platform.`,
+        severity: 'INFO',
+        entityType: 'System'
+      });
 
       const { accessToken, refreshToken } = generateTokens(user);
 

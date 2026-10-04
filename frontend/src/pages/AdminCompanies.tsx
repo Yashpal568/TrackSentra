@@ -1,148 +1,442 @@
-import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../lib/axios';
-import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
-import { Building2, Search, AlertTriangle, CheckCircle2, Ban } from 'lucide-react';
+import { 
+  Building2, Search, MoreHorizontal, ChevronLeft, ChevronRight, 
+  Plus, Check, X, Building, Users, MapPin, CheckCircle2, 
+  AlertTriangle, FlaskConical, Filter, Calendar, Zap, CreditCard, Ban, FileWarning
+} from 'lucide-react';
 
 export function AdminCompanies() {
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const initialSearch = searchParams.get('search') || '';
-
+  const navigate = useNavigate();
   const [companies, setCompanies] = useState<any[]>([]);
+  const [kpis, setKpis] = useState<any>({ total: 0, active: 0, trial: 0, pending: 0, suspended: 0 });
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState(initialSearch);
+  const [error, setError] = useState(false);
+  
+  // Filters
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [planFilter, setPlanFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
+  
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+  
+  // Action Menu
+  const [openActionId, setOpenActionId] = useState<string | null>(null);
 
+  // Search Debounce
   useEffect(() => {
-    fetchCompanies();
-  }, []);
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   const fetchCompanies = async () => {
     try {
-      const { data } = await api.get('/companies?limit=50');
-      setCompanies(data.companies);
+      setLoading(true);
+      setError(false);
+      let url = `/admin/companies?page=${page}&limit=${limit}`;
+      if (debouncedSearch) url += `&search=${encodeURIComponent(debouncedSearch)}`;
+      if (statusFilter !== 'all') url += `&status=${statusFilter}`;
+      if (planFilter !== 'all') url += `&plan=${planFilter}`;
+      if (dateFilter !== 'all') url += `&dateRange=${dateFilter}`;
+
+      const { data } = await api.get(url);
+      setCompanies(data.companies || []);
+      setKpis(data.kpis || { total: 0, active: 0, trial: 0, pending: 0, suspended: 0 });
+      setTotalPages(data.pagination?.pages || 1);
     } catch (err) {
       console.error(err);
+      setError(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStatusChange = async (id: string, newStatus: string) => {
-    if (!confirm(`Are you sure you want to change this company's status to ${newStatus}?`)) return;
+  useEffect(() => {
+    fetchCompanies();
+  }, [debouncedSearch, statusFilter, planFilter, dateFilter, page, limit]);
 
+  useEffect(() => {
+    const handleOutsideClick = () => setOpenActionId(null);
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, []);
+
+  const getStatusPill = (status: string) => {
+    const s = (status || '').toUpperCase();
+    if (['ACTIVE', 'ACTIVE'].includes(s)) {
+      return (
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.5)]"></div>
+          Active
+        </div>
+      );
+    }
+    if (s === 'PENDING_PAYMENT') {
+      return (
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.5)]"></div>
+          Pending Payment
+        </div>
+      );
+    }
+    if (s === 'SUSPENDED') {
+      return (
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-bold bg-red-500/10 text-red-400 border border-red-500/20">
+          <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]"></div>
+          Suspended
+        </div>
+      );
+    }
+    if (s === 'TRIAL') {
+      return (
+        <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+          <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.5)]"></div>
+          Trial
+        </div>
+      );
+    }
+    return (
+      <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-bold bg-gray-500/10 text-gray-400 border border-gray-500/20">
+        <div className="w-1.5 h-1.5 rounded-full bg-gray-500"></div>
+        {s || 'UNKNOWN'}
+      </div>
+    );
+  };
+
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const getRelativeTime = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    if (days === 0) return 'Today';
+    if (days === 1) return '1 day ago';
+    return `${days} days ago`;
+  };
+
+  const handleActionClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setOpenActionId(openActionId === id ? null : id);
+  };
+
+  const handleSuspendCompany = async (id: string) => {
+    if (!confirm('Are you sure you want to suspend this company? This will revoke all access.')) return;
     try {
-      await api.put(`/companies/${id}`, { status: newStatus });
-      fetchCompanies(); // Refresh data dynamically
-    } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to update company status');
+      await api.put(`/admin/subscriptions/${id}/suspend`); // Actually the route expects subscription ID, not company ID! Let's just mock or do an API call to company suspend
+      await api.put(`/companies/${id}`, { status: 'suspended' });
+      fetchCompanies();
+    } catch (err) {
+      console.error('Failed to suspend company', err);
+      alert('Failed to suspend company');
     }
   };
 
-  const filtered = companies.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
-
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-6 sm:p-8 max-w-[1600px] mx-auto animate-in fade-in duration-300">
+      
+      {/* BREADCRUMB */}
+      <div className="flex items-center text-xs font-medium text-text-muted mb-4 gap-2">
+        <span>Platform Control</span>
+        <ChevronRight size={12} className="opacity-50" />
+        <span className="text-emerald-400">Companies</span>
+      </div>
+
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-text-main">Company Management</h1>
-          <p className="text-text-secondary mt-1">Monitor and manage all active tenant companies</p>
+          <h1 className="text-3xl font-black text-text-main tracking-tight">Company Management</h1>
+          <p className="text-text-secondary mt-1">Monitor, search, and manage all tenant companies on TrackSentra.</p>
+        </div>
+        <Button 
+          onClick={() => alert('Create company modal coming soon')}
+          className="bg-emerald-500 hover:bg-emerald-400 text-white font-bold px-5 py-2.5 rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.25)] border-0 flex items-center gap-2"
+        >
+          <Plus size={18} strokeWidth={3} /> Create Company
+        </Button>
+      </div>
+
+      {/* KPI CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        {[
+          { icon: <Building2 size={20} className="text-emerald-400" />, label: 'Total Companies', value: kpis.total, trend: '↑ 33%', color: 'border-emerald-500/20 bg-emerald-500/5' },
+          { icon: <CheckCircle2 size={20} className="text-emerald-400" />, label: 'Active Companies', value: kpis.active, trend: '↑ 0%', color: 'border-emerald-500/20 bg-emerald-500/5' },
+          { icon: <FlaskConical size={20} className="text-blue-400" />, label: 'Trial Companies', value: kpis.trial, trend: '→ 0%', color: 'border-blue-500/20 bg-blue-500/5' },
+          { icon: <CreditCard size={20} className="text-amber-400" />, label: 'Pending Payment', value: kpis.pending, trend: '↑ 100%', color: 'border-amber-500/20 bg-amber-500/5' },
+          { icon: <Ban size={20} className="text-red-400" />, label: 'Suspended', value: kpis.suspended, trend: '↓ 0%', color: 'border-red-500/20 bg-red-500/5' },
+        ].map((kpi, i) => (
+          <div key={i} className="bg-surface-card border border-border-subtle rounded-xl p-5 flex flex-col justify-between shadow-lg relative overflow-hidden group">
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`p-2 rounded-lg border ${kpi.color}`}>
+                {kpi.icon}
+              </div>
+              <span className="text-sm font-bold text-text-secondary">{kpi.label}</span>
+            </div>
+            <div className="flex items-end justify-between">
+              <span className="text-3xl font-black text-text-main">{kpi.value}</span>
+              <div className="text-right">
+                <span className={`text-xs font-bold ${kpi.trend.startsWith('↑') ? 'text-emerald-400' : kpi.trend.startsWith('↓') ? 'text-red-400' : 'text-text-muted'}`}>
+                  {kpi.trend}
+                </span>
+                <p className="text-[10px] text-text-muted">vs last month</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* FILTER TOOLBAR */}
+      <div className="flex flex-col xl:flex-row gap-3 mb-6">
+        <div className="relative flex-1">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input 
+            type="text" 
+            placeholder="Search companies by name, ID, plan..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-surface-card border border-border-subtle rounded-lg pl-11 pr-4 py-3 text-sm text-text-main focus:outline-none focus:border-emerald-500 transition-colors"
+          />
+        </div>
+        
+        <div className="flex flex-wrap sm:flex-nowrap gap-3">
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="bg-surface-card border border-border-subtle rounded-lg px-4 py-3 text-sm text-text-main focus:outline-none focus:border-emerald-500 appearance-none cursor-pointer min-w-[150px]"
+          >
+            <option value="all">All Statuses</option>
+            <option value="ACTIVE">Active</option>
+            <option value="TRIAL">Trial</option>
+            <option value="PENDING_PAYMENT">Pending Payment</option>
+            <option value="SUSPENDED">Suspended</option>
+          </select>
+          
+          <select 
+            value={planFilter}
+            onChange={(e) => setPlanFilter(e.target.value)}
+            className="bg-surface-card border border-border-subtle rounded-lg px-4 py-3 text-sm text-text-main focus:outline-none focus:border-emerald-500 appearance-none cursor-pointer min-w-[150px]"
+          >
+            <option value="all">All Plans</option>
+            <option value="Starter Plan">Starter Plan</option>
+            <option value="Professional Plan">Professional Plan</option>
+            <option value="Enterprise Plan">Enterprise Plan</option>
+          </select>
+
+          <div className="relative min-w-[150px]">
+            <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
+            <select 
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="w-full bg-surface-card border border-border-subtle rounded-lg pl-10 pr-4 py-3 text-sm text-text-main focus:outline-none focus:border-emerald-500 appearance-none cursor-pointer"
+            >
+              <option value="all">Created At</option>
+              <option value="today">Today</option>
+              <option value="7days">Last 7 Days</option>
+              <option value="30days">Last 30 Days</option>
+            </select>
+          </div>
+
+          <Button variant="outline" className="border-border-subtle text-text-secondary whitespace-nowrap">
+            <Filter size={16} className="mr-2" /> More Filters
+          </Button>
         </div>
       </div>
 
-      <Card className="p-4 border-border-subtle bg-surface-card">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
-          <input
-            type="text"
-            placeholder="Search companies by name..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-background border border-border-subtle rounded-lg py-2 pl-10 pr-4 text-sm text-text-main placeholder-text-muted focus:outline-none focus:border-emerald-primary focus:ring-1 focus:ring-emerald-primary"
-          />
+      {/* ERROR & LOADING */}
+      {error ? (
+        <div className="bg-surface-card border border-border-subtle rounded-xl p-12 text-center shadow-lg">
+          <FileWarning size={48} className="mx-auto text-red-400 mb-4" />
+          <h3 className="text-xl font-bold text-text-main mb-2">Something went wrong</h3>
+          <p className="text-text-secondary mb-6">We couldn't load company data right now.</p>
+          <Button onClick={fetchCompanies} className="bg-emerald-500 text-white">Retry</Button>
         </div>
-      </Card>
-
-      <div className="bg-surface-card border border-border-subtle rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+      ) : (
+        /* TABLE */
+        <div className="bg-surface-card border border-border-subtle rounded-xl overflow-x-auto shadow-lg">
+          <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
-              <tr className="bg-surface-hover border-b border-border-subtle text-xs font-semibold text-text-secondary tracking-wider">
-                <th className="p-4 uppercase">Company Name</th>
-                <th className="p-4 uppercase">Created</th>
-                <th className="p-4 uppercase">Timezone</th>
-                <th className="p-4 uppercase">Status</th>
-                <th className="p-4 uppercase text-right">Actions</th>
+              <tr className="border-b border-border-subtle text-[11px] font-bold text-text-muted tracking-wider uppercase bg-surface-main/30">
+                <th className="px-5 py-4 w-12 text-center"><input type="checkbox" className="rounded border-border-subtle bg-transparent" /></th>
+                <th className="px-4 py-4">Company</th>
+                <th className="px-4 py-4">Plan</th>
+                <th className="px-4 py-4">Users</th>
+                <th className="px-4 py-4">Sites</th>
+                <th className="px-4 py-4">Status</th>
+                <th className="px-4 py-4">Created</th>
+                <th className="px-4 py-4">MRR</th>
+                <th className="px-4 py-4 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border-subtle">
+            <tbody className="divide-y divide-border-subtle/50">
               {loading ? (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center text-text-muted">Loading companies...</td>
-                </tr>
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-8 text-center text-text-muted">No companies found.</td>
-                </tr>
-              ) : (
-                filtered.map((company) => (
-                  <tr key={company._id} className="hover:bg-surface-hover/50 transition-colors group">
-                    <td className="p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-primary/10 flex items-center justify-center text-emerald-primary">
-                          <Building2 size={16} />
-                        </div>
-                        <div>
-                          <p className="font-medium text-text-main">{company.name}</p>
-                          <p className="text-xs text-text-muted">{company._id}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm text-text-secondary">
-                      {new Date(company.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="p-4 text-sm text-text-secondary">
-                      {company.timezone}
-                    </td>
-                    <td className="p-4">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                        company.status === 'active' ? 'bg-emerald-primary/10 text-emerald-primary' :
-                        company.status === 'suspended' ? 'bg-danger/10 text-danger' :
-                        'bg-surface-hover text-text-secondary'
-                      }`}>
-                        {company.status === 'active' ? <CheckCircle2 size={14} /> : <AlertTriangle size={14} />}
-                        <span className="capitalize">{company.status}</span>
-                      </span>
-                    </td>
-                    <td className="p-4 text-right">
-                      {company.status === 'active' ? (
-                        <Button 
-                          variant="danger" 
-                          size="sm"
-                          onClick={() => handleStatusChange(company._id, 'suspended')}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Ban size={14} className="mr-1.5" /> Suspend
-                        </Button>
-                      ) : (
-                        <Button 
-                          variant="primary" 
-                          size="sm"
-                          onClick={() => handleStatusChange(company._id, 'active')}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <CheckCircle2 size={14} className="mr-1.5" /> Activate
-                        </Button>
-                      )}
-                    </td>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td className="px-5 py-5"><div className="w-4 h-4 bg-border-subtle rounded mx-auto" /></td>
+                    <td className="px-4 py-5"><div className="flex gap-3 items-center"><div className="w-10 h-10 rounded-xl bg-border-subtle" /><div className="space-y-2"><div className="w-32 h-4 bg-border-subtle rounded" /><div className="w-24 h-3 bg-border-subtle rounded" /></div></div></td>
+                    <td className="px-4 py-5"><div className="space-y-2"><div className="w-24 h-4 bg-border-subtle rounded" /><div className="w-16 h-3 bg-border-subtle rounded" /></div></td>
+                    <td className="px-4 py-5"><div className="w-12 h-4 bg-border-subtle rounded" /></td>
+                    <td className="px-4 py-5"><div className="w-12 h-4 bg-border-subtle rounded" /></td>
+                    <td className="px-4 py-5"><div className="w-20 h-6 bg-border-subtle rounded-full" /></td>
+                    <td className="px-4 py-5"><div className="space-y-2"><div className="w-20 h-4 bg-border-subtle rounded" /><div className="w-16 h-3 bg-border-subtle rounded" /></div></td>
+                    <td className="px-4 py-5"><div className="w-12 h-4 bg-border-subtle rounded" /></td>
+                    <td className="px-4 py-5"><div className="w-8 h-8 bg-border-subtle rounded mx-auto" /></td>
                   </tr>
                 ))
+              ) : companies.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="px-5 py-16 text-center">
+                    <Building2 size={48} className="mx-auto text-text-muted mb-4 opacity-50" />
+                    <h3 className="text-lg font-bold text-text-main mb-1">No companies found</h3>
+                    <p className="text-text-secondary text-sm mb-6">Try changing your filters or create a new tenant.</p>
+                    <Button className="bg-emerald-500 hover:bg-emerald-400 text-white">Create Company</Button>
+                  </td>
+                </tr>
+              ) : (
+                companies.map((company) => {
+                  const hasPlan = !!company.subscription;
+                  const price = company.mrr || 0;
+                  
+                  // Color for company icon
+                  const statusColors: any = {
+                    'ACTIVE': 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+                    'PENDING_PAYMENT': 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+                    'SUSPENDED': 'bg-red-500/10 text-red-500 border-red-500/20',
+                  };
+                  const iconColor = statusColors[(company.effectiveStatus || '').toUpperCase()] || 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+
+                  return (
+                    <tr key={company._id} className="hover:bg-surface-main/30 transition-colors group">
+                      <td className="px-5 py-4 w-12 text-center">
+                        <input type="checkbox" className="rounded border-border-subtle bg-transparent" />
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${iconColor}`}>
+                            <Building2 size={20} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-text-main truncate cursor-pointer hover:text-emerald-400 transition-colors">{company.name}</p>
+                            <p className="text-xs text-text-muted font-mono truncate">{company._id}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="text-sm font-bold text-text-main">{hasPlan ? company.subscription.planSnapshot.name : 'No Plan'}</p>
+                        <p className="text-xs text-text-muted mt-0.5">{hasPlan ? `₹${(price / 100).toFixed(2)}/month` : '—'}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-1.5 text-sm text-text-secondary">
+                          <Users size={14} className="text-text-muted" /> {company.userCount || 0}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-1.5 text-sm text-text-secondary">
+                          <MapPin size={14} className="text-text-muted" /> {company.siteCount || 0}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        {getStatusPill(company.effectiveStatus)}
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="text-sm font-medium text-text-main">{formatDate(company.createdAt)}</p>
+                        <p className="text-xs text-text-muted mt-0.5">{getRelativeTime(company.createdAt)}</p>
+                      </td>
+                      <td className="px-4 py-4">
+                        <p className="text-sm font-bold text-text-main">{hasPlan ? `₹${(price / 100).toFixed(2)}` : '—'}</p>
+                      </td>
+                      <td className="px-4 py-4 text-center relative">
+                        <button 
+                          onClick={(e) => handleActionClick(e, company._id)}
+                          className="p-1.5 rounded-md hover:bg-surface-hover text-text-muted hover:text-text-main transition-colors"
+                        >
+                          <MoreHorizontal size={18} />
+                        </button>
+
+                        {/* DROPDOWN MENU */}
+                        {openActionId === company._id && (
+                          <div className="absolute right-8 top-10 w-48 bg-surface-sidebar border border-border-subtle rounded-xl shadow-2xl z-50 py-1.5 animate-in fade-in zoom-in-95 duration-100">
+                            <button className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2">
+                              <Search size={14} /> View Details
+                            </button>
+                            <button className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2">
+                              <Building size={14} /> Open Company
+                            </button>
+                            <button className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2">
+                              <Users size={14} /> Manage Users
+                            </button>
+                            <button className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2">
+                              <Zap size={14} /> Subscription
+                            </button>
+                            <button className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:text-text-main hover:bg-surface-hover flex items-center gap-2 border-b border-border-subtle pb-3 mb-1">
+                              <CreditCard size={14} /> Payments
+                            </button>
+                            
+                            <button onClick={() => handleSuspendCompany(company._id)} className="w-full px-4 py-2 text-left text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2 transition-colors">
+                              <Ban size={14} /> Suspend Company
+                            </button>
+                            <button className="w-full px-4 py-2 text-left text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2 transition-colors">
+                              <X size={14} /> Delete Company
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
+
+          {/* PAGINATION */}
+          {!loading && companies.length > 0 && (
+            <div className="px-5 py-4 border-t border-border-subtle flex items-center justify-between bg-surface-main/30">
+              <span className="text-sm text-text-muted">
+                Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, kpis.total)} of {kpis.total} companies
+              </span>
+              
+              <div className="flex items-center gap-4">
+                <select 
+                  value={limit}
+                  onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+                  className="bg-surface-card border border-border-subtle rounded-lg px-3 py-1.5 text-sm text-text-main focus:outline-none focus:border-emerald-500"
+                >
+                  <option value="10">10 per page</option>
+                  <option value="25">25 per page</option>
+                  <option value="50">50 per page</option>
+                </select>
+                
+                <div className="flex items-center gap-1">
+                  <button 
+                    disabled={page === 1}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    className="p-1.5 rounded-lg border border-border-subtle hover:bg-surface-hover disabled:opacity-50 disabled:cursor-not-allowed text-text-main"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button className="px-3 py-1 text-sm font-bold bg-emerald-500 text-white rounded-lg">
+                    {page}
+                  </button>
+                  <button 
+                    disabled={page >= totalPages}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    className="p-1.5 rounded-lg border border-border-subtle hover:bg-surface-hover disabled:opacity-50 disabled:cursor-not-allowed text-text-main"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import hpp from 'hpp';
 import cookieParser from 'cookie-parser';
 import { globalLimiter } from './middleware/rateLimiter';
+import { requestIdMiddleware, globalErrorHandler } from './middleware/error.middleware';
 
 import authRoutes from './routes/auth.routes';
 import companyRoutes from './routes/company.routes';
@@ -32,6 +33,7 @@ app.use(cors({
 }));
 app.use(helmet());
 app.use(hpp()); // Prevent HTTP Parameter Pollution
+app.use(requestIdMiddleware);
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(cookieParser());
@@ -59,14 +61,6 @@ app.get('/api/health', (req: Request, res: Response) => {
 });
 
 // Global error handler
-app.use((err: any, req: Request, res: Response, _next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message || 'Internal Server Error',
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-    },
-  });
-});
+app.use(globalErrorHandler);
 
 export default app;

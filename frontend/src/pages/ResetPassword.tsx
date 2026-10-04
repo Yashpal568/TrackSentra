@@ -35,7 +35,7 @@ export const ResetPassword = () => {
       setMessage(data.message || 'Password has been reset successfully.');
     } catch (error: any) {
       setStatus('error');
-      setMessage(error.response?.data?.error?.message || 'Invalid or expired reset token.');
+      setMessage(error.userMessage || 'Invalid or expired reset token.');
     }
   };
 

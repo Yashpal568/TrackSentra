@@ -7,11 +7,12 @@ export const NotificationBell = ({ size = 20, className = "" }: { size?: number,
   const { 
     notifications, 
     unreadCount, 
-    connectSSE, 
-    fetchNotifications, 
+    fetchNotifications,
     fetchUnreadCount,
     markAsRead,
-    markAllAsRead
+    markAllAsRead,
+    connectSocket,
+    disconnectSocket
   } = useNotificationStore();
   
   const [isOpen, setIsOpen] = useState(false);
@@ -21,12 +22,11 @@ export const NotificationBell = ({ size = 20, className = "" }: { size?: number,
   useEffect(() => {
     fetchUnreadCount();
     fetchNotifications();
-    connectSSE();
+    connectSocket();
 
     return () => {
-      // Disconnect handled typically on logout or unmount, but we might want to keep it alive
-      // across navigation if Bell is always mounted. 
-      // If Bell is unmounted on route change, this disconnects. Let's not disconnect here if layout persists.
+      // Clean up socket when bell is fully unmounted (logout)
+      disconnectSocket();
     };
   }, []);
 

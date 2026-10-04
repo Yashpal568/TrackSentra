@@ -1,10 +1,7 @@
 import { Notification, INotification } from '../models/Notification';
 import { User } from '../models/User';
 import mongoose from 'mongoose';
-import { EventEmitter } from 'events';
-
-// Centralized real-time event dispatcher for notifications
-export const notificationEventEmitter = new EventEmitter();
+import { SocketService } from './socket.service';
 
 interface CreateNotificationParams {
   companyId: string | mongoose.Types.ObjectId;
@@ -54,13 +51,38 @@ export class NotificationService {
 
     // Dispatch real-time events to connected clients
     createdNotifications.forEach((notification: any) => {
-      notificationEventEmitter.emit('new_notification', {
-        recipientUserId: notification.recipientUserId?.toString(),
-        companyId: notification.companyId?.toString(),
+      SocketService.emitToUser(
+        notification.recipientUserId,
+        'notification:new',
         notification
-      });
+      );
     });
 
     return createdNotifications as any;
+  }
+
+  /**
+   * Notifies all SUPER_ADMIN users across the platform.
+   */
+  static async notifySuperAdmins(params: Omit<CreateNotificationParams, 'companyId' | 'recipientUserId'>): Promise<void> {
+    const superAdmins = await User.find({ role: 'SUPER_ADMIN' }).select('_id companyId');
+    if (!superAdmins.length) return;
+
+    const notificationsToCreate = superAdmins.map(admin => ({
+      ...params,
+      companyId: admin.companyId,
+      recipientUserId: admin._id,
+      severity: params.severity || 'INFO',
+    }));
+
+    const createdNotifications = await Notification.insertMany(notificationsToCreate);
+
+    createdNotifications.forEach((notification: any) => {
+      SocketService.emitToUser(
+        notification.recipientUserId,
+        'notification:new',
+        notification
+      );
+    });
   }
 }

@@ -29,7 +29,7 @@ export function Register() {
       await register({ ...formData, planId });
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Registration failed');
+      setError(err.userMessage || 'Registration failed');
     } finally {
       setLoading(false);
     }

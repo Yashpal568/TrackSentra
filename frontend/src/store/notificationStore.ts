@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { api } from '../lib/axios';
+import { io, Socket } from 'socket.io-client';
 
 interface Notification {
   _id: string;
@@ -22,14 +23,14 @@ interface NotificationState {
   notifications: Notification[];
   unreadCount: number;
   isConnected: boolean;
-  eventSource: EventSource | null;
+  socket: Socket | null;
   
   fetchNotifications: (page?: number) => Promise<void>;
   fetchUnreadCount: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
-  connectSSE: () => void;
-  disconnectSSE: () => void;
+  connectSocket: () => void;
+  disconnectSocket: () => void;
   clear: () => void;
   addNotification: (notification: Notification) => void;
 }
@@ -38,7 +39,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   notifications: [],
   unreadCount: 0,
   isConnected: false,
-  eventSource: null,
+  socket: null,
 
   fetchNotifications: async (page = 1) => {
     try {
@@ -65,12 +66,12 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
         const notifs = state.notifications.map(n => 
           n._id === id ? { ...n, isRead: true } : n
         );
-        const wasUnread = state.notifications.find(n => n._id === id)?.isRead === false;
         return { 
-          notifications: notifs, 
-          unreadCount: wasUnread ? Math.max(0, state.unreadCount - 1) : state.unreadCount 
+          notifications: notifs
         };
       });
+      // Do not decrement here! The server will emit 'notification:read'
+      // which will trigger fetchUnreadCount or update unreadCount authoritatively.
     } catch (err) {
       console.error('Failed to mark as read', err);
     }
@@ -80,8 +81,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     try {
       await api.patch('/notifications/read-all');
       set(state => ({
-        notifications: state.notifications.map(n => ({ ...n, isRead: true })),
-        unreadCount: 0
+        notifications: state.notifications.map(n => ({ ...n, isRead: true }))
       }));
     } catch (err) {
       console.error('Failed to mark all as read', err);
@@ -90,7 +90,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   addNotification: (notification: Notification) => {
     set(state => {
-      // Prevent duplicates in frontend state
+      // Prevent duplicates
       if (state.notifications.some(n => n._id === notification._id)) {
         return state;
       }
@@ -101,57 +101,63 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     });
   },
 
-  connectSSE: () => {
-    const { eventSource, addNotification } = get();
-    if (eventSource) return; // Already connected
+  connectSocket: () => {
+    const { socket, addNotification, fetchUnreadCount } = get();
+    if (socket) return; 
 
-    const url = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/notifications/stream`;
+    // Find the token to authenticate the socket
+    const tokenCookie = document.cookie.split('; ').find(row => row.startsWith('token='));
+    const token = tokenCookie ? tokenCookie.split('=')[1] : null;
+
+    const socketUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
     
-    // We can't easily pass Authorization header in native EventSource.
-    // Instead we rely on the access token cookie being sent if we set withCredentials.
-    // Ensure CORS and backend supports credentials.
-    const es = new EventSource(url, { withCredentials: true });
+    const newSocket = io(socketUrl, {
+      auth: { token },
+      withCredentials: true,
+      transports: ['websocket', 'polling']
+    });
 
-    es.onopen = () => {
-      set({ isConnected: true, eventSource: es });
-    };
+    newSocket.on('connect', () => {
+      set({ isConnected: true });
+    });
 
-    es.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'CONNECTED') return;
-        
-        // Treat as a new notification
-        addNotification(data);
-        
-        // Optional toast could be triggered here if severity warrants it
-        if (['CRITICAL', 'WARNING'].includes(data.severity)) {
-          // You could use a toast library here or custom implementation
-        }
-      } catch (err) {
-        console.error('Failed to parse SSE message', err);
-      }
-    };
+    newSocket.on('notification:new', (notification: Notification) => {
+      addNotification(notification);
+    });
 
-    es.onerror = (err) => {
-      console.error('SSE Error', err);
-      // It will auto-reconnect, but we can update state
+    newSocket.on('notification:read', (data: { notificationId: string, unreadCount: number }) => {
+      set(state => ({
+        unreadCount: data.unreadCount,
+        notifications: state.notifications.map(n => 
+          n._id === data.notificationId ? { ...n, isRead: true } : n
+        )
+      }));
+    });
+
+    newSocket.on('notification:read-all', (data: { unreadCount: number }) => {
+      set(state => ({
+        unreadCount: data.unreadCount,
+        notifications: state.notifications.map(n => ({ ...n, isRead: true }))
+      }));
+    });
+
+    newSocket.on('disconnect', () => {
       set({ isConnected: false });
-    };
+    });
 
-    set({ eventSource: es });
+    set({ socket: newSocket });
   },
 
-  disconnectSSE: () => {
-    const { eventSource } = get();
-    if (eventSource) {
-      eventSource.close();
-      set({ eventSource: null, isConnected: false });
+  disconnectSocket: () => {
+    const { socket } = get();
+    if (socket) {
+      socket.disconnect();
+      set({ socket: null, isConnected: false });
     }
   },
 
   clear: () => {
-    get().disconnectSSE();
+    get().disconnectSocket();
     set({ notifications: [], unreadCount: 0 });
   }
 }));

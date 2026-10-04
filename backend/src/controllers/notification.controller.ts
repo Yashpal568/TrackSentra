@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { Notification } from '../models/Notification';
-import { notificationEventEmitter } from '../services/notification.service';
+import { SocketService } from '../services/socket.service';
 
 export const getNotifications = async (req: Request, res: Response): Promise<void> => {
   const user = (req as any).user;
@@ -63,6 +63,14 @@ export const markAsRead = async (req: Request, res: Response): Promise<void> => 
     return;
   }
 
+  const unreadCount = await Notification.countDocuments({
+    recipientUserId: user._id,
+    companyId: user.companyId,
+    isRead: false
+  });
+
+  SocketService.emitToUser(user._id, 'notification:read', { notificationId: id, unreadCount });
+
   res.json(notification);
 };
 
@@ -74,32 +82,8 @@ export const markAllAsRead = async (req: Request, res: Response): Promise<void> 
     { isRead: true, readAt: new Date() }
   );
 
+  SocketService.emitToUser(user._id, 'notification:read-all', { unreadCount: 0 });
+
   res.json({ success: true });
 };
 
-export const notificationStream = async (req: Request, res: Response): Promise<void> => {
-  const user = (req as any).user;
-
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders();
-
-  res.write(`data: ${JSON.stringify({ type: 'CONNECTED' })}\n\n`);
-
-  const onUpdate = (eventData: any) => {
-    // Only send if recipient matches and company matches
-    if (
-      eventData.recipientUserId === user._id.toString() &&
-      eventData.companyId === user.companyId.toString()
-    ) {
-      res.write(`data: ${JSON.stringify(eventData.notification)}\n\n`);
-    }
-  };
-
-  notificationEventEmitter.on('new_notification', onUpdate);
-
-  req.on('close', () => {
-    notificationEventEmitter.removeListener('new_notification', onUpdate);
-  });
-};

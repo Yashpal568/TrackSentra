@@ -25,7 +25,7 @@ export const VerifyEmail = () => {
         setMessage('Your email has been successfully verified! You can now log in.');
       } catch (err: any) {
         setStatus('error');
-        setMessage(err.response?.data?.error?.message || 'Invalid or expired verification token.');
+        setMessage(err.userMessage || 'Invalid or expired verification token.');
       }
     };
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Activity, Server, Database, HardDrive, Cpu, Network, CheckCircle2 } from 'lucide-react';
+import { Database, HardDrive, Cpu, Network, CheckCircle2 } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 
 export function AdminSystemHealth() {

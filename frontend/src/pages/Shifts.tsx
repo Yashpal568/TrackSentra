@@ -54,7 +54,7 @@ export const Shifts = () => {
       setFormData({ siteId: '', guardId: '', startTime: '', endTime: '', notes: '' });
       setError('');
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to create shift.');
+      setError(err.userMessage || 'Failed to create shift.');
     }
   };
 

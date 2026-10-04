@@ -1,32 +1,82 @@
 import { Request, Response } from 'express';
 import { Company } from '../models/Company';
+import { Site } from '../models/Site';
 import { User } from '../models/User';
-import { Subscription } from '../models/Subscription';
+import { Subscription, SubscriptionStatus } from '../models/Subscription';
 import { PaymentSubmission } from '../models/PaymentSubmission';
+import mongoose from 'mongoose';
+
+export const getAdminNotificationsSummary = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const pendingPaymentsCount = await PaymentSubmission.countDocuments({ status: 'PENDING' });
+    
+    // Count companies created in the last 24 hours
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const newCompaniesCount = await Company.countDocuments({ createdAt: { $gte: oneDayAgo } });
+    
+    res.json({
+      pendingPayments: pendingPaymentsCount,
+      newCompanies: newCompaniesCount,
+      totalAlerts: pendingPaymentsCount + newCompaniesCount
+    });
+  } catch (error) {
+    console.error('Error fetching admin notifications summary:', error);
+    res.status(500).json({ error: { message: 'Failed to fetch admin notifications summary' } });
+  }
+};
 
 export const getPlatformDashboard = async (req: Request, res: Response): Promise<void> => {
   try {
     const totalCompanies = await Company.countDocuments();
     const activeCompanies = await Company.countDocuments({ status: 'active' });
     const activeUsers = await User.countDocuments({ status: 'active' });
-    
-    // In a real app we'd calculate MRR from subscriptions
-    // Let's query recently created companies
+    // Calculate MRR (basic estimation)
+    let mrrCents = 0;
+    const activeSubs = await Subscription.find({ status: 'active' });
+    activeSubs.forEach(sub => {
+      if (sub.planSnapshot?.billingInterval === 'monthly') {
+        mrrCents += sub.planSnapshot.price || 0;
+      } else if (sub.planSnapshot?.billingInterval === 'yearly') {
+        mrrCents += (sub.planSnapshot.price || 0) / 12;
+      }
+    });
+
     const recentCompanies = await Company.find()
       .sort({ createdAt: -1 })
       .limit(5)
       .select('name createdAt status');
 
+    // System Health
+    let dbStatus = 'Unavailable';
+    let dbLatency = 0;
+    try {
+      const start = Date.now();
+      if (mongoose.connection.readyState === 1) {
+        await mongoose.connection.db?.admin().ping();
+        dbLatency = Date.now() - start;
+        dbStatus = 'Healthy';
+      }
+    } catch (e) {
+      dbStatus = 'Degraded';
+    }
+
+    const systemHealth = {
+      api: { status: 'Healthy', timestamp: new Date().toISOString() },
+      database: { status: dbStatus, latency: dbLatency },
+      backgroundJobs: { status: 'Not configured' }
+    };
+
     res.json({
       kpis: {
         totalCompanies,
         activeCompanies,
-        trialCompanies: 0, // Placeholder
+        trialCompanies: 'Not available',
         activeUsers,
-        mrr: 0, // Placeholder since we don't have a payments DB ready yet
-        openTickets: 0 // Placeholder
+        mrr: mrrCents / 100,
+        openTickets: 'Not available'
       },
-      recentCompanies
+      recentCompanies,
+      systemHealth
     });
   } catch (error) {
     console.error('Error fetching platform dashboard:', error);
@@ -40,50 +90,21 @@ export const getAllSubscriptions = async (req: Request, res: Response): Promise<
       .populate('companyId', 'name email phone')
       .sort({ createdAt: -1 });
     
-    // We can also fetch the payment history or events for each subscription if needed
-    // But for now, we'll format the response with a dummy history since we don't have an event model
-    const formattedSubscriptions = subscriptions.map(sub => {
+    // Fetch payment submissions for subscriptions that are PENDING_PAYMENT
+    const formattedSubscriptions = await Promise.all(subscriptions.map(async sub => {
       const s = sub.toObject();
+      let paymentSubmission = null;
+      if (s.status === 'PENDING_PAYMENT') {
+         paymentSubmission = await PaymentSubmission.findOne({ companyId: s.companyId?._id, status: 'PENDING' }).sort({ createdAt: -1 }).lean();
+      }
       return {
         ...s,
+        paymentSubmission,
         history: [
           { date: s.createdAt, event: 'Subscription Created', details: `Started ${s.planSnapshot.name}` }
         ]
       };
-    });
-
-    if (formattedSubscriptions.length === 0) {
-      // Inject dummy data for demonstration purposes so the user can test the UI
-      formattedSubscriptions.push(
-         { 
-           _id: '1', 
-           companyId: { _id: 'c1', name: 'Acme Security', email: 'admin@acmesecurity.com', phone: '+91 9876543210' }, 
-           planSnapshot: { name: 'Enterprise Plan', price: 39900, currency: 'USD', billingInterval: 'monthly', limits: { maxGuards: 100, maxSites: 20 } }, 
-           status: 'active', 
-           startDate: new Date(Date.now() - 86400000 * 60).toISOString(),
-           currentPeriodStart: new Date(Date.now() - 86400000 * 10).toISOString(),
-           currentPeriodEnd: new Date(Date.now() + 86400000 * 20).toISOString(),
-           history: [
-             { date: new Date(Date.now() - 86400000 * 60).toISOString(), event: 'Subscription Created', details: 'Started Enterprise Plan' },
-             { date: new Date(Date.now() - 86400000 * 30).toISOString(), event: 'Payment Received', details: '₹3,990 via Credit Card' },
-             { date: new Date(Date.now() - 86400000 * 10).toISOString(), event: 'Subscription Renewed', details: 'Automatic renewal successful' },
-           ]
-         } as any,
-         { 
-           _id: '2', 
-           companyId: { _id: 'c2', name: 'Vanguard Ops', email: 'billing@vanguardops.com', phone: '+91 9123456789' }, 
-           planSnapshot: { name: 'Professional Plan', price: 12900, currency: 'USD', billingInterval: 'monthly', limits: { maxGuards: 25, maxSites: 5 } }, 
-           status: 'past_due', 
-           startDate: new Date(Date.now() - 86400000 * 90).toISOString(),
-           currentPeriodStart: new Date(Date.now() - 86400000 * 32).toISOString(),
-           currentPeriodEnd: new Date(Date.now() - 86400000 * 2).toISOString(),
-           history: [
-             { date: new Date(Date.now() - 86400000 * 90).toISOString(), event: 'Subscription Created', details: 'Started Professional Plan' },
-             { date: new Date(Date.now() - 86400000 * 2).toISOString(), event: 'Payment Failed', details: 'Card declined - Insufficient funds' },
-           ]
-         } as any
-      );
-    }
+    }));
 
     res.json({ subscriptions: formattedSubscriptions });
   } catch (error: any) {
@@ -149,5 +170,243 @@ export const getRevenueAnalytics = async (req: Request, res: Response): Promise<
   } catch (error: any) {
     console.error('Error fetching revenue:', error);
     res.status(500).json({ error: { message: 'Failed to fetch revenue data' } });
+  }
+};
+
+export const verifyPayment = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { companyId, status } = req.body;
+    
+    // Find the payment submission
+    const submission = await PaymentSubmission.findOne({ companyId, status: 'PENDING' }).sort({ createdAt: -1 });
+    if (!submission) {
+       res.status(404).json({ error: { message: 'Pending payment submission not found' } });
+       return;
+    }
+
+    const upperStatus = status.toUpperCase();
+    submission.status = upperStatus;
+    submission.verifiedBy = req.user?._id;
+    submission.verifiedAt = new Date();
+    await submission.save();
+
+    if (upperStatus === 'APPROVED') {
+      const subscription = await Subscription.findOne({ companyId });
+      if (subscription) {
+         subscription.status = SubscriptionStatus.ACTIVE;
+         subscription.currentPeriodStart = new Date();
+         subscription.currentPeriodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+         await subscription.save();
+      }
+      
+      await Company.findByIdAndUpdate(companyId, { status: 'active' });
+    }
+
+    res.json({ message: `Payment ${status} successfully` });
+  } catch (error) {
+    console.error('Error verifying payment:', error);
+    res.status(500).json({ error: { message: 'Failed to verify payment' } });
+  }
+};
+
+export const suspendSubscription = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const subscription = await Subscription.findById(id);
+    if (!subscription) {
+       res.status(404).json({ error: { message: 'Subscription not found' } });
+       return;
+    }
+    
+    subscription.status = 'SUSPENDED';
+    await subscription.save();
+    
+    await Company.findByIdAndUpdate(subscription.companyId, { status: 'suspended' });
+
+    res.json({ message: 'Account suspended successfully' });
+  } catch (error) {
+    console.error('Error suspending subscription:', error);
+    res.status(500).json({ error: { message: 'Failed to suspend subscription' } });
+  }
+};
+
+export const getPlatformCompanies = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { search, status, plan, dateRange, page = '1', limit = '10' } = req.query;
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+
+    // 1. Build Base Company Match
+    const matchStage: any = {};
+    if (search) {
+      const searchRegex = new RegExp(search as string, 'i');
+      if (mongoose.Types.ObjectId.isValid(search as string)) {
+        matchStage.$or = [{ name: searchRegex }, { _id: new mongoose.Types.ObjectId(search as string) }];
+      } else {
+        matchStage.name = searchRegex;
+      }
+    }
+
+    if (dateRange) {
+      const now = new Date();
+      if (dateRange === 'today') {
+        const start = new Date(now.setHours(0,0,0,0));
+        matchStage.createdAt = { $gte: start };
+      } else if (dateRange === '7days') {
+        matchStage.createdAt = { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) };
+      } else if (dateRange === '30days') {
+        matchStage.createdAt = { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) };
+      }
+    }
+
+    // 2. Aggregate pipeline
+    const pipeline: any[] = [
+      { $match: matchStage },
+      
+      // Lookup Subscription
+      {
+        $lookup: {
+          from: 'subscriptions',
+          localField: '_id',
+          foreignField: 'companyId',
+          as: 'subscription'
+        }
+      },
+      {
+        $unwind: {
+          path: '$subscription',
+          preserveNullAndEmptyArrays: true
+        }
+      },
+
+      // Apply subscription-level filters (Status and Plan)
+      // Note: effective status is subscription.status if it exists and is pending/suspended, else company.status
+      {
+        $addFields: {
+          effectiveStatus: {
+            $cond: {
+              if: { $and: [ { $ne: ["$subscription", null] }, { $in: ["$subscription.status", ["PENDING_PAYMENT", "SUSPENDED", "TRIAL"]] } ] },
+              then: "$subscription.status",
+              else: "$status"
+            }
+          }
+        }
+      }
+    ];
+
+    if (status && status !== 'all') {
+      if (status === 'ACTIVE') {
+        // Active means company status is active AND sub status is active or trial
+        pipeline.push({ $match: { effectiveStatus: { $in: ['active', 'ACTIVE', 'TRIAL'] } } });
+      } else {
+        pipeline.push({ $match: { effectiveStatus: new RegExp(status as string, 'i') } });
+      }
+    }
+
+    if (plan && plan !== 'all') {
+      pipeline.push({ $match: { "subscription.planSnapshot.name": plan } });
+    }
+
+    // Count Total after filters
+    const countPipeline = [...pipeline, { $count: 'total' }];
+    const countResult = await Company.aggregate(countPipeline);
+    const total = countResult.length > 0 ? countResult[0].total : 0;
+
+    // Apply Pagination and Sorting
+    pipeline.push({ $sort: { createdAt: -1 } });
+    pipeline.push({ $skip: (pageNum - 1) * limitNum });
+    pipeline.push({ $limit: limitNum });
+
+    // Lookup Users Count
+    pipeline.push({
+      $lookup: {
+        from: 'users',
+        localField: '_id',
+        foreignField: 'companyId',
+        as: 'users'
+      }
+    });
+    
+    // Lookup Sites Count
+    pipeline.push({
+      $lookup: {
+        from: 'sites',
+        localField: '_id',
+        foreignField: 'companyId',
+        as: 'sites'
+      }
+    });
+
+    pipeline.push({
+      $project: {
+        _id: 1,
+        name: 1,
+        createdAt: 1,
+        effectiveStatus: 1,
+        subscription: 1,
+        userCount: { $size: "$users" },
+        siteCount: { $size: "$sites" },
+        mrr: {
+          $cond: {
+            if: { $eq: ["$subscription.planSnapshot.billingInterval", "monthly"] },
+            then: "$subscription.planSnapshot.price",
+            else: {
+              $cond: {
+                if: { $eq: ["$subscription.planSnapshot.billingInterval", "yearly"] },
+                then: { $divide: ["$subscription.planSnapshot.price", 12] },
+                else: 0
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const companies = await Company.aggregate(pipeline);
+
+    // Calculate Global KPIs (independent of search/filters)
+    const allCompanies = await Company.aggregate([
+      {
+        $lookup: {
+          from: 'subscriptions',
+          localField: '_id',
+          foreignField: 'companyId',
+          as: 'subscription'
+        }
+      },
+      { $unwind: { path: '$subscription', preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          effectiveStatus: {
+            $cond: {
+              if: { $and: [ { $ne: ["$subscription", null] }, { $in: ["$subscription.status", ["PENDING_PAYMENT", "SUSPENDED", "TRIAL"]] } ] },
+              then: "$subscription.status",
+              else: "$status"
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          active: { $sum: { $cond: [{ $in: [{ $toUpper: "$effectiveStatus" }, ["ACTIVE", "TRIAL"]] }, 1, 0] } },
+          trial: { $sum: { $cond: [{ $eq: [{ $toUpper: "$effectiveStatus" }, "TRIAL"] }, 1, 0] } },
+          pending: { $sum: { $cond: [{ $eq: [{ $toUpper: "$effectiveStatus" }, "PENDING_PAYMENT"] }, 1, 0] } },
+          suspended: { $sum: { $cond: [{ $eq: [{ $toUpper: "$effectiveStatus" }, "SUSPENDED"] }, 1, 0] } }
+        }
+      }
+    ]);
+
+    const kpis = allCompanies.length > 0 ? allCompanies[0] : { total: 0, active: 0, trial: 0, pending: 0, suspended: 0 };
+
+    res.json({
+      companies,
+      kpis,
+      pagination: { total, page: pageNum, pages: Math.ceil(total / limitNum) }
+    });
+  } catch (error) {
+    console.error('Error fetching platform companies:', error);
+    res.status(500).json({ error: { message: 'Failed to fetch platform companies' } });
   }
 };

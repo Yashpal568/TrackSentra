@@ -41,7 +41,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user: response.data.user, isLoading: false });
     } catch (error: any) {
       set({ 
-        error: error.response?.data?.error?.message || 'Login failed',
+        error: error.userMessage || 'Login failed',
         isLoading: false 
       });
       throw error;
@@ -55,7 +55,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user: response.data.user, isLoading: false });
     } catch (error: any) {
       set({ 
-        error: error.response?.data?.error?.message || 'Demo login failed',
+        error: error.userMessage || 'Demo login failed',
         isLoading: false 
       });
       throw error;
@@ -69,7 +69,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user: response.data.user, isLoading: false });
     } catch (error: any) {
       set({ 
-        error: error.response?.data?.error?.message || 'Registration failed',
+        error: error.userMessage || 'Registration failed',
         isLoading: false 
       });
       throw error;

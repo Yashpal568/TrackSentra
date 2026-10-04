@@ -24,7 +24,7 @@ export function Pricing() {
   const [isVisible, setIsVisible] = useState(false);
   const [selectingPlan, setSelectingPlan] = useState<string | null>(null);
   const navigate = useNavigate();
-  const user = useAuthStore(state => state.user);
+  const { user, checkAuth } = useAuthStore();
 
   useEffect(() => {
     setIsVisible(true);
@@ -54,9 +54,10 @@ export function Pricing() {
     try {
       setSelectingPlan(planId);
       await api.post('/subscriptions/my', { planId });
+      await checkAuth(); // Refresh the user state so RequireSubscription knows they have a plan
       navigate('/subscription');
     } catch (err: any) {
-      alert(err.response?.data?.error?.message || 'Failed to select plan');
+      alert(err.userMessage || 'Failed to select plan');
       setSelectingPlan(null);
     }
   };

@@ -20,10 +20,13 @@ export const RequireSubscription = () => {
   }
 
   // If a company admin doesn't have an active subscription, prompt them
-  const isActive = user.subscription?.status === 'ACTIVE';
+  if (!user.subscription) {
+    // If they have no subscription at all, force them to select a plan
+    return <Navigate to="/pricing" replace />;
+  }
 
-  if (!isActive) {
-    // Redirect to subscription page to update payment details
+  if (user.subscription.status !== 'ACTIVE') {
+    // If they have a subscription but it's not active (e.g., PENDING_PAYMENT), go to verification page
     return <Navigate to="/subscription" replace />;
   }
 

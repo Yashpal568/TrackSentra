@@ -51,7 +51,7 @@ export const PatrolLiveDetails = () => {
       }
       setScans(scansRes.data);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to load details');
+      setError(err.userMessage || 'Failed to load details');
     } finally {
       setLoading(false);
     }

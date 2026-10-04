@@ -1,4 +1,3 @@
-import React from 'react';
 import { Hammer } from 'lucide-react';
 
 interface PlaceholderProps {

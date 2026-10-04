@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import app from './app';
 import { connectDB } from './db';
+import { SocketService } from './services/socket.service';
 
 dotenv.config();
 
@@ -19,6 +20,9 @@ connectDB().then(() => {
   const server = app.listen(PORT, () => {
     console.log(`✅ Server is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
   });
+
+  // Initialize Socket.IO
+  SocketService.init(server);
 
   // Graceful shutdown
   const shutdown = () => {
